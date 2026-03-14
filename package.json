@@ -1,0 +1,27 @@
+{
+  "name": "fullstack-project-ti",
+  "version": "1.0.0",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/muhamadr03/Fullstack-Project-TI.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/muhamadr03/Fullstack-Project-TI/issues"
+  },
+  "homepage": "https://github.com/muhamadr03/Fullstack-Project-TI#readme",
+  "description": "",
+  "dependencies": {
+    "dotenv": "^17.3.1",
+    "express": "^5.2.1",
+    "mysql2": "^3.19.1"
+  }
+}
