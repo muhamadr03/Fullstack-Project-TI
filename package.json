@@ -20,8 +20,10 @@
   "homepage": "https://github.com/muhamadr03/Fullstack-Project-TI#readme",
   "description": "",
   "dependencies": {
+    "bcrypt": "^6.0.0",
     "dotenv": "^17.3.1",
     "express": "^5.2.1",
-    "mysql2": "^3.19.1"
+    "jsonwebtoken": "^9.0.3",
+    "mysql2": "^3.20.0"
   }
 }
