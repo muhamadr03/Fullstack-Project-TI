@@ -5,11 +5,14 @@ const app = express();
 const authRoutes = require("./src/routes/authRoutes"); // Sesuaikan letak foldernya
 const productRoutes = require("./src/routes/productRoutes"); // Sesuaikan letak foldernya
 
+const cartRoutes = require("./src/routes/cartRoutes");
 // WAJIB ADA: Agar Express bisa membaca data JSON dari body request
 app.use(express.json());
 
 // Menyambungkan rute autentikasi ke awalan '/api/auth'
 app.use("/api/auth", authRoutes);
+app.use('/api', cartRoutes);
+
 
 // Menyambungkan rute produk ke awalan '/api/products'
 app.use("/api/products", productRoutes);
