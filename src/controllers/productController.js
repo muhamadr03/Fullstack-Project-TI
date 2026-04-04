@@ -30,6 +30,41 @@ const getAllProducts = async (req, res) => {
   }
 };
 
+const createProduct = async (req, res) => {
+  res.json({ message: "Create product works" });
+};
+const updateProduct = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    return res.json({
+      message: `Produk dengan id ${id} berhasil diupdate`
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: "Error update product",
+      error: error.message
+    });
+  }
+};
+const deleteProduct = async (req, res) => {
+  try {
+    const { id } = req.params;    
+    return res.json({
+      message: `Produk dengan id ${id} berhasil dihapus`
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: "Error delete product",
+      error: error.message
+    });
+  }
+};
+
+
 module.exports = {
-  getAllProducts
+  getAllProducts,
+  createProduct,
+  updateProduct, 
+  deleteProduct
 };
