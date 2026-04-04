@@ -1,10 +1,16 @@
 const express = require('express');
 const router = express.Router();
 const productController = require('../controllers/productController');
+const adminMiddleware = require('../middlewares/adminMiddleware');
 
-// Rute untuk mengambil semua produk
-// Path dasar (seperti /api/products) biasanya didefinisikan di file utama (misal: app.js atau index.js)
-// Sehingga di sini kita cukup menggunakan '/'
+// Rute publik (boleh diakses semua user)
 router.get('/', productController.getAllProducts);
+
+// Contoh rute yang diproteksi admin
+router.post('/', adminMiddleware, productController.createProduct);
+router.put('/:id', adminMiddleware, productController.updateProduct);
+router.delete('/:id', adminMiddleware, productController.deleteProduct);
+
+console.log(productController);
 
 module.exports = router;
