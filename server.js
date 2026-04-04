@@ -1,23 +1,22 @@
 require("dotenv").config();
-
 const express = require("express");
 const app = express();
-const authRoutes = require("./src/routes/authRoutes"); // Sesuaikan letak foldernya
-const productRoutes = require("./src/routes/productRoutes"); // Sesuaikan letak foldernya
 
-const cartRoutes = require("./src/routes/cartRoutes");
-// WAJIB ADA: Agar Express bisa membaca data JSON dari body request
+// 1. MIDDLEWARE (Wajib di paling atas sebelum routes)
 app.use(express.json());
 
-// Menyambungkan rute autentikasi ke awalan '/api/auth'
+// 2. IMPORT ROUTES
+const authRoutes = require("./src/routes/authRoutes");
+const productRoutes = require("./src/routes/productRoutes");
+const cartRoutes = require("./src/routes/cartRoutes");
+
+// 3. MOUNT ROUTES
 app.use("/api/auth", authRoutes);
-app.use('/api', cartRoutes);
-
-
-// Menyambungkan rute produk ke awalan '/api/products'
 app.use("/api/products", productRoutes);
+app.use("/api/cart", cartRoutes); // Pastikan ini /api/cart
 
+// 4. JALANKAN SERVER
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
-  console.log(`Server berjalan di http://localhost:${PORT}`);
+  console.log(`Server running on http://localhost:${PORT}`);
 });

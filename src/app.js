@@ -14,7 +14,6 @@ app.use(express.json());
 // Gunakan route yang sudah dibuat
 app.use("/api/auth", authRoutes);
 app.use("/api/products", productRoutes);
-
 app.use("/api/cart", cartRoutes);
 app.listen(3000, () => {
   console.log("Server berjalan di port 3000");
