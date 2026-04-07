@@ -1,47 +1,93 @@
-// Import koneksi database
-const db = require('../config/db');
+const { Order, OrderItem, Cart, Product } = require("../models");
 
-/**
- * Mengambil riwayat pesanan berdasarkan user_id
- * Endpoint: GET /api/orders/:user_id
- */
-const getOrdersByUserId = async (req, res) => {
+// CUSTOMER: Melakukan Checkout
+exports.checkout = async (req, res) => {
   try {
-    // Ambil user_id dari parameter URL
-    const { user_id } = req.params;
+    const { shipping_address } = req.body;
 
-    // Query ke database
-    const [rows] = await db.query(
-      'SELECT * FROM orders WHERE user_id = ? ORDER BY created_at DESC',
-      [user_id]
-    );
-
-    if (rows.length === 0) {
-        return res.status(404).json({
-            success: false,
-            message: 'Tidak ada pesanan untuk user ini'
-         });
-        };
-
-    return res.status(200).json({
-      success: true,
-      message: 'Berhasil mengambil riwayat pesanan',
-      data: rows
+    // 1. Ambil isi keranjang user
+    const cartItems = await Cart.findAll({
+      where: { user_id: req.user.id },
+      include: [{ model: Product, as: "product" }],
     });
 
+    if (cartItems.length === 0) {
+      return res
+        .status(400)
+        .json({ message: "Keranjang belanja Anda kosong!" });
+    }
+
+    // 2. Hitung total harga otomatis
+    let totalAmount = 0;
+    cartItems.forEach((item) => {
+      totalAmount += item.quantity * item.product.price;
+    });
+
+    // 3. Buat data Pesanan Utama (Order)
+    const newOrder = await Order.create({
+      user_id: req.user.id,
+      total_amount: totalAmount,
+      shipping_address: shipping_address || "Alamat default belum diisi",
+      status: "pending",
+    });
+
+    // 4. Pindahkan detail barang dari Cart ke OrderItem
+    const orderItemsData = cartItems.map((item) => ({
+      order_id: newOrder.id,
+      product_id: item.product_id,
+      quantity: item.quantity,
+      price_at_purchase: item.product.price,
+    }));
+
+    await OrderItem.bulkCreate(orderItemsData); // Insert banyak data sekaligus
+
+    // 5. Kosongkan keranjang user karena sudah jadi pesanan
+    await Cart.destroy({ where: { user_id: req.user.id } });
+
+    res
+      .status(201)
+      .json({ message: "Checkout berhasil!", order_id: newOrder.id });
   } catch (error) {
-    console.error('Error fetching orders by user_id:', error);
-
-    return res.status(500).json({
-      success: false,
-      message: 'Terjadi kesalahan saat mengambil riwayat pesanan',
-      error: error.message
-    });
+    res
+      .status(500)
+      .json({ message: "Gagal melakukan checkout.", error: error.message });
   }
 };
 
+// CUSTOMER: Melihat Riwayat Pesanannya Sendiri
+exports.getUserOrders = async (req, res) => {
+  try {
+    const orders = await Order.findAll({
+      where: { user_id: req.user.id },
+      include: [
+        {
+          model: OrderItem,
+          as: "items",
+          include: [{ model: Product, as: "product", attributes: ["name"] }],
+        },
+      ],
+    });
+    res.status(200).json(orders);
+  } catch (error) {
+    res
+      .status(500)
+      .json({
+        message: "Gagal mengambil riwayat pesanan.",
+        error: error.message,
+      });
+  }
+};
 
-
-module.exports = {
-  getOrdersByUserId
+// ADMIN: Update Status Resi/Pengiriman
+exports.updateOrderStatus = async (req, res) => {
+  try {
+    const { status, tracking_number } = req.body;
+    await Order.update(
+      { status, tracking_number },
+      { where: { id: req.params.id } },
+    );
+    res.status(200).json({ message: "Status pesanan berhasil diupdate." });
+  } catch (error) {
+    res.status(500).json({ message: "Gagal mengupdate status pesanan." });
+  }
 };
