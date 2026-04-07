@@ -1,70 +1,59 @@
-// Import koneksi database. Sesuaikan path dengan struktur folder Anda.
-const db = require('../config/db');
+const { Product, Category } = require("../models");
 
-/**
- * Mengambil seluruh daftar produk dari database
- * Endpoint: GET /api/products
- */
-const getAllProducts = async (req, res) => {
+exports.getAllProducts = async (req, res) => {
   try {
-    // Mengeksekusi query untuk mengambil semua data dari tabel products
-    const [rows] = await db.query('SELECT * FROM products');
-
-    // Mengembalikan response JSON dengan status 200 jika berhasil
-    return res.status(200).json({
-      success: true,
-      message: 'Berhasil mengambil daftar produk',
-      data: rows
+    // Kehebatan ORM: otomatis melakukan JOIN ke tabel categories!
+    const products = await Product.findAll({
+      include: [{ model: Category, as: "category", attributes: ["name"] }],
     });
-
+    res.status(200).json(products);
   } catch (error) {
-    // Mencetak error ke console untuk keperluan debugging
-    console.error('Error fetching products:', error);
-
-    // Mengembalikan response 500 jika terjadi kesalahan pada server/database
-    return res.status(500).json({
-      success: false,
-      message: 'Terjadi kesalahan pada server saat mengambil data produk',
-      error: error.message
-    });
+    res
+      .status(500)
+      .json({ message: "Terjadi kesalahan server.", error: error.message });
   }
 };
 
-const createProduct = async (req, res) => {
-  res.json({ message: "Create product works" });
-};
-const updateProduct = async (req, res) => {
+exports.getProductById = async (req, res) => {
   try {
-    const { id } = req.params;
-
-    return res.json({
-      message: `Produk dengan id ${id} berhasil diupdate`
+    const product = await Product.findByPk(req.params.id, {
+      include: [{ model: Category, as: "category", attributes: ["name"] }],
     });
+    if (!product)
+      return res.status(404).json({ message: "Produk tidak ditemukan." });
+    res.status(200).json(product);
   } catch (error) {
-    return res.status(500).json({
-      message: "Error update product",
-      error: error.message
-    });
-  }
-};
-const deleteProduct = async (req, res) => {
-  try {
-    const { id } = req.params;    
-    return res.json({
-      message: `Produk dengan id ${id} berhasil dihapus`
-    });
-  } catch (error) {
-    return res.status(500).json({
-      message: "Error delete product",
-      error: error.message
-    });
+    res.status(500).json({ message: "Terjadi kesalahan server." });
   }
 };
 
+exports.createProduct = async (req, res) => {
+  try {
+    const newProduct = await Product.create(req.body);
+    res
+      .status(201)
+      .json({ message: "Produk berhasil ditambahkan!", data: newProduct });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Gagal menambahkan produk.", error: error.message });
+  }
+};
 
-module.exports = {
-  getAllProducts,
-  createProduct,
-  updateProduct, 
-  deleteProduct
+exports.updateProduct = async (req, res) => {
+  try {
+    await Product.update(req.body, { where: { id: req.params.id } });
+    res.status(200).json({ message: "Produk berhasil diupdate!" });
+  } catch (error) {
+    res.status(500).json({ message: "Gagal mengupdate produk." });
+  }
+};
+
+exports.deleteProduct = async (req, res) => {
+  try {
+    await Product.destroy({ where: { id: req.params.id } });
+    res.status(200).json({ message: "Produk berhasil dihapus." });
+  } catch (error) {
+    res.status(500).json({ message: "Gagal menghapus produk." });
+  }
 };

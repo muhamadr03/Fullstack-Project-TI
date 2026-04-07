@@ -1,16 +1,15 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const productController = require('../controllers/productController');
-const adminMiddleware = require('../middlewares/adminMiddleware');
+const productController = require("../controllers/productController");
+const { verifyToken, isAdmin } = require("../middlewares/authMiddleware");
 
-// Rute publik (boleh diakses semua user)
-router.get('/', productController.getAllProducts);
+// Rute Publik
+router.get("/", productController.getAllProducts);
+router.get("/:id", productController.getProductById);
 
-// Contoh rute yang diproteksi admin
-router.post('/', adminMiddleware, productController.createProduct);
-router.put('/:id', adminMiddleware, productController.updateProduct);
-router.delete('/:id', adminMiddleware, productController.deleteProduct);
-
-console.log(productController);
+// Rute Privat (Hanya Admin)
+router.post("/", verifyToken, isAdmin, productController.createProduct);
+router.put("/:id", verifyToken, isAdmin, productController.updateProduct);
+router.delete("/:id", verifyToken, isAdmin, productController.deleteProduct);
 
 module.exports = router;
