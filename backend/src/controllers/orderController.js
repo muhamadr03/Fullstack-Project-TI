@@ -17,6 +17,15 @@ exports.checkout = async (req, res) => {
         .json({ message: "Keranjang belanja Anda kosong!" });
     }
 
+    for (const item of cartItems) {
+      if (item.product.stock < item.quantity) {
+        return res.status(400).json({
+          status: "fail",
+          message: `Maaf, stok untuk produk ${item.product.name} tidak mencukupi. (Sisa: ${item.product.stock})`,
+        });
+      }
+    }
+
     // 2. Hitung total harga otomatis
     let totalAmount = 0;
     cartItems.forEach((item) => {

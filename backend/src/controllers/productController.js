@@ -29,7 +29,21 @@ exports.getProductById = async (req, res) => {
 
 exports.createProduct = async (req, res) => {
   try {
-    const newProduct = await Product.create(req.body);
+    const { category_id, name, description, price, stock } = req.body;
+
+    // Cek apakah ada file yang diunggah
+    // Jika ada, buat rute URL-nya. Jika tidak, kosongkan.
+    const image_url = req.file ? `/uploads/${req.file.filename}` : null;
+
+    const newProduct = await Product.create({
+      category_id,
+      name,
+      description,
+      price,
+      stock,
+      image_url, // Simpan rute lokal ini ke database
+    });
+
     res
       .status(201)
       .json({ message: "Produk berhasil ditambahkan!", data: newProduct });
@@ -42,7 +56,14 @@ exports.createProduct = async (req, res) => {
 
 exports.updateProduct = async (req, res) => {
   try {
-    await Product.update(req.body, { where: { id: req.params.id } });
+    // Cek apakah ada file yang diunggah
+    // Jika ada, buat rute URL-nya. Jika tidak, gunakan nilai yang sudah ada.
+    const image_url = req.file ? `/uploads/${req.file.filename}` : null;
+
+    await Product.update(
+      { ...req.body, image_url },
+      { where: { id: req.params.id } }
+    );
     res.status(200).json({ message: "Produk berhasil diupdate!" });
   } catch (error) {
     res.status(500).json({ message: "Gagal mengupdate produk." });

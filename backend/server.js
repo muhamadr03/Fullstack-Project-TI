@@ -1,6 +1,7 @@
 require("dotenv").config();
 const express = require("express");
 const app = express();
+const path = require("path");
 
 // 1. MIDDLEWARE
 app.use(express.json());
@@ -25,6 +26,9 @@ app.use("/api/orders", orderRoutes);
 app.use("/api/addresses", addressRoutes);
 app.use("/api/reviews", reviewRoutes);
 app.use(errorHandler);
+app.use(express.json());
+// BUKA AKSES FOLDER UPLOADS
+app.use("/uploads", express.static(path.join(__dirname, "public/uploads")));
 
 // 4. JALANKAN SERVER
 const PORT = process.env.PORT || 5000;

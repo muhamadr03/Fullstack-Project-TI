@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const productController = require("../controllers/productController");
 const { verifyToken, isAdmin } = require("../middlewares/authMiddleware");
+const upload = require("../middlewares/uploadMiddleware");
 const Joi = require("joi");
 const { validate } = require("../middlewares/validator");
 
@@ -20,8 +21,22 @@ router.get("/", productController.getAllProducts);
 router.get("/:id", productController.getProductById);
 
 // Rute Privat (Hanya Admin)
-router.post("/", verifyToken, isAdmin, validate(productSchema), productController.createProduct);
-router.put("/:id", verifyToken, isAdmin, productController.updateProduct);
+router.post(
+  "/",
+  verifyToken,
+  isAdmin,
+  upload.single("image"),
+  validate(productSchema),
+  productController.createProduct,
+);
+router.put(
+  "/:id",
+  verifyToken,
+  isAdmin,
+  upload.single("image"),
+  validate(productSchema),
+  productController.updateProduct,
+);
 router.delete("/:id", verifyToken, isAdmin, productController.deleteProduct);
 
 module.exports = router;
