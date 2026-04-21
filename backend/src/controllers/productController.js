@@ -1,16 +1,68 @@
 const { Product, Category } = require("../models");
+const { Op } = require("sequelize");
 
-exports.getAllProducts = async (req, res) => {
+exports.getAllProducts = async (req, res, next) => {
   try {
-    // Kehebatan ORM: otomatis melakukan JOIN ke tabel categories!
-    const products = await Product.findAll({
-      include: [{ model: Category, as: "category", attributes: ["name"] }],
+    // 1. Tangkap Query Parameter dari URL Frontend (berikan nilai default jika kosong)
+    const page = parseInt(req.query.page) || 1; // Default: Halaman 1
+    const limit = parseInt(req.query.limit) || 10; // Default: 10 produk per halaman
+    const search = req.query.search || ""; // Default: Tanpa kata kunci
+    const categoryId = req.query.category || null; // Default: Semua kategori
+    
+
+    // 2. Hitung Offset (Rumus: data dimulai dari baris ke berapa di database)
+    const offset = (page - 1) * limit;
+
+    // 3. Siapkan Keranjang Kondisi (WHERE Clause)
+    let whereCondition = {};
+
+    // Jika ada pencarian nama (Misal: ?search=sepatu)
+    if (search) {
+      whereCondition.name = {
+        [Op.like]: `%${search}%`, // Cari kata yang mengandung "sepatu" di mana saja
+      };
+    }
+
+    // Jika ada filter kategori (Misal: ?category=2)
+    if (categoryId) {
+      whereCondition.category_id = categoryId;
+    }
+
+    // 4. Eksekusi Query menggunakan findAndCountAll
+    // (Method ini spesial karena mengembalikan 'rows' untuk datanya, dan 'count' untuk totalnya)
+    const products = await Product.findAndCountAll({
+      where: whereCondition,
+      limit: limit,
+      offset: offset,
+      include: [
+        {
+          model: Category,
+          as: "category",
+          attributes: ["id", "name"], // Hanya ambil ID dan Nama Kategorinya agar rapi
+        },
+      ],
     });
-    res.status(200).json(products);
+
+    // 5. Hitung Total Halaman
+    const totalPages = Math.ceil(products.count / limit);
+
+    // 6. Kirim Response beserta Metadata Pagination
+    res.status(200).json({
+      status: "success",
+      message: "Berhasil mengambil data produk",
+      data: products.rows,
+      // Metadata ini SANGAT DIBUTUHKAN Frontend untuk membuat tombol 1, 2, 3, Next, Prev
+      pagination: {
+        total_items: products.count,
+        total_pages: totalPages,
+        current_page: page,
+        limit_per_page: limit,
+        has_next_page: page < totalPages,
+        has_prev_page: page > 1,
+      },
+    });
   } catch (error) {
-    res
-      .status(500)
-      .json({ message: "Terjadi kesalahan server.", error: error.message });
+    next(error);
   }
 };
 

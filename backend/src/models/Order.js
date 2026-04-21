@@ -20,6 +20,10 @@ const Order = sequelize.define(
     midtrans_transaction_id: { type: DataTypes.STRING },
     shipping_address: { type: DataTypes.TEXT, allowNull: false },
     tracking_number: { type: DataTypes.STRING },
+    snap_token: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
   },
   {
     tableName: "orders",
