@@ -1,46 +1,46 @@
-const { Order, OrderItem, Cart, Product } = require("../models");
+const snap = require("../config/midtrans");
+const { Order, OrderItem, Cart, Product, User } = require("../models");
 
 // CUSTOMER: Melakukan Checkout
 exports.checkout = async (req, res) => {
   try {
+    const userId = req.user.id;
     const { shipping_address } = req.body;
 
     // 1. Ambil isi keranjang user
     const cartItems = await Cart.findAll({
-      where: { user_id: req.user.id },
+      where: { user_id: userId },
       include: [{ model: Product, as: "product" }],
     });
 
-    if (cartItems.length === 0) {
-      return res
-        .status(400)
-        .json({ message: "Keranjang belanja Anda kosong!" });
+    if (!cartItems || cartItems.length === 0) {
+      return res.status(400).json({
+        status: "fail",
+        message: "Keranjang belanja Anda kosong!",
+      });
     }
 
+    // 2. Validasi Stok & Hitung Total Harga
+    let totalAmount = 0;
     for (const item of cartItems) {
       if (item.product.stock < item.quantity) {
         return res.status(400).json({
           status: "fail",
-          message: `Maaf, stok untuk produk ${item.product.name} tidak mencukupi. (Sisa: ${item.product.stock})`,
+          message: `Stok produk ${item.product.name} tidak mencukupi (Sisa: ${item.product.stock})`,
         });
       }
-    }
-
-    // 2. Hitung total harga otomatis
-    let totalAmount = 0;
-    cartItems.forEach((item) => {
       totalAmount += item.quantity * item.product.price;
-    });
+    }
 
     // 3. Buat data Pesanan Utama (Order)
     const newOrder = await Order.create({
-      user_id: req.user.id,
+      user_id: userId,
       total_amount: totalAmount,
       shipping_address: shipping_address || "Alamat default belum diisi",
       status: "pending",
     });
 
-    // 4. Pindahkan detail barang dari Cart ke OrderItem
+    // 4. Pindahkan item ke OrderItem & Kurangi Stok
     const orderItemsData = cartItems.map((item) => ({
       order_id: newOrder.id,
       product_id: item.product_id,
@@ -48,22 +48,61 @@ exports.checkout = async (req, res) => {
       price_at_purchase: item.product.price,
     }));
 
-    await OrderItem.bulkCreate(orderItemsData); // Insert banyak data sekaligus
+    await OrderItem.bulkCreate(orderItemsData);
 
-    // 5. Kosongkan keranjang user karena sudah jadi pesanan
-    await Cart.destroy({ where: { user_id: req.user.id } });
+    // Update stok satu per satu (atau bisa menggunakan transaksi DB untuk keamanan data)
+    for (const item of cartItems) {
+      await Product.decrement("stock", {
+        by: item.quantity,
+        where: { id: item.product_id },
+      });
+    }
 
-    res
-      .status(201)
-      .json({ message: "Checkout berhasil!", order_id: newOrder.id });
+    // 5. Kosongkan keranjang
+    await Cart.destroy({ where: { user_id: userId } });
+
+    // 6. Integrasi Midtrans
+    const userData = await User.findByPk(userId);
+
+    const parameter = {
+      transaction_details: {
+        order_id: `ORDER-${newOrder.id}-${Date.now()}`,
+        gross_amount: totalAmount,
+      },
+      customer_details: {
+        first_name: userData.name,
+        email: userData.email,
+      },
+    };
+
+    const midtransTransaction = await snap.createTransaction(parameter);
+    const snapToken = midtransTransaction.token;
+
+    // Update token ke database
+    await newOrder.update({ snap_token: snapToken });
+
+    // 7. Response Sukses
+    return res.status(201).json({
+      status: "success",
+      message: "Checkout berhasil, silakan lakukan pembayaran.",
+      data: {
+        order_id: newOrder.id,
+        total_amount: totalAmount,
+        snap_token: snapToken,
+        redirect_url: midtransTransaction.redirect_url,
+      },
+    });
   } catch (error) {
-    res
-      .status(500)
-      .json({ message: "Gagal melakukan checkout.", error: error.message });
+    console.error("Checkout Error:", error);
+    return res.status(500).json({
+      status: "error",
+      message: "Gagal melakukan checkout.",
+      error: error.message,
+    });
   }
 };
 
-// CUSTOMER: Melihat Riwayat Pesanannya Sendiri
+// CUSTOMER: Melihat Riwayat Pesanannya
 exports.getUserOrders = async (req, res) => {
   try {
     const orders = await Order.findAll({
@@ -75,15 +114,16 @@ exports.getUserOrders = async (req, res) => {
           include: [{ model: Product, as: "product", attributes: ["name"] }],
         },
       ],
+      order: [["createdAt", "DESC"]], // Urutkan dari yang terbaru
     });
-    res.status(200).json(orders);
+
+    return res.status(200).json({ status: "success", data: orders });
   } catch (error) {
-    res
-      .status(500)
-      .json({
-        message: "Gagal mengambil riwayat pesanan.",
-        error: error.message,
-      });
+    return res.status(500).json({
+      status: "error",
+      message: "Gagal mengambil riwayat pesanan.",
+      error: error.message,
+    });
   }
 };
 
@@ -91,12 +131,25 @@ exports.getUserOrders = async (req, res) => {
 exports.updateOrderStatus = async (req, res) => {
   try {
     const { status, tracking_number } = req.body;
-    await Order.update(
+    const { id } = req.params;
+
+    const updatedOrder = await Order.update(
       { status, tracking_number },
-      { where: { id: req.params.id } },
+      { where: { id } },
     );
-    res.status(200).json({ message: "Status pesanan berhasil diupdate." });
+
+    if (updatedOrder[0] === 0) {
+      return res.status(404).json({ message: "Pesanan tidak ditemukan." });
+    }
+
+    return res.status(200).json({
+      status: "success",
+      message: "Status pesanan berhasil diupdate.",
+    });
   } catch (error) {
-    res.status(500).json({ message: "Gagal mengupdate status pesanan." });
+    return res.status(500).json({
+      status: "error",
+      message: "Gagal mengupdate status pesanan.",
+    });
   }
 };
