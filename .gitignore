@@ -12,3 +12,6 @@ yarn-error.log*
 # File Bawaan Sistem Operasi (Mac/Windows)
 .DS_Store
 Thumbs.db
+
+.vite/
+dist/
