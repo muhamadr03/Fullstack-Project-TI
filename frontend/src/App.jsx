@@ -1,6 +1,7 @@
 // frontend/src/App.jsx
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
+import { CartProvider } from "./context/CartContext";
 import PrivateRoute from "./components/PrivateRoute";
 import AdminRoute from "./components/AdminRoute";
 
@@ -25,6 +26,7 @@ function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
+        <CartProvider>
         <Routes>
           {/* Public Routes */}
           <Route path="/login" element={<LoginPage />} />
@@ -95,6 +97,7 @@ function App() {
           {/* Fallback */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
+        </CartProvider>
       </AuthProvider>
     </BrowserRouter>
   );
