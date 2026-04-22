@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { productApi } from "../../api/productApi";
+import { CartContext } from "../../context/CartContext";
 
 const ProductDetailPage = () => {
   // 1. Menangkap ID produk dari URL (misal: /products/5 -> id = 5)
@@ -12,6 +13,7 @@ const ProductDetailPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [quantity, setQuantity] = useState(1); // Untuk jumlah barang yang mau dibeli
+  const { addToCart } = useContext(CartContext);
 
   // 3. Ambil data spesifik dari Backend
   useEffect(() => {
@@ -35,14 +37,25 @@ const ProductDetailPage = () => {
   }, [id]);
 
   // 4. Handler untuk Tombol Keranjang (Fungsionalitas menyusul di Sprint F3)
-  const handleAddToCart = () => {
+  const handleAddToCart = async () => {
     // Nanti kita akan panggil fungsi dari CartContext di sini
-    console.log(
-      `Menambahkan ${quantity} buah produk ID ${product.id} ke keranjang.`,
-    );
-    alert(
-      `Berhasil simulasi tambah ke keranjang!\nBarang: ${product.name}\nJumlah: ${quantity}`,
-    );
+    const result = await addToCart(product.id, quantity);
+
+    if (result.success) {
+      alert(`Berhasil! ${quantity} buah ${product.name} masuk ke keranjang 🛒`);
+      // Opsional: Langsung lempar user ke halaman keranjang setelah klik beli
+      // navigate('/cart');
+    } else {
+      alert(`Ups, gagal memasukkan ke keranjang: ${result.message}`);
+
+      // Jika user belum login (dapat error dari backend), arahkan ke halaman login
+      if (
+        result.message.toLowerCase().includes("token") ||
+        result.message.toLowerCase().includes("login")
+      ) {
+        navigate("/login");
+      }
+    }
   };
 
   // 5. Layar Loading & Error
