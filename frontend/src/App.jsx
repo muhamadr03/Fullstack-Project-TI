@@ -4,6 +4,7 @@ import { AuthProvider } from "./context/AuthContext";
 import { CartProvider } from "./context/CartContext";
 import PrivateRoute from "./components/PrivateRoute";
 import AdminRoute from "./components/AdminRoute";
+import Navbar from "./components/Navbar";
 
 // Auth
 import LoginPage from "./pages/auth/LoginPage";
@@ -27,6 +28,7 @@ function App() {
     <BrowserRouter>
       <AuthProvider>
         <CartProvider>
+          <Navbar />
           <Routes>
             {/* Public Routes */}
             <Route path="/login" element={<LoginPage />} />

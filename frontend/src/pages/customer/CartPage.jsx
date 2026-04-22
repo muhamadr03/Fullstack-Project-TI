@@ -42,43 +42,63 @@ const CartPage = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {cartItems.map((item) => (
-                    <tr key={item.id}>
-                      <td>
-                        <div className="d-flex align-items-center">
-                          <img
-                            src={`http://localhost:5000${item.Product?.image_url}`}
-                            alt={item.Product?.name}
-                            style={{
-                              width: "50px",
-                              height: "50px",
-                              objectFit: "cover",
-                            }}
-                            className="rounded me-2"
-                          />
-                          <span className="fw-semibold">
-                            {item.Product?.name}
-                          </span>
-                        </div>
-                      </td>
-                      <td>Rp {item.Product?.price.toLocaleString("id-ID")}</td>
-                      <td>{item.quantity}</td>
-                      <td className="fw-bold text-danger">
-                        Rp{" "}
-                        {(item.Product?.price * item.quantity).toLocaleString(
-                          "id-ID",
-                        )}
-                      </td>
-                      <td>
-                        <button
-                          className="btn btn-sm btn-outline-danger"
-                          onClick={() => removeFromCart(item.id)}
-                        >
-                          <i className="bi bi-trash"></i> Hapus
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
+                  {cartItems.map((item) => {
+                    // Trik Jitu: Tangkap data produk entah itu huruf besar (Product) atau kecil (product)
+                    const productData = item.Product || item.product || {};
+
+                    return (
+                      <tr key={item.id}>
+                        <td>
+                          <div className="d-flex align-items-center">
+                            <img
+                              src={
+                                productData.image_url
+                                  ? `http://localhost:5000${productData.image_url}`
+                                  : "https://via.placeholder.com/50"
+                              }
+                              alt={productData.name || "Produk"}
+                              style={{
+                                width: "50px",
+                                height: "50px",
+                                objectFit: "cover",
+                              }}
+                              className="rounded me-2"
+                              onError={(e) => {
+                                e.target.src =
+                                  "https://via.placeholder.com/50?text=No+Img";
+                              }}
+                            />
+                            <span className="fw-semibold">
+                              {productData.name || "Nama Produk Tidak Tersedia"}
+                            </span>
+                          </div>
+                        </td>
+                        <td>
+                          Rp{" "}
+                          {productData.price
+                            ? productData.price.toLocaleString("id-ID")
+                            : 0}
+                        </td>
+                        <td>{item.quantity}</td>
+                        <td className="fw-bold text-danger">
+                          Rp{" "}
+                          {productData.price
+                            ? (
+                                productData.price * item.quantity
+                              ).toLocaleString("id-ID")
+                            : "0"}
+                        </td>
+                        <td>
+                          <button
+                            className="btn btn-sm btn-outline-danger"
+                            onClick={() => removeFromCart(item.id)}
+                          >
+                            <i className="bi bi-trash"></i> Hapus
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>

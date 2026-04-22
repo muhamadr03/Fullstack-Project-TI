@@ -18,7 +18,7 @@ export const CartProvider = ({ children }) => {
         try {
           setCartLoading(true);
           const response = await cartApi.getCart();
-          setCartItems(response.data || []);
+          setCartItems(response || []);
         } catch (error) {
           console.error("Gagal memuat keranjang:", error);
         } finally {
@@ -63,7 +63,7 @@ export const CartProvider = ({ children }) => {
 
   // Hitung total item untuk badge di Navbar
   const totalItems = cartItems.reduce(
-    (total, item) => total + item.quantity,
+    (total, item) => total + parseInt(item.quantity || 0, 10),
     0,
   );
 
