@@ -103,22 +103,27 @@ exports.checkout = async (req, res) => {
 };
 
 // CUSTOMER: Melihat Riwayat Pesanannya
+// CUSTOMER: Melihat Riwayat Pesanannya
 exports.getUserOrders = async (req, res) => {
+  console.log("=== 🚨 CCTV: FUNGSI GET USER ORDERS DIPANGGIL ==="); 
+  
   try {
     const orders = await Order.findAll({
       where: { user_id: req.user.id },
-      include: [
-        {
-          model: OrderItem,
-          as: "items",
-          include: [{ model: Product, as: "product", attributes: ["name"] }],
-        },
-      ],
-      order: [["createdAt", "DESC"]], // Urutkan dari yang terbaru
+      // Kita matikan 'include' sementara untuk menghindari error relasi antar tabel
+      order: [["created_at", "DESC"]], 
     });
 
-    return res.status(200).json({ status: "success", data: orders });
+    console.log("✅ Sukses mengambil data:", orders.length, "pesanan");
+
+    return res.status(200).json({ 
+      status: "success", 
+      data: orders 
+    });
   } catch (error) {
+    // Nah, ini yang bikin errornya nggak sembunyi lagi!
+    console.error("🔥 ERROR FATAL DI GETUSERORDERS:", error); 
+    
     return res.status(500).json({
       status: "error",
       message: "Gagal mengambil riwayat pesanan.",
@@ -153,3 +158,4 @@ exports.updateOrderStatus = async (req, res) => {
     });
   }
 };
+

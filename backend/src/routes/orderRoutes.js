@@ -18,6 +18,12 @@ router.post("/checkout", verifyToken, orderController.checkout);
 router.get("/my-orders", verifyToken, orderController.getUserOrders);
 
 // Rute khusus Admin
-router.put("/:id/status", verifyToken, isAdmin, validate(statusSchema), orderController.updateOrderStatus);
+router.put(
+  "/:id/status",
+  verifyToken,
+  isAdmin,
+  validate(statusSchema),
+  orderController.updateOrderStatus,
+);
 
 module.exports = router;

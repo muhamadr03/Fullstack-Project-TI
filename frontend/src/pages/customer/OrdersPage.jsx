@@ -88,7 +88,7 @@ const OrdersPage = () => {
               {orders.map((order) => (
                 <tr key={order.id}>
                   <td className="fw-bold text-primary">#ORD-{order.id}</td>
-                  <td>{new Date(order.createdAt).toLocaleDateString('id-ID')}</td>
+                  <td>{new Date(order.created_at).toLocaleDateString('id-ID')}</td>
                   <td>
                     <span className="d-inline-block text-truncate" style={{ maxWidth: '200px' }}>
                       {order.shipping_address}
