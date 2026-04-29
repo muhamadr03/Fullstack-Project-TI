@@ -159,3 +159,26 @@ exports.updateOrderStatus = async (req, res) => {
   }
 };
 
+// ADMIN: Melihat Semua Pesanan Masuk
+exports.getAllOrders = async (req, res) => {
+  try {
+    const orders = await Order.findAll({
+      order: [["created_at", "DESC"]], 
+      // Jika Anda punya model User, sangat disarankan menambahkan include agar tahu siapa pembelinya:
+      // include: [{ model: User, attributes: ['name', 'email'] }]
+    });
+
+    return res.status(200).json({ 
+      status: "success", 
+      data: orders 
+    });
+  } catch (error) {
+    console.error("🔥 ERROR DI GET ALL ORDERS ADMIN:", error);
+    return res.status(500).json({
+      status: "error",
+      message: "Gagal mengambil semua data pesanan.",
+      error: error.message,
+    });
+  }
+};
+

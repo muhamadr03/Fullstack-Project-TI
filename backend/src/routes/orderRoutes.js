@@ -26,4 +26,6 @@ router.put(
   orderController.updateOrderStatus,
 );
 
+router.get("/", verifyToken, isAdmin, orderController.getAllOrders);
+
 module.exports = router;
