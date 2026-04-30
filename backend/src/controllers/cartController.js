@@ -25,37 +25,57 @@ exports.addToCart = async (req, res) => {
   try {
     const { product_id, quantity } = req.body;
 
-    // Cek apakah produk ini sudah ada di keranjang user
+    // 🔍 Ambil data produk
+    const product = await Product.findByPk(product_id);
+
+    if (!product) {
+      return res.status(404).json({
+        message: "Produk tidak ditemukan",
+      });
+    }
+
+    const qty = quantity || 1;
+
+    // 🔥 Cek apakah produk sudah ada di cart
     let cartItem = await Cart.findOne({
       where: { user_id: req.user.id, product_id },
     });
 
+    // 🔥 VALIDASI STOK
     if (cartItem) {
-      // Jika sudah ada, tambahkan saja jumlahnya (quantity)
-      cartItem.quantity += quantity || 1;
+      const totalQty = cartItem.quantity + qty;
+
+      if (totalQty > product.stock) {
+        return res.status(400).json({
+          message: "Stock tidak mencukupi",
+        });
+      }
+
+      cartItem.quantity = totalQty;
       await cartItem.save();
     } else {
-      // Jika belum ada, buat baris baru di keranjang
+      if (qty > product.stock) {
+        return res.status(400).json({
+          message: "Stock tidak mencukupi",
+        });
+      }
+
       cartItem = await Cart.create({
         user_id: req.user.id,
         product_id,
-        quantity: quantity || 1,
+        quantity: qty,
       });
     }
 
-    res
-      .status(200)
-      .json({
-        message: "Barang berhasil ditambahkan ke keranjang!",
-        data: cartItem,
-      });
+    res.status(200).json({
+      message: "Barang berhasil ditambahkan ke keranjang!",
+      data: cartItem,
+    });
   } catch (error) {
-    res
-      .status(500)
-      .json({
-        message: "Gagal menambahkan ke keranjang.",
-        error: error.message,
-      });
+    res.status(500).json({
+      message: "Gagal menambahkan ke keranjang.",
+      error: error.message,
+    });
   }
 };
 
