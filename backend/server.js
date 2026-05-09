@@ -10,6 +10,7 @@ app.use("/uploads", express.static(path.join(__dirname, "public/uploads")));
 
 // IMPORT ROUTES
 const authRoutes = require("./src/routes/authRoutes");
+const dashboardRoutes = require("./src/routes/dashboardRoutes");
 const categoryRoutes = require("./src/routes/categoryRoutes");
 const productRoutes = require("./src/routes/productRoutes");
 const cartRoutes = require("./src/routes/cartRoutes");
@@ -23,6 +24,7 @@ const webhookRoutes = require("./src/routes/webhookRoutes");
 app.use("/api/auth", authRoutes);
 app.use("/api/categories", categoryRoutes);
 app.use("/api/products", productRoutes);
+app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/cart", cartRoutes);
 app.use("/api/orders", orderRoutes);
 app.use("/api/addresses", addressRoutes);

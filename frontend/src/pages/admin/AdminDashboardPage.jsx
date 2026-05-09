@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { dashboardApi } from "../../api/dashboardApi";
 
-const DashboardPage = () => {
+const AdminDashboardPage = () => {
   const [stats, setStats] = useState({
     totalProducts: 0,
     totalOrders: 0,
@@ -140,4 +140,4 @@ const DashboardPage = () => {
   );
 };
 
-export default DashboardPage;
+export default AdminDashboardPage;
