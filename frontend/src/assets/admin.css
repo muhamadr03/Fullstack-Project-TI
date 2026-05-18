@@ -1,0 +1,277 @@
+/* Zenith Admin Style Customizations */
+
+.admin-layout {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  background-color: #f8fafc; /* Sangat terang */
+  color: #334155;
+  min-height: 100vh;
+}
+
+/* Sidebar Styles */
+.admin-sidebar {
+  background-color: #ffffff;
+  border-right: 1px solid #e2e8f0;
+  transition: width 0.3s ease, left 0.3s ease;
+  overflow-x: hidden;
+  z-index: 1040;
+  width: 260px;
+}
+
+.admin-sidebar.collapsed {
+  width: 80px;
+}
+
+.admin-sidebar .sidebar-logo {
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.admin-sidebar .nav-section-title {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #94a3b8;
+  letter-spacing: 0.5px;
+  margin-top: 1.5rem;
+  margin-bottom: 0.5rem;
+  padding-left: 0.5rem;
+}
+
+.admin-sidebar .nav-link {
+  color: #64748b;
+  font-weight: 500;
+  border-radius: 8px;
+  padding: 0.6rem 0.8rem;
+  margin-bottom: 0.25rem;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.admin-sidebar .nav-link:hover {
+  background-color: #f1f5f9;
+  color: #0f172a;
+}
+
+.admin-sidebar .nav-link.active {
+  background-color: #f1f5f9;
+  color: #0f172a;
+  font-weight: 700;
+}
+
+.admin-sidebar .nav-link i {
+  font-size: 1.1rem;
+  width: 24px;
+  text-align: center;
+}
+
+.admin-sidebar.collapsed .sidebar-text,
+.admin-sidebar.collapsed .nav-section-title,
+.admin-sidebar.collapsed .user-info {
+  display: none;
+}
+
+.admin-sidebar.collapsed .nav-link {
+  padding: 0.6rem;
+  text-align: center;
+}
+.admin-sidebar.collapsed .nav-link i {
+  margin-right: 0 !important;
+}
+
+.collapse-btn {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #64748b;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  transition: transform 0.3s;
+}
+.collapse-btn:hover {
+  background: #f1f5f9;
+}
+
+/* Top Navbar Styles */
+.admin-topbar {
+  background-color: #ffffff;
+  border-bottom: 1px solid #e2e8f0;
+  height: 70px;
+}
+
+.admin-topbar .search-wrapper {
+  position: relative;
+}
+
+.admin-topbar .search-input {
+  background-color: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 20px;
+  padding: 0.4rem 1rem 0.4rem 2.5rem;
+  font-size: 0.9rem;
+  width: 350px;
+  transition: border-color 0.2s;
+}
+
+.admin-topbar .search-input:focus {
+  outline: none;
+  border-color: #cbd5e1;
+}
+
+.admin-topbar .search-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #94a3b8;
+}
+
+.admin-topbar .search-shortcut {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background-color: #e2e8f0;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  color: #64748b;
+}
+
+.btn-zenith-dark {
+  background-color: #0f172a;
+  color: #ffffff;
+  border-radius: 20px;
+  padding: 0.4rem 1rem;
+  font-weight: 500;
+  font-size: 0.9rem;
+  border: none;
+}
+
+.btn-zenith-dark:hover {
+  background-color: #1e293b;
+  color: #ffffff;
+}
+
+.topbar-icon {
+  color: #64748b;
+  font-size: 1.2rem;
+  cursor: pointer;
+  transition: color 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+}
+.topbar-icon:hover {
+  color: #0f172a;
+  background-color: #f1f5f9;
+}
+
+/* Dashboard Cards */
+.zenith-card {
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+  overflow: hidden;
+}
+
+.zenith-card:hover {
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
+}
+
+.zenith-card-title {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #64748b;
+  margin-bottom: 0.5rem;
+}
+
+.zenith-card-value {
+  font-size: 2rem;
+  font-weight: 800;
+  color: #0f172a;
+  line-height: 1.2;
+}
+
+.zenith-badge-success {
+  color: #10b981;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+.zenith-badge-danger {
+  color: #ef4444;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.icon-wrapper {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+}
+
+.icon-wrapper.orange { background-color: #fff7ed; color: #f97316; }
+.icon-wrapper.green { background-color: #f0fdf4; color: #10b981; }
+.icon-wrapper.blue { background-color: #eff6ff; color: #3b82f6; }
+.icon-wrapper.yellow { background-color: #fefce8; color: #eab308; }
+
+.sparkline-svg {
+  width: 100%;
+  height: 40px;
+  margin-bottom: -10px;
+}
+
+/* Chart Placeholder */
+.chart-placeholder {
+  background: linear-gradient(180deg, #fff1f2 0%, #ffffff 100%);
+  border-radius: 8px;
+  height: 300px;
+  position: relative;
+  overflow: hidden;
+}
+
+.chart-line {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  height: 100px;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 320'%3E%3Cpath fill='%23ef4444' fill-opacity='1' d='M0,224L48,213.3C96,203,192,181,288,186.7C384,192,480,224,576,218.7C672,213,768,171,864,165.3C960,160,1056,192,1152,192C1248,192,1344,160,1392,144L1440,128L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z'%3E%3C/path%3E%3C/svg%3E") no-repeat bottom;
+  background-size: cover;
+}
+
+/* Sidebar Wrapper for Flex Layout */
+.admin-sidebar-wrapper {
+  flex-shrink: 0;
+  transition: all 0.3s ease;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 991.98px) {
+  .admin-sidebar-wrapper {
+    position: fixed;
+    height: 100vh;
+    left: -260px;
+    background-color: #ffffff;
+  }
+  .admin-sidebar-wrapper.show-mobile {
+    left: 0;
+  }
+  .admin-sidebar {
+    height: 100vh;
+  }
+  .admin-topbar .search-input {
+    width: 200px;
+  }
+}

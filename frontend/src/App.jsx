@@ -5,6 +5,8 @@ import { CartProvider } from "./context/CartContext";
 import PrivateRoute from "./components/PrivateRoute";
 import AdminRoute from "./components/AdminRoute";
 import Navbar from "./components/Navbar";
+import AdminLayout from "./components/admin/AdminLayout";
+import { Outlet } from "react-router-dom";
 
 // Auth
 import LoginPage from "./pages/auth/LoginPage";
@@ -23,78 +25,86 @@ import DashboardPage from "./pages/admin/DashboardPage";
 import ManageProductsPage from "./pages/admin/ManageProductsPage";
 import ManageOrdersPage from "./pages/admin/ManageOrdersPage";
 
+const CustomerLayout = () => (
+  <>
+    <Navbar />
+    <Outlet />
+  </>
+);
+
 function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
         <CartProvider>
-          <Navbar />
           <Routes>
-            {/* Public Routes */}
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/register" element={<RegisterPage />} />
+            {/* Customer & Public Routes wrapped in CustomerLayout */}
+            <Route element={<CustomerLayout />}>
+              <Route path="/login" element={<LoginPage />} />
+              <Route path="/register" element={<RegisterPage />} />
+              <Route path="/" element={<HomePage />} />
+              <Route path="/products/:id" element={<ProductDetailPage />} />
+              <Route
+                path="/cart"
+                element={
+                  <PrivateRoute>
+                    <CartPage />
+                  </PrivateRoute>
+                }
+              />
+              <Route
+                path="/checkout"
+                element={
+                  <PrivateRoute>
+                    <CheckoutPage />
+                  </PrivateRoute>
+                }
+              />
+              <Route
+                path="/orders"
+                element={
+                  <PrivateRoute>
+                    <OrdersPage />
+                  </PrivateRoute>
+                }
+              />
+              <Route
+                path="/profile"
+                element={
+                  <PrivateRoute>
+                    <ProfilePage />
+                  </PrivateRoute>
+                }
+              />
+            </Route>
 
-            {/* Customer Routes */}
-            <Route path="/" element={<HomePage />} />
-            <Route path="/products/:id" element={<ProductDetailPage />} />
-            <Route
-              path="/cart"
-              element={
-                <PrivateRoute>
-                  <CartPage />
-                </PrivateRoute>
-              }
-            />
-            <Route
-              path="/checkout"
-              element={
-                <PrivateRoute>
-                  <CheckoutPage />
-                </PrivateRoute>
-              }
-            />
-            <Route
-              path="/orders"
-              element={
-                <PrivateRoute>
-                  <OrdersPage />
-                </PrivateRoute>
-              }
-            />
-            <Route
-              path="/profile"
-              element={
-                <PrivateRoute>
-                  <ProfilePage />
-                </PrivateRoute>
-              }
-            />
-
-            {/* Admin Routes */}
-            <Route
-              path="/admin/dashboard"
-              element={
-                <AdminRoute>
-                  <DashboardPage />
-                </AdminRoute>
-              }
-            />
-            <Route
-              path="/admin/products"
-              element={
-                <AdminRoute>
-                  <ManageProductsPage />
-                </AdminRoute>
-              }
-            />
-            <Route
-              path="/admin/orders"
-              element={
-                <AdminRoute>
-                  <ManageOrdersPage />
-                </AdminRoute>
-              }
-            />
+            {/* Admin Routes wrapped in AdminLayout */}
+            <Route element={<AdminLayout />}>
+              <Route
+                path="/admin/dashboard"
+                element={
+                  <AdminRoute>
+                    <DashboardPage />
+                  </AdminRoute>
+                }
+              />
+              <Route
+                path="/admin/products"
+                element={
+                  <AdminRoute>
+                    <ManageProductsPage />
+                  </AdminRoute>
+                }
+              />
+              <Route
+                path="/admin/orders"
+                element={
+                  <AdminRoute>
+                    <ManageOrdersPage />
+                  </AdminRoute>
+                }
+              />
+            </Route>
 
             {/* Fallback */}
             <Route path="*" element={<Navigate to="/" replace />} />

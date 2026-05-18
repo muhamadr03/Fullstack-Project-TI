@@ -106,7 +106,7 @@ const ManageOrdersPage = () => {
   }
 
   return (
-    <div className="container py-5">
+    <div>
       <div className="d-flex justify-content-between align-items-center mb-4">
         <h2 className="fw-bold m-0">
           <i className="bi bi-box-seam"></i> Manajemen Pesanan
