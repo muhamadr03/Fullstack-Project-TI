@@ -2,7 +2,7 @@ import React, { createContext, useState, useEffect, useContext } from "react";
 import { cartApi } from "../api/cartApi";
 import { AuthContext } from "./AuthContext";
 
-export const CartContext = createContext();
+export const CartContext = createContext(); 
 
 export const CartProvider = ({ children }) => {
   const [cartItems, setCartItems] = useState([]);
