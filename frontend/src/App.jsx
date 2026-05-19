@@ -4,7 +4,7 @@ import { AuthProvider } from "./context/AuthContext";
 import { CartProvider } from "./context/CartContext";
 import PrivateRoute from "./components/PrivateRoute";
 import AdminRoute from "./components/AdminRoute";
-import Navbar from "./components/Navbar";
+import NavbarCustomer from "./components/layout/NavbarCustomer";
 import AdminLayout from "./components/admin/AdminLayout";
 import { Outlet } from "react-router-dom";
 
@@ -13,23 +13,28 @@ import LoginPage from "./pages/auth/LoginPage";
 import RegisterPage from "./pages/auth/RegisterPage";
 
 // Customer (placeholder — akan diisi Sprint berikutnya)
-import HomePage from "./pages/customer/HomePage";
-import ProductDetailPage from "./pages/customer/ProductDetailPage";
+import HomePage from "./pages/public/HomePage";
+import ProductDetailPage from "./pages/public/ProductDetailPage";
 import CartPage from "./pages/customer/CartPage";
 import CheckoutPage from "./pages/customer/CheckoutPage";
 import OrdersPage from "./pages/customer/OrdersPage";
 import ProfilePage from "./pages/customer/ProfilePage";
 
 // Admin (placeholder — akan diisi Sprint berikutnya)
-import DashboardPage from "./pages/admin/DashboardPage";
-import ManageProductsPage from "./pages/admin/ManageProductsPage";
-import ManageOrdersPage from "./pages/admin/ManageOrdersPage";
+import DashboardAdmin from "./pages/admin/DashboardAdmin";
+import ManageProducts from "./pages/admin/ManageProducts";
+import ManageOrders from "./pages/admin/ManageOrders";
+
+import Footer from "./components/layout/Footer";
 
 const CustomerLayout = () => (
-  <>
-    <Navbar />
-    <Outlet />
-  </>
+  <div className="d-flex flex-column min-vh-100">
+    <NavbarCustomer />
+    <main className="flex-grow-1">
+      <Outlet />
+    </main>
+    <Footer />
+  </div>
 );
 
 function App() {
@@ -84,7 +89,7 @@ function App() {
                 path="/admin/dashboard"
                 element={
                   <AdminRoute>
-                    <DashboardPage />
+                    <DashboardAdmin />
                   </AdminRoute>
                 }
               />
@@ -92,7 +97,7 @@ function App() {
                 path="/admin/products"
                 element={
                   <AdminRoute>
-                    <ManageProductsPage />
+                    <ManageProducts />
                   </AdminRoute>
                 }
               />
@@ -100,7 +105,7 @@ function App() {
                 path="/admin/orders"
                 element={
                   <AdminRoute>
-                    <ManageOrdersPage />
+                    <ManageOrders />
                   </AdminRoute>
                 }
               />
