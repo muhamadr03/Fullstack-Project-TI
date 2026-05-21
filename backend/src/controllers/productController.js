@@ -35,13 +35,13 @@ exports.getAllProducts = async (req, res, next) => {
     }
 
     // 4. Tentukan urutan (Order)
-    let orderCondition = [["createdAt", "DESC"]]; // Default terbaru
+    let orderCondition = [["created_at", "DESC"]]; // Default terbaru
     if (sortBy === "termurah") {
       orderCondition = [["price", "ASC"]];
     } else if (sortBy === "termahal") {
       orderCondition = [["price", "DESC"]];
     } else if (sortBy === "terlama") {
-      orderCondition = [["createdAt", "ASC"]];
+      orderCondition = [["created_at", "ASC"]];
     }
 
     // 5. Eksekusi Query

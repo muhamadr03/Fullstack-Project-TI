@@ -35,7 +35,7 @@ app.use("/api/wishlist", wishlistRoutes);
 app.use("/api/coupons", couponRoutes);
 
 const errorHandler = require("./src/middlewares/errorHandler");
-
+app.use(errorHandler);
 // JALANKAN SERVER
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
