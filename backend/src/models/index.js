@@ -9,6 +9,8 @@ const Cart = require("./Cart");
 const Order = require("./Order");
 const OrderItem = require("./OrderItem");
 const Review = require("./Review");
+const Wishlist = require("./Wishlist");
+const Coupon = require("./Coupon");
 
 // Relasi User - Address (One-to-Many)
 User.hasMany(Address, { foreignKey: "user_id", as: "addresses" });
@@ -50,6 +52,14 @@ Review.belongsTo(Product, { foreignKey: "product_id", as: "product" });
 Order.hasMany(Review, { foreignKey: "order_id", as: "reviews" });
 Review.belongsTo(Order, { foreignKey: "order_id", as: "order" });
 
+// Relasi User - Wishlist (One-to-Many)
+User.hasMany(Wishlist, { foreignKey: "user_id", as: "wishlists" });
+Wishlist.belongsTo(User, { foreignKey: "user_id", as: "user" });
+
+// Relasi Product - Wishlist (One-to-Many)
+Product.hasMany(Wishlist, { foreignKey: "product_id", as: "wishlists" });
+Wishlist.belongsTo(Product, { foreignKey: "product_id", as: "product" });
+
 module.exports = {
   sequelize,
   User,
@@ -60,4 +70,6 @@ module.exports = {
   Order,
   OrderItem,
   Review,
+  Wishlist,
+  Coupon,
 };

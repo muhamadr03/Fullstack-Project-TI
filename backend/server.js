@@ -17,8 +17,9 @@ const cartRoutes = require("./src/routes/cartRoutes");
 const orderRoutes = require("./src/routes/orderRoutes");
 const addressRoutes = require("./src/routes/addressRoutes");
 const reviewRoutes = require("./src/routes/reviewRoutes");
-const errorHandler = require("./src/middlewares/errorHandler");
 const webhookRoutes = require("./src/routes/webhookRoutes");
+const wishlistRoutes = require("./src/routes/wishlistRoutes");
+const couponRoutes = require("./src/routes/couponRoutes");
 
 // MOUNT ROUTES
 app.use("/api/auth", authRoutes);
@@ -30,8 +31,10 @@ app.use("/api/orders", orderRoutes);
 app.use("/api/addresses", addressRoutes);
 app.use("/api/reviews", reviewRoutes);
 app.use("/api/webhooks", webhookRoutes);
+app.use("/api/wishlist", wishlistRoutes);
+app.use("/api/coupons", couponRoutes);
 
-app.use(errorHandler);
+const errorHandler = require("./src/middlewares/errorHandler");
 
 // JALANKAN SERVER
 const PORT = process.env.PORT || 5000;

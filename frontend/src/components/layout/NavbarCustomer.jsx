@@ -42,10 +42,18 @@ const NavbarCustomer = () => {
                     </ul>
 
                     <div className="d-flex align-items-center">
+                        <Link
+                            to="/wishlist"
+                            className="nav-link position-relative me-3 text-danger transition-hover"
+                            title="Daftar Keinginan"
+                        >
+                            <i className="bi bi-heart-fill fs-5"></i>
+                        </Link>
+
                         {/* Ikon Keranjang dengan Badge Angka */}
                         <Link
                             to="/cart"
-                            className="nav-link position-relative me-3 text-dark"
+                            className="nav-link position-relative me-3 text-dark transition-hover"
                         >
                             <i className="bi bi-cart fs-4"></i>
                             {totalItems > 0 && (
@@ -107,6 +115,11 @@ const NavbarCustomer = () => {
                                             <li>
                                                 <Link className="dropdown-item" to="/orders">
                                                     Riwayat Belanja
+                                                </Link>
+                                            </li>
+                                            <li>
+                                                <Link className="dropdown-item" to="/wishlist">
+                                                    Wishlist
                                                 </Link>
                                             </li>
                                         </>

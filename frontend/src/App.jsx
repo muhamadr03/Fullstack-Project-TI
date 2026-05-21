@@ -7,6 +7,7 @@ import AdminRoute from "./components/AdminRoute";
 import NavbarCustomer from "./components/layout/NavbarCustomer";
 import AdminLayout from "./components/admin/AdminLayout";
 import { Outlet } from "react-router-dom";
+import WhatsAppWidget from "./components/ui/WhatsAppWidget";
 
 // Auth
 import LoginPage from "./pages/auth/LoginPage";
@@ -19,6 +20,7 @@ import CartPage from "./pages/customer/CartPage";
 import CheckoutPage from "./pages/customer/CheckoutPage";
 import OrdersPage from "./pages/customer/OrdersPage";
 import ProfilePage from "./pages/customer/ProfilePage";
+import WishlistPage from "./pages/customer/WishlistPage";
 
 // Admin (placeholder — akan diisi Sprint berikutnya)
 import DashboardAdmin from "./pages/admin/DashboardAdmin";
@@ -34,6 +36,7 @@ const CustomerLayout = () => (
       <Outlet />
     </main>
     <Footer />
+    <WhatsAppWidget />
   </div>
 );
 
@@ -78,6 +81,14 @@ function App() {
                 element={
                   <PrivateRoute>
                     <ProfilePage />
+                  </PrivateRoute>
+                }
+              />
+              <Route
+                path="/wishlist"
+                element={
+                  <PrivateRoute>
+                    <WishlistPage />
                   </PrivateRoute>
                 }
               />

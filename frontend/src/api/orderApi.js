@@ -1,12 +1,13 @@
 import axiosInstance from "./axiosInstance";
 
 export const orderApi = {
-  // Membuat pesanan baru dari isi keranjang
-  createOrder: async (shippingAddress) => {
+  // Membuat pesanan baru dari isi keranjang (dengan opsional kupon)
+  createOrder: async (shippingAddress, couponCode = null) => {
     const response = await axiosInstance.post("/orders/checkout", {
       shipping_address: shippingAddress,
+      coupon_code: couponCode || undefined,
     });
-    return response.data; // Harus mengembalikan snap_token dari backend
+    return response.data;
   },
 
   // Mengambil riwayat pesanan (Untuk nanti di OrdersPage)

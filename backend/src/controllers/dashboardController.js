@@ -23,6 +23,27 @@ exports.getDashboardStats = async (req, res) => {
       },
     });
 
+    // 5. Cek peringatan stok menipis (< 5)
+    const lowStockProducts = await Product.findAll({
+      where: { stock: { [Op.lt]: 5 } },
+      attributes: ["id", "name", "stock"],
+      order: [["stock", "ASC"]],
+      limit: 10,
+    });
+
+    // 6. Data Penjualan Bulanan (Untuk Chart - Mock Data / Basic Grouping)
+    // Secara ideal, ini di-group menggunakan query SQL yang lebih kompleks.
+    // Sebagai permulaan kita sediakan data dummy jika belum ada data riwayat yang panjang, 
+    // atau mengambil orders 6 bulan terakhir.
+    const monthlySales = [
+      { name: "Jan", sales: 4000 },
+      { name: "Feb", sales: 3000 },
+      { name: "Mar", sales: 5000 },
+      { name: "Apr", sales: 4500 },
+      { name: "May", sales: 6000 },
+      { name: "Jun", sales: 7000 },
+    ];
+
     res.status(200).json({
       success: true,
       data: {
@@ -30,6 +51,8 @@ exports.getDashboardStats = async (req, res) => {
         totalOrders,
         totalCustomers,
         totalRevenue: totalRevenue || 0, // Jika null, jadikan 0
+        lowStockProducts,
+        monthlySales,
       },
     });
   } catch (error) {

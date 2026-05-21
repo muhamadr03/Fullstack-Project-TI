@@ -1,11 +1,11 @@
 const snap = require("../config/midtrans");
-const { Order, OrderItem, Cart, Product, User } = require("../models");
+const { Order, OrderItem, Cart, Product, User, Coupon } = require("../models");
 
 // CUSTOMER: Melakukan Checkout
 exports.checkout = async (req, res) => {
   try {
     const userId = req.user.id;
-    const { shipping_address } = req.body;
+    const { shipping_address, coupon_code } = req.body;
 
     // 1. Ambil isi keranjang user
     const cartItems = await Cart.findAll({
@@ -32,12 +32,33 @@ exports.checkout = async (req, res) => {
       totalAmount += item.quantity * item.product.price;
     }
 
+    // 2.5 Cek dan Hitung Diskon Kupon
+    let finalAmount = totalAmount;
+    let discountAmount = 0;
+
+    if (coupon_code) {
+      const coupon = await Coupon.findOne({ where: { code: coupon_code, is_active: true } });
+      if (coupon) {
+        if (new Date() > new Date(coupon.valid_until)) {
+          return res.status(400).json({ status: "fail", message: "Kupon sudah kedaluwarsa." });
+        }
+        
+        const calculatedDiscount = Math.floor((totalAmount * coupon.discount_percentage) / 100);
+        discountAmount = coupon.max_discount ? Math.min(calculatedDiscount, coupon.max_discount) : calculatedDiscount;
+        finalAmount = totalAmount - discountAmount;
+      } else {
+        return res.status(400).json({ status: "fail", message: "Kupon tidak valid atau tidak aktif." });
+      }
+    }
+
     // 3. Buat data Pesanan Utama (Order)
     const newOrder = await Order.create({
       user_id: userId,
-      total_amount: totalAmount,
+      total_amount: finalAmount,
       shipping_address: shipping_address || "Alamat default belum diisi",
       status: "pending",
+      coupon_code: coupon_code || null,
+      discount_amount: discountAmount,
     });
 
     // 4. Pindahkan item ke OrderItem & Kurangi Stok
@@ -67,7 +88,7 @@ exports.checkout = async (req, res) => {
     const parameter = {
       transaction_details: {
         order_id: `ORDER-${newOrder.id}-${Date.now()}`,
-        gross_amount: totalAmount,
+        gross_amount: finalAmount,
       },
       customer_details: {
         first_name: userData.name,
@@ -87,7 +108,8 @@ exports.checkout = async (req, res) => {
       message: "Checkout berhasil, silakan lakukan pembayaran.",
       data: {
         order_id: newOrder.id,
-        total_amount: totalAmount,
+        total_amount: finalAmount,
+        discount_amount: discountAmount,
         snap_token: snapToken,
         redirect_url: midtransTransaction.redirect_url,
       },

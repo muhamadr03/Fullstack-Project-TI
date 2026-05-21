@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { orderApi } from "../../api/orderApi";
 import StatusBadge from "../../components/ui/StatusBadge";
+import jsPDF from "jspdf";
+import * as XLSX from "xlsx";
 
 const ManageOrdersPage = () => {
   const [orders, setOrders] = useState([]);
@@ -57,7 +59,41 @@ const ManageOrdersPage = () => {
   };
 
 
- 
+  // FUNGSI EXPORT
+  const exportToPDF = () => {
+    const doc = new jsPDF();
+    doc.text("Laporan Riwayat Pesanan", 14, 20);
+    
+    let yPos = 30;
+    orders.forEach((order, index) => {
+      if (yPos > 270) {
+        doc.addPage();
+        yPos = 20;
+      }
+      doc.setFontSize(10);
+      doc.text(`${index + 1}. ORD-${order.id} | User: ${order.user_id} | Status: ${order.status} | Total: Rp${order.total_amount}`, 14, yPos);
+      yPos += 10;
+    });
+    
+    doc.save("Laporan_Pesanan.pdf");
+  };
+
+  const exportToExcel = () => {
+    const formattedData = orders.map(order => ({
+      "Order ID": `ORD-${order.id}`,
+      "Tanggal": new Date(order.created_at).toLocaleDateString("id-ID"),
+      "User ID": order.user_id,
+      "Total Tagihan": order.total_amount,
+      "Status": order.status,
+      "Resi": order.tracking_number || "-"
+    }));
+
+    const worksheet = XLSX.utils.json_to_sheet(formattedData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Data Pesanan");
+    XLSX.writeFile(workbook, "Laporan_Pesanan.xlsx");
+  };
+
   // LOGIKA PENCARIAN & PAGINASI
  
   // 1. Filter data berdasarkan pencarian
@@ -96,12 +132,17 @@ const ManageOrdersPage = () => {
         <h2 className="fw-bold m-0">
           <i className="bi bi-box-seam"></i> Manajemen Pesanan
         </h2>
-        <button
-          onClick={fetchOrders}
-          className="btn btn-outline-secondary btn-sm"
-        >
-          <i className="bi bi-arrow-clockwise"></i> Refresh Data
-        </button>
+        <div className="d-flex gap-2">
+          <button onClick={exportToPDF} className="btn btn-danger btn-sm">
+            <i className="bi bi-file-pdf"></i> Export PDF
+          </button>
+          <button onClick={exportToExcel} className="btn btn-success btn-sm">
+            <i className="bi bi-file-excel"></i> Export Excel
+          </button>
+          <button onClick={fetchOrders} className="btn btn-outline-secondary btn-sm">
+            <i className="bi bi-arrow-clockwise"></i> Refresh Data
+          </button>
+        </div>
       </div>
 
       {error && <div className="alert alert-danger">{error}</div>}
