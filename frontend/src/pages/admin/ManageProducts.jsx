@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { productApi } from "../../api/productApi";
+import { categoryApi } from "../../api/categoryApi";
 
 const ManageProductsPage = () => {
   const [products, setProducts] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -30,6 +32,7 @@ const ManageProductsPage = () => {
 
   useEffect(() => {
     fetchProducts();
+    fetchCategories();
   }, []);
 
   const fetchProducts = async () => {
@@ -43,6 +46,16 @@ const ManageProductsPage = () => {
       console.error("Gagal mengambil produk:", error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchCategories = async () => {
+    try {
+      const response = await categoryApi.getAllCategories();
+      const categoryList = response.data || response || [];
+      setCategories(categoryList);
+    } catch (error) {
+      console.error("Gagal mengambil kategori:", error);
     }
   };
 
@@ -76,7 +89,7 @@ const ManageProductsPage = () => {
     setFormData({
       id: null,
       name: "",
-      category_id: 1,
+      category_id: categories[0]?.id || 1,
       description: "",
       price: "",
       stock: "",
@@ -159,7 +172,7 @@ const ManageProductsPage = () => {
           <div className="card-body">
             <form onSubmit={handleSubmit}>
               <div className="row mb-3">
-                <div className="col-md-6">
+                <div className="col-md-3">
                   <label className="form-label">Nama Produk</label>
                   <input
                     type="text"
@@ -170,13 +183,45 @@ const ManageProductsPage = () => {
                     required
                   />
                 </div>
-                <div className="col-md-6">
+                <div className="col-md-3">
+                  <label className="form-label">Kategori</label>
+                  <select
+                    className="form-select"
+                    name="category_id"
+                    value={formData.category_id}
+                    onChange={handleInputChange}
+                    required
+                  >
+                    <option value="" disabled>
+                      Pilih kategori
+                    </option>
+                    {categories.map((category) => (
+                      <option key={category.id} value={category.id}>
+                        {category.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="col-md-3">
                   <label className="form-label">Harga</label>
                   <input
                     type="number"
                     className="form-control"
                     name="price"
+                    min="0"
                     value={formData.price}
+                    onChange={handleInputChange}
+                    required
+                  />
+                </div>
+                <div className="col-md-3">
+                  <label className="form-label">Stok</label>
+                  <input
+                    type="number"
+                    className="form-control"
+                    name="stock"
+                    min="0"
+                    value={formData.stock}
                     onChange={handleInputChange}
                     required
                   />
@@ -236,6 +281,7 @@ const ManageProductsPage = () => {
                     <tr>
                       <th className="ps-3">Gambar</th>
                       <th>Nama Produk</th>
+                      <th>Kategori</th>
                       <th>Harga</th>
                       <th>Stok</th>
                       <th className="text-center pe-3">Aksi</th>
@@ -260,6 +306,7 @@ const ManageProductsPage = () => {
                           />
                         </td>
                         <td className="fw-bold">{product.name}</td>
+                        <td>{product.category?.name || "-"}</td>
                         <td className="text-success fw-bold">
                           Rp {product.price?.toLocaleString("id-ID")}
                         </td>
