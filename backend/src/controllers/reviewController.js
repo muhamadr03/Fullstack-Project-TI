@@ -1,4 +1,5 @@
-const { Review, User } = require("../models");
+const { Review, User, Order, OrderItem } = require("../models");
+const { Op } = require("sequelize");
 
 // CUSTOMER: Menambahkan ulasan
 exports.addReview = async (req, res) => {
@@ -10,6 +11,29 @@ exports.addReview = async (req, res) => {
       return res
         .status(400)
         .json({ message: "Rating harus antara 1 hingga 5." });
+    }
+
+    // Validasi: cek apakah order_id milik user ini dan sudah lunas (paid)
+    const order = await Order.findOne({
+      where: { id: order_id, user_id: req.user.id, status: "paid" },
+    });
+
+    if (!order) {
+      return res.status(403).json({
+        message:
+          "Anda hanya dapat mengulas produk dari pesanan yang sudah lunas.",
+      });
+    }
+
+    // Validasi: cek apakah produk ada dalam order tersebut
+    const orderItem = await OrderItem.findOne({
+      where: { order_id, product_id },
+    });
+
+    if (!orderItem) {
+      return res.status(403).json({
+        message: "Produk ini tidak ada dalam pesanan tersebut.",
+      });
     }
 
     const newReview = await Review.create({
@@ -42,9 +66,54 @@ exports.getProductReviews = async (req, res) => {
     const reviews = await Review.findAll({
       where: { product_id: req.params.productId },
       include: [{ model: User, as: "user", attributes: ["name"] }], // Tampilkan nama pereview
+      order: [["created_at", "DESC"]],
     });
     res.status(200).json(reviews);
   } catch (error) {
     res.status(500).json({ message: "Gagal mengambil ulasan." });
+  }
+};
+
+// CUSTOMER: Ambil daftar order (yang sudah paid) beserta item-nya untuk keperluan review
+// Digunakan di frontend agar user bisa pilih dari order mana mereka mau review
+exports.getEligibleOrders = async (req, res) => {
+  try {
+    const { product_id } = req.query;
+    const userId = req.user.id;
+
+    // Cari order user yang sudah paid
+    const orders = await Order.findAll({
+      where: { user_id: userId, status: "paid" },
+      include: [
+        {
+          model: OrderItem,
+          as: "items",
+          where: product_id ? { product_id } : {},
+          required: true,
+        },
+      ],
+    });
+
+    // Filter: keluarkan order yang sudah ada review-nya untuk produk ini
+    if (product_id) {
+      const existingReviews = await Review.findAll({
+        where: { user_id: userId, product_id },
+        attributes: ["order_id"],
+      });
+      const reviewedOrderIds = existingReviews.map((r) => r.order_id);
+
+      const eligibleOrders = orders.filter(
+        (o) => !reviewedOrderIds.includes(o.id)
+      );
+
+      return res.status(200).json(eligibleOrders);
+    }
+
+    return res.status(200).json(orders);
+  } catch (error) {
+    console.error("Error getEligibleOrders:", error);
+    res
+      .status(500)
+      .json({ message: "Gagal mengambil daftar pesanan.", error: error.message });
   }
 };

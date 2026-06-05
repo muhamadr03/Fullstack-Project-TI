@@ -9,12 +9,16 @@ const reviewSchema = Joi.object({
   product_id: Joi.number().required(),
   order_id: Joi.number().required(),
   rating: Joi.number().integer().min(1).max(5).required(),
-  comment: Joi.string().allow(""),
+  comment: Joi.string().allow("").optional(),
 });
-// Publik bisa melihat ulasan
+
+// [CUSTOMER - Login Required] Ambil daftar order yang eligible untuk review
+router.get("/eligible-orders", verifyToken, reviewController.getEligibleOrders);
+
+// [PUBLIK] Melihat ulasan sebuah produk
 router.get("/:productId", reviewController.getProductReviews);
 
-// Hanya yang login bisa memberi ulasan
+// [CUSTOMER - Login Required] Kirim ulasan
 router.post("/", verifyToken, validate(reviewSchema), reviewController.addReview);
 
 module.exports = router;
