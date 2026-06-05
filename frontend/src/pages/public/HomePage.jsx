@@ -12,7 +12,7 @@ const HomePage = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
 
-  // Search & Filter States
+  // Search & Filter States (Ditambah Kategori dan Rating)
   const [searchInput, setSearchInput] = useState("");
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [filters, setFilters] = useState({
@@ -20,19 +20,24 @@ const HomePage = () => {
     minPrice: "",
     maxPrice: "",
     sortBy: "newest",
+    category: "", // Tambahan state kategori
+    rating: "",   // Tambahan state rating
   });
 
   const fetchProducts = async () => {
     setLoading(true);
     setError(null);
     try {
+      // Pastikan backend API kamu juga menerima parameter category & rating ini
       const response = await productApi.getAllProducts({
         page: currentPage,
-        limit: 9, // 3x3 grid looks good
+        limit: 9, // 3x3 grid
         search: filters.search,
         minPrice: filters.minPrice,
         maxPrice: filters.maxPrice,
         sortBy: filters.sortBy,
+        category: filters.category,
+        rating: filters.rating, 
       });
 
       setProducts(response.data);
@@ -61,221 +66,299 @@ const HomePage = () => {
   };
 
   return (
-    <div className="container py-5">
-      {/* HEADER SECTION */}
-      <div className="text-center mb-5">
-        <h2 className="fw-bold mb-2">Katalog Produk</h2>
-        <p className="text-muted">
-          Temukan barang impian Anda dengan kualitas terbaik.
-        </p>
-      </div>
+    <div 
+      className="min-vh-100" 
+      style={{ 
+        background: "linear-gradient(135deg, #f0f4f8 0%, #d9e2ec 100%)",
+        fontFamily: "'Inter', sans-serif" 
+      }}
+    >
+      {/* =========================================
+          NAVBAR DIHILANGKAN SEMENTARA DARI SINI
+          (KARENA SUDAH KAMU PISAH DI NavbarCustomer.jsx)
+      ========================================= */}
 
-      {/* SEARCH BAR - ALWAYS VISIBLE */}
-      <div
-        className="card border-0 shadow-sm mb-3 glass-panel"
-        style={{ borderRadius: "16px" }}
-      >
-        <div className="card-body p-4">
-          <form onSubmit={handleApplyFilter} className="d-flex gap-2">
-            {/* Pencarian */}
-            <div className="flex-grow-1">
-              <div className="input-group">
-                <span
-                  className="input-group-text bg-light border-0 text-muted px-3"
-                  style={{ borderRadius: "10px 0 0 10px" }}
-                >
-                  <i className="bi bi-search"></i>
-                </span>
-                <input
-                  type="text"
-                  className="form-control bg-light border-0 shadow-none"
-                  style={{ borderRadius: "0 10px 10px 0" }}
-                  placeholder="Cari produk..."
-                  value={searchInput}
-                  onChange={(e) => setSearchInput(e.target.value)}
-                />
-              </div>
-            </div>
-
-            {/* Toggle Filter Button */}
-            <button
-              type="button"
-              className={`btn btn-${isFilterOpen ? "primary" : "light"} shadow-sm rounded-pill px-4 py-2 d-flex align-items-center gap-2`}
-              onClick={() => setIsFilterOpen(!isFilterOpen)}
-              title={
-                isFilterOpen ? "Tutup Filter Lanjutan" : "Buka Filter Lanjutan"
-              }
-            >
-              <i className={`bi bi-funnel${isFilterOpen ? "-fill" : ""}`}></i>
-              <span className="d-none d-sm-inline">
-                {isFilterOpen ? "Tutup" : "Filter"}
-              </span>
-            </button>
-          </form>
-        </div>
-      </div>
-
-      {/* COLLAPSIBLE ADVANCED FILTER */}
-      <div
-        className="card border-0 shadow-sm mb-5 glass-panel"
-        style={{
-          borderRadius: "16px",
-          maxHeight: isFilterOpen ? "400px" : "0",
-          overflow: "hidden",
-          transition:
-            "max-height 0.4s ease-in-out, opacity 0.4s ease-in-out, margin-bottom 0.4s ease-in-out",
-          opacity: isFilterOpen ? 1 : 0,
-          marginBottom: isFilterOpen ? "20px" : "0",
-        }}
-      >
-        <div
-          className="card-body p-4"
-          style={{ visibility: isFilterOpen ? "visible" : "hidden" }}
-        >
-          <form className="row g-3 align-items-end">
-            {/* Urutkan */}
-            <div className="col-12 col-md-4">
-              <label className="form-label fw-semibold text-muted small mb-1">
-                Urutkan
-              </label>
-              <select
-                className="form-select bg-light border-0 shadow-none"
-                style={{ borderRadius: "10px" }}
-                value={filters.sortBy}
-                onChange={(e) => handleFilterChange("sortBy", e.target.value)}
-              >
-                <option value="newest">Terbaru</option>
-                <option value="price_asc">Harga Terendah</option>
-                <option value="price_desc">Harga Tertinggi</option>
-              </select>
-            </div>
-
-            {/* Rentang Harga */}
-            <div className="col-12 col-md-5">
-              <label className="form-label fw-semibold text-muted small mb-1">
-                Rentang Harga
-              </label>
-              <div className="d-flex align-items-center gap-2">
-                <input
-                  type="number"
-                  className="form-control bg-light border-0 shadow-none"
-                  style={{ borderRadius: "10px" }}
-                  placeholder="Min"
-                  value={filters.minPrice}
-                  onChange={(e) =>
-                    setFilters((prev) => ({
-                      ...prev,
-                      minPrice: e.target.value,
-                    }))
-                  }
-                />
-                <span className="text-muted">-</span>
-                <input
-                  type="number"
-                  className="form-control bg-light border-0 shadow-none"
-                  style={{ borderRadius: "10px" }}
-                  placeholder="Max"
-                  value={filters.maxPrice}
-                  onChange={(e) =>
-                    setFilters((prev) => ({
-                      ...prev,
-                      maxPrice: e.target.value,
-                    }))
-                  }
-                />
-              </div>
-            </div>
-
-            {/* Tombol Aksi */}
-            <div className="col-12 col-md-3 d-flex gap-2">
-              <button
-                className="btn btn-primary flex-grow-1 shadow-sm"
-                style={{ borderRadius: "10px" }}
-                type="button"
-                onClick={handleApplyFilter}
-              >
-                Terapkan
-              </button>
-              <button
-                type="button"
-                className="btn btn-light shadow-sm text-muted"
-                style={{ borderRadius: "10px" }}
-                onClick={() => {
-                  setSearchInput("");
-                  setFilters({
-                    search: "",
-                    minPrice: "",
-                    maxPrice: "",
-                    sortBy: "newest",
-                  });
-                }}
-                title="Reset Filter"
-              >
-                <i className="bi bi-arrow-counterclockwise"></i>
-              </button>
-            </div>
-          </form>
-        </div>
-      </div>
-
-      {/* MAIN CONTENT */}
-      <div className="d-flex justify-content-between align-items-center mb-4">
-        <h5 className="fw-bold mb-0">Hasil Pencarian</h5>
-        <div className="text-muted small px-3 py-1 bg-light rounded-pill">
-          Menampilkan {products.length} produk
-        </div>
-      </div>
-
-      {loading ? (
-        <LoadingSpinner />
-      ) : error ? (
-        <ErrorMessage message={error} onRetry={fetchProducts} />
-      ) : products.length === 0 ? (
-        <div className="alert alert-info text-center p-5 rounded-4 bg-white border border-light shadow-sm">
-          <i className="bi bi-search fs-1 text-muted mb-3 d-block"></i>
-          <h5 className="fw-bold">Tidak ada produk</h5>
-          <p className="text-muted mb-0">
-            Coba gunakan kata kunci atau rentang harga lain.
+      <div className="container py-5">
+        {/* HEADER SECTION */}
+        <div className="text-center mb-5 mt-4">
+          <h2 
+            className="fw-bold mb-3" 
+            style={{ 
+              background: "linear-gradient(90deg, #0b5ed7, #0dcaf0)", 
+              WebkitBackgroundClip: "text", 
+              WebkitTextFillColor: "transparent",
+              display: "inline-block",
+              filter: "drop-shadow(0px 2px 2px rgba(13, 110, 253, 0.2))"
+            }}
+          >
+            ✨ Katalog Produk
+          </h2>
+          <p className="text-secondary fs-5" style={{ fontWeight: "500" }}>
+            Temukan barang impian Anda dengan kualitas terbaik.
           </p>
         </div>
-      ) : (
-        <>
-          <div className="row g-4 mb-5">
-            {products.map((product) => (
-              <div
-                key={product.id}
-                className="col-12 col-sm-6 col-md-4 col-lg-3"
-              >
-                <ProductCard product={product} />
-              </div>
-            ))}
-          </div>
 
-          {totalPages > 1 && (
-            <div className="d-flex justify-content-center align-items-center gap-3 mt-4">
+        {/* SEARCH BAR - GLASSMORPHISM EFFECT */}
+        <div
+          className="card border-0 shadow-sm mb-4"
+          style={{ 
+            borderRadius: "20px", 
+            background: "rgba(255, 255, 255, 0.5)", 
+            backdropFilter: "blur(16px)",
+            border: "1px solid rgba(255, 255, 255, 0.8)"
+          }}
+        >
+          <div className="card-body p-3 p-md-4">
+            <form onSubmit={handleApplyFilter} className="d-flex flex-column flex-md-row gap-3">
+              <div className="flex-grow-1">
+                <div className="input-group input-group-lg shadow-sm" style={{ borderRadius: "15px", overflow: "hidden" }}>
+                  <span className="input-group-text border-0 text-primary px-4" style={{ background: "rgba(255, 255, 255, 0.8)" }}>
+                    <i className="bi bi-search"></i>
+                  </span>
+                  <input
+                    type="text"
+                    className="form-control border-0 shadow-none"
+                    style={{ background: "rgba(255, 255, 255, 0.8)" }}
+                    placeholder="Cari produk impianmu di sini..."
+                    value={searchInput}
+                    onChange={(e) => setSearchInput(e.target.value)}
+                  />
+                  <button type="submit" className="btn btn-primary px-4 fw-medium d-none d-md-block">
+                    Cari
+                  </button>
+                </div>
+              </div>
+
               <button
-                className="btn btn-outline-secondary btn-sm px-3 rounded-pill"
-                onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-                disabled={currentPage === 1}
+                type="button"
+                className={`btn ${isFilterOpen ? "btn-primary shadow" : "btn-light shadow-sm"} rounded-pill px-4 py-2 py-md-0 d-flex align-items-center justify-content-center gap-2 transition-all`}
+                onClick={() => setIsFilterOpen(!isFilterOpen)}
+                title={isFilterOpen ? "Tutup Filter Lanjutan" : "Buka Filter Lanjutan"}
+                style={{ 
+                  minWidth: "140px", 
+                  background: isFilterOpen ? "" : "rgba(255, 255, 255, 0.8)",
+                  border: isFilterOpen ? "" : "1px solid rgba(255,255,255,0.9)"
+                }}
               >
-                &laquo; Sebelumnya
+                <i className={`bi bi-funnel${isFilterOpen ? "-fill" : " text-primary"}`}></i>
+                <span className={`fw-medium ${isFilterOpen ? "" : "text-primary"}`}>
+                  {isFilterOpen ? "Tutup Filter" : "Filter"}
+                </span>
               </button>
-              <span className="fw-semibold text-muted small bg-light px-3 py-1 rounded-pill">
-                Halaman {currentPage} dari {totalPages}
-              </span>
-              <button
-                className="btn btn-outline-secondary btn-sm px-3 rounded-pill"
-                onClick={() =>
-                  setCurrentPage((prev) => Math.min(prev + 1, totalPages))
-                }
-                disabled={currentPage === totalPages}
-              >
-                Selanjutnya &raquo;
-              </button>
+            </form>
+          </div>
+        </div>
+
+        {/* COLLAPSIBLE ADVANCED FILTER (Diperbarui dengan Kategori & Rating) */}
+        <div
+          className="card shadow-sm mb-5"
+          style={{
+            borderRadius: "20px",
+            maxHeight: isFilterOpen ? "600px" : "0", // Dinaikkan sedikit agar muat 2 baris
+            overflow: "hidden",
+            transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
+            opacity: isFilterOpen ? 1 : 0,
+            marginBottom: isFilterOpen ? "30px" : "0",
+            background: "rgba(255, 255, 255, 0.45)",
+            backdropFilter: "blur(16px)",
+            border: isFilterOpen ? "1px solid rgba(255, 255, 255, 0.8)" : "none"
+          }}
+        >
+          <div className="card-body p-4" style={{ visibility: isFilterOpen ? "visible" : "hidden" }}>
+            <form className="row g-4 align-items-end">
+              
+              {/* --- BARIS 1 --- */}
+              {/* 1. Kategori */}
+              <div className="col-12 col-md-4">
+                <label className="form-label fw-bold text-dark small mb-2 d-flex align-items-center gap-2">
+                  <i className="bi bi-grid text-primary"></i> Kategori
+                </label>
+                <select
+                  className="form-select form-select-lg border-0 shadow-sm"
+                  style={{ borderRadius: "12px", fontSize: "0.95rem", background: "rgba(255, 255, 255, 0.8)" }}
+                  value={filters.category}
+                  onChange={(e) => handleFilterChange("category", e.target.value)}
+                >
+                  <option value="">Semua Kategori</option>
+                  <option value="pakaian-pria">Pakaian Pria</option>
+                  <option value="pakaian-wanita">Pakaian Wanita</option>
+                  <option value="aksesoris">Aksesoris</option>
+                  <option value="elektronik">Elektronik</option>
+                </select>
+              </div>
+
+              {/* 2. Rating */}
+              <div className="col-12 col-md-4">
+                <label className="form-label fw-bold text-dark small mb-2 d-flex align-items-center gap-2">
+                  <i className="bi bi-star-fill text-warning"></i> Rating Minimum
+                </label>
+                <select
+                  className="form-select form-select-lg border-0 shadow-sm"
+                  style={{ borderRadius: "12px", fontSize: "0.95rem", background: "rgba(255, 255, 255, 0.8)" }}
+                  value={filters.rating}
+                  onChange={(e) => handleFilterChange("rating", e.target.value)}
+                >
+                  <option value="">Semua Rating</option>
+                  <option value="4">⭐️ 4 Ke Atas</option>
+                  <option value="3">⭐️ 3 Ke Atas</option>
+                  <option value="2">⭐️ 2 Ke Atas</option>
+                </select>
+              </div>
+
+              {/* 3. Urutkan */}
+              <div className="col-12 col-md-4">
+                <label className="form-label fw-bold text-dark small mb-2 d-flex align-items-center gap-2">
+                  <i className="bi bi-sort-down text-primary"></i> Urutkan Berdasarkan
+                </label>
+                <select
+                  className="form-select form-select-lg border-0 shadow-sm"
+                  style={{ borderRadius: "12px", fontSize: "0.95rem", background: "rgba(255, 255, 255, 0.8)" }}
+                  value={filters.sortBy}
+                  onChange={(e) => handleFilterChange("sortBy", e.target.value)}
+                >
+                  <option value="newest">🌟 Terbaru</option>
+                  <option value="price_asc">📉 Harga Terendah</option>
+                  <option value="price_desc">📈 Harga Tertinggi</option>
+                </select>
+              </div>
+
+              {/* --- BARIS 2 --- */}
+              {/* 4. Rentang Harga */}
+              <div className="col-12 col-md-8">
+                <label className="form-label fw-bold text-dark small mb-2 d-flex align-items-center gap-2">
+                  <i className="bi bi-tags text-primary"></i> Rentang Harga
+                </label>
+                <div className="d-flex align-items-center gap-2">
+                  <div className="input-group input-group-lg shadow-sm" style={{ borderRadius: "12px", overflow: "hidden" }}>
+                    <span className="input-group-text border-0 fs-6" style={{ background: "rgba(240, 244, 248, 0.9)" }}>Rp</span>
+                    <input
+                      type="number"
+                      className="form-control border-0"
+                      style={{ background: "rgba(255, 255, 255, 0.8)" }}
+                      placeholder="Min"
+                      value={filters.minPrice}
+                      onChange={(e) => setFilters((prev) => ({ ...prev, minPrice: e.target.value }))}
+                    />
+                  </div>
+                  <span className="text-secondary fw-bold">-</span>
+                  <div className="input-group input-group-lg shadow-sm" style={{ borderRadius: "12px", overflow: "hidden" }}>
+                    <span className="input-group-text border-0 fs-6" style={{ background: "rgba(240, 244, 248, 0.9)" }}>Rp</span>
+                    <input
+                      type="number"
+                      className="form-control border-0"
+                      style={{ background: "rgba(255, 255, 255, 0.8)" }}
+                      placeholder="Max"
+                      value={filters.maxPrice}
+                      onChange={(e) => setFilters((prev) => ({ ...prev, maxPrice: e.target.value }))}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* 5. Tombol Aksi */}
+              <div className="col-12 col-md-4 d-flex gap-2 justify-content-md-end">
+                <button
+                  className="btn btn-primary px-4 shadow-sm py-2 fw-medium flex-grow-1 flex-md-grow-0"
+                  style={{ borderRadius: "12px", minWidth: "140px" }}
+                  type="button"
+                  onClick={handleApplyFilter}
+                >
+                  Terapkan Filter
+                </button>
+                <button
+                  type="button"
+                  className="btn shadow-sm text-danger py-2 px-3 bg-white"
+                  style={{ borderRadius: "12px", border: "none" }}
+                  onClick={() => {
+                    setSearchInput("");
+                    setFilters({ search: "", minPrice: "", maxPrice: "", sortBy: "newest", category: "", rating: "" });
+                  }}
+                  title="Reset Semua Filter"
+                >
+                  <i className="bi bi-arrow-counterclockwise fs-5"></i>
+                </button>
+              </div>
+
+            </form>
+          </div>
+        </div>
+
+        {/* MAIN CONTENT HEADER */}
+        <div className="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom border-secondary-subtle">
+          <h4 className="fw-bold mb-0 text-dark border-start border-4 border-primary ps-3 rounded-1">
+            Hasil Pencarian
+          </h4>
+          <span className="badge bg-primary bg-opacity-10 text-primary border border-primary-subtle rounded-pill px-3 py-2 fw-medium shadow-sm">
+            Menampilkan {products.length} produk
+          </span>
+        </div>
+
+        {/* CONTENT AREA */}
+        {loading ? (
+          <div className="py-5 text-center"><LoadingSpinner /></div>
+        ) : error ? (
+          <ErrorMessage message={error} onRetry={fetchProducts} />
+        ) : products.length === 0 ? (
+          <div 
+            className="alert text-center p-5 rounded-4 border-0 shadow-sm" 
+            style={{ 
+              background: "rgba(255, 255, 255, 0.4)", 
+              backdropFilter: "blur(10px)",
+              border: "1px solid rgba(255, 255, 255, 0.6)"
+            }}
+          >
+            <div className="mb-4">
+              <i className="bi bi-search text-primary opacity-50" style={{ fontSize: "4rem" }}></i>
             </div>
-          )}
-        </>
-      )}
+            <h4 className="fw-bold text-dark">Oops! Produk tidak ditemukan</h4>
+            <p className="text-secondary mb-0">
+              Coba gunakan kata kunci lain atau ubah rentang harga pada filter.
+            </p>
+          </div>
+        ) : (
+          <>
+            <div className="row g-4 mb-5">
+              {products.map((product) => (
+                <div key={product.id} className="col-12 col-sm-6 col-md-4 col-lg-3">
+                  <div className="h-100 transition-hover" style={{ borderRadius: "16px", overflow: "hidden" }}>
+                    <ProductCard product={product} />
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* PAGINATION */}
+            {totalPages > 1 && (
+              <div className="d-flex justify-content-center align-items-center gap-3 mt-5">
+                <button
+                  className="btn btn-primary rounded-circle shadow-sm"
+                  style={{ width: "45px", height: "45px", display: "flex", alignItems: "center", justifyContent: "center" }}
+                  onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                  disabled={currentPage === 1}
+                >
+                  <i className="bi bi-chevron-left"></i>
+                </button>
+                
+                <div 
+                  className="shadow-sm px-4 py-2 rounded-pill fw-bold text-primary"
+                  style={{ background: "rgba(255, 255, 255, 0.7)", backdropFilter: "blur(10px)" }}
+                >
+                  Halaman {currentPage} <span className="text-secondary fw-normal mx-1">dari</span> {totalPages}
+                </div>
+
+                <button
+                  className="btn btn-primary rounded-circle shadow-sm"
+                  style={{ width: "45px", height: "45px", display: "flex", alignItems: "center", justifyContent: "center" }}
+                  onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                  disabled={currentPage === totalPages}
+                >
+                  <i className="bi bi-chevron-right"></i>
+                </button>
+              </div>
+            )}
+          </>
+        )}
+      </div>
     </div>
   );
 };

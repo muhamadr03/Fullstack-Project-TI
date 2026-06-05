@@ -4,19 +4,25 @@ const { Op } = require("sequelize");
 exports.getAllProducts = async (req, res, next) => {
   try {
     // 1. Tangkap Query Parameter dari URL Frontend
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 10;
+    const page = parseInt(req.query.page, 10) || 1;
+    const limit = parseInt(req.query.limit, 10) || 10;
     const search = req.query.search || "";
-    const categoryId = req.query.category || null;
-    const minPrice = parseInt(req.query.minPrice) || null;
-    const maxPrice = parseInt(req.query.maxPrice) || null;
-    const sortBy = req.query.sortBy || "terbaru"; // terbaru, termurah, termahal
-    
+    const category = req.query.category || null;
+    const minPrice = req.query.minPrice ? parseInt(req.query.minPrice, 10) : null;
+    const maxPrice = req.query.maxPrice ? parseInt(req.query.maxPrice, 10) : null;
+    const rating = req.query.rating ? parseFloat(req.query.rating) : null;
+    const sortBy = req.query.sortBy || "newest"; // newest, price_asc, price_desc, oldest
+
     // 2. Hitung Offset
     const offset = (page - 1) * limit;
 
     // 3. Siapkan Kondisi (WHERE Clause)
     let whereCondition = {};
+    let includeCondition = {
+      model: Category,
+      as: "category",
+      attributes: ["id", "name"],
+    };
 
     if (search) {
       whereCondition.name = {
@@ -24,8 +30,14 @@ exports.getAllProducts = async (req, res, next) => {
       };
     }
 
-    if (categoryId) {
-      whereCondition.category_id = categoryId;
+    if (category) {
+      const categoryId = Number(category);
+      if (!Number.isNaN(categoryId)) {
+        whereCondition.category_id = categoryId;
+      } else {
+        includeCondition.where = { slug: category };
+        includeCondition.required = true;
+      }
     }
 
     if (minPrice !== null || maxPrice !== null) {
@@ -34,13 +46,19 @@ exports.getAllProducts = async (req, res, next) => {
       if (maxPrice !== null) whereCondition.price[Op.lte] = maxPrice;
     }
 
+    if (rating !== null) {
+      whereCondition.average_rating = {
+        [Op.gte]: rating,
+      };
+    }
+
     // 4. Tentukan urutan (Order)
-    let orderCondition = [["created_at", "DESC"]]; // Default terbaru
-    if (sortBy === "termurah") {
+    let orderCondition = [["created_at", "DESC"]]; // Default newest
+    if (sortBy === "price_asc" || sortBy === "termurah") {
       orderCondition = [["price", "ASC"]];
-    } else if (sortBy === "termahal") {
+    } else if (sortBy === "price_desc" || sortBy === "termahal") {
       orderCondition = [["price", "DESC"]];
-    } else if (sortBy === "terlama") {
+    } else if (sortBy === "oldest" || sortBy === "terlama") {
       orderCondition = [["created_at", "ASC"]];
     }
 
@@ -50,13 +68,7 @@ exports.getAllProducts = async (req, res, next) => {
       limit: limit,
       offset: offset,
       order: orderCondition,
-      include: [
-        {
-          model: Category,
-          as: "category",
-          attributes: ["id", "name"],
-        },
-      ],
+      include: [includeCondition],
     });
 
     const totalPages = Math.ceil(products.count / limit);

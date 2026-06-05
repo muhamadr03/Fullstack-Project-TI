@@ -1,155 +1,205 @@
 import React, { useContext } from "react";
-import { Link, useNavigate } from "react-router-dom"; // Perhatikan penambahan useNavigate
+import { Link, useNavigate } from "react-router-dom";
 import { CartContext } from "../../context/CartContext";
 import { AuthContext } from "../../context/AuthContext";
 
 const NavbarCustomer = () => {
     const { totalItems } = useContext(CartContext);
     const { user, logout } = useContext(AuthContext);
-    const navigate = useNavigate(); // Inisialisasi navigate
+    const navigate = useNavigate();
 
-    // Ini adalah fungsi yang hilang dan menyebabkan layar putih!
+    // Fungsi logout yang mengarahkan user kembali ke halaman login
     const handleLogout = () => {
         logout();
         navigate("/login");
     };
 
     return (
-        <nav className="navbar navbar-expand-lg navbar-light bg-white shadow-sm sticky-top">
-            <div className="container">
-                {/* Logo */}
-                <Link className="navbar-brand fw-bold text-primary" to="/">
-                    E-SHOP
+        <nav 
+            className="navbar navbar-expand-lg sticky-top" 
+            style={{ 
+                background: "rgba(255, 255, 255, 0.85)", 
+                backdropFilter: "blur(12px)", 
+                borderBottom: "1px solid rgba(226, 232, 240, 0.8)",
+                boxShadow: "0 4px 30px rgba(0, 0, 0, 0.03)"
+            }}
+        >
+            <div className="container py-2">
+                
+                {/* LOGO SECTION */}
+                <Link className="navbar-brand fw-bold fs-4 d-flex align-items-center gap-2" to="/">
+                    <div 
+                        className="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center shadow-sm" 
+                        style={{ width: '38px', height: '38px' }}
+                    >
+                        <i className="bi bi-shop fs-5"></i>
+                    </div>
+                    <span 
+                        style={{ 
+                            background: "linear-gradient(90deg, #0b5ed7, #0dcaf0)", 
+                            WebkitBackgroundClip: "text", 
+                            WebkitTextFillColor: "transparent",
+                            letterSpacing: "0.5px"
+                        }}
+                    >
+                        E-SHOP
+                    </span>
                 </Link>
 
-                {/* Toggle Button untuk Mobile */}
+                {/* TOGGLE BUTTON MOBILE */}
                 <button
-                    className="navbar-toggler"
+                    className="navbar-toggler border-0 shadow-none"
                     type="button"
                     data-bs-toggle="collapse"
                     data-bs-target="#navbarNav"
+                    aria-controls="navbarNav"
+                    aria-expanded="false"
+                    aria-label="Toggle navigation"
                 >
                     <span className="navbar-toggler-icon"></span>
                 </button>
 
                 <div className="collapse navbar-collapse" id="navbarNav">
-                    <ul className="navbar-nav me-auto mb-2 mb-lg-0">
+                    {/* MENU LINKS */}
+                    <ul className="navbar-nav me-auto ms-lg-4 mb-2 mb-lg-0 mt-3 mt-lg-0 text-center text-lg-start">
                         <li className="nav-item">
-                            <Link className="nav-link" to="/">
+                            <Link 
+                                className="nav-link fw-bold text-primary px-3 d-inline-block d-lg-block" 
+                                to="/"
+                                style={{ 
+                                    background: "rgba(13, 110, 253, 0.08)", 
+                                    borderRadius: "10px",
+                                }}
+                            >
                                 Beranda
                             </Link>
                         </li>
                     </ul>
 
-                    <div className="d-flex align-items-center">
-                        <Link
-                            to="/wishlist"
-                            className="nav-link position-relative me-3 text-danger transition-hover"
+                    {/* RIGHT ACTIONS (Icons & Profile) */}
+                    <div className="d-flex align-items-center justify-content-center justify-content-lg-end gap-4 mt-3 mt-lg-0 pb-2 pb-lg-0">
+                        
+                        {/* Wishlist Icon */}
+                        <Link 
+                            to="/wishlist" 
+                            className="text-danger position-relative" 
+                            style={{ transition: "transform 0.2s" }} 
                             title="Daftar Keinginan"
                         >
-                            <i className="bi bi-heart-fill fs-5"></i>
+                            <i className="bi bi-heart-fill fs-5" style={{ filter: "drop-shadow(0 2px 4px rgba(220, 53, 69, 0.3))" }}></i>
                         </Link>
 
-                        {/* Ikon Keranjang dengan Badge Angka */}
-                        <Link
-                            to="/cart"
-                            className="nav-link position-relative me-3 text-dark transition-hover"
+                        {/* Cart Icon with Dynamic Badge */}
+                        <Link 
+                            to="/cart" 
+                            className="text-dark position-relative" 
+                            style={{ transition: "transform 0.2s" }} 
+                            title="Keranjang"
                         >
-                            <i className="bi bi-cart fs-4"></i>
+                            <i className="bi bi-cart3 fs-5"></i>
                             {totalItems > 0 && (
-                                <span
-                                    className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
-                                    style={{ fontSize: "0.7rem" }}
+                                <span 
+                                    className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger shadow-sm"
+                                    style={{ fontSize: "0.65rem", transform: "translate(-30%, -30%)" }}
                                 >
                                     {totalItems}
                                 </span>
                             )}
                         </Link>
 
-                        {/* Menu User (Login/Profil) */}
+                        {/* Vertical Divider */}
+                        <div className="vr d-none d-lg-block text-secondary" style={{ width: "2px", opacity: "0.2" }}></div>
+
+                        {/* User / Auth Options */}
                         {user ? (
                             <div className="dropdown">
-                                <button
-                                    className="btn btn-outline-primary dropdown-toggle d-flex align-items-center"
-                                    type="button"
-                                    data-bs-toggle="dropdown"
+                                <button 
+                                    className="btn btn-light dropdown-toggle rounded-pill d-flex align-items-center gap-2 px-3 py-2 fw-medium shadow-sm" 
+                                    type="button" 
+                                    data-bs-toggle="dropdown" 
+                                    aria-expanded="false"
+                                    style={{ 
+                                        background: "white", 
+                                        border: "1px solid rgba(13, 110, 253, 0.2)",
+                                        color: "#0b5ed7"
+                                    }}
                                 >
-                                    <i className="bi bi-person-circle me-2"></i>
-                                    {user.name}
+                                    <i className="bi bi-person-circle fs-5"></i>
+                                    <span>{user.name}</span>
                                 </button>
+                                
+                                <ul className="dropdown-menu dropdown-menu-end shadow-lg border-0 mt-3" style={{ borderRadius: "16px", minWidth: "220px" }}>
+                                    <div className="px-3 py-2 mb-2 border-bottom">
+                                        <span className="fw-bold text-dark d-block">{user.name}</span>
+                                        <span className="badge bg-primary bg-opacity-10 text-primary border border-primary-subtle rounded-pill small mt-1">
+                                            Role: {user.role}
+                                        </span>
+                                    </div>
 
-                                <ul className="dropdown-menu dropdown-menu-end shadow border-0">
-                                    {/* LOGIKA PINTAR: JIKA ADMIN, TAMPILKAN INI */}
+                                    {/* MENU ADMIN */}
                                     {user.role === "admin" ? (
                                         <>
-                                            <li className="dropdown-header text-uppercase small fw-bold text-primary">
-                                                Menu Admin
-                                            </li>
                                             <li>
-                                                <Link className="dropdown-item" to="/admin/dashboard">
-                                                    Dashboard Utama
+                                                <Link className="dropdown-item py-2 d-flex align-items-center gap-3" to="/admin/dashboard">
+                                                    <div className="bg-primary bg-opacity-10 p-2 rounded text-primary"><i className="bi bi-grid"></i></div> Dashboard Utama
                                                 </Link>
                                             </li>
                                             <li>
-                                                <Link className="dropdown-item" to="/admin/orders">
-                                                    Kelola Semua Pesanan
+                                                <Link className="dropdown-item py-2 d-flex align-items-center gap-3" to="/admin/orders">
+                                                    <div className="bg-success bg-opacity-10 p-2 rounded text-success"><i className="bi bi-receipt"></i></div> Kelola Pesanan
                                                 </Link>
                                             </li>
                                             <li>
-                                                <Link className="dropdown-item" to="/admin/products">
-                                                    Kelola Produk
+                                                <Link className="dropdown-item py-2 d-flex align-items-center gap-3" to="/admin/products">
+                                                    <div className="bg-info bg-opacity-10 p-2 rounded text-info"><i className="bi bi-box-seam"></i></div> Kelola Produk
                                                 </Link>
                                             </li>
                                         </>
                                     ) : (
-                                        /* JIKA PEMBELI BIASA, TAMPILKAN INI */
+                                        /* MENU CUSTOMER */
                                         <>
-                                            <li className="dropdown-header text-uppercase small fw-bold text-primary">
-                                                Menu Pelanggan
-                                            </li>
                                             <li>
-                                                <Link className="dropdown-item" to="/profile">
-                                                    Profil Saya
+                                                <Link className="dropdown-item py-2 d-flex align-items-center gap-3" to="/profile">
+                                                    <div className="bg-primary bg-opacity-10 p-2 rounded text-primary"><i className="bi bi-person"></i></div> Profil Saya
                                                 </Link>
                                             </li>
                                             <li>
-                                                <Link className="dropdown-item" to="/orders">
-                                                    Riwayat Belanja
+                                                <Link className="dropdown-item py-2 d-flex align-items-center gap-3" to="/orders">
+                                                    <div className="bg-success bg-opacity-10 p-2 rounded text-success"><i className="bi bi-bag-check"></i></div> Riwayat Belanja
                                                 </Link>
                                             </li>
                                             <li>
-                                                <Link className="dropdown-item" to="/wishlist">
-                                                    Wishlist
+                                                <Link className="dropdown-item py-2 d-flex align-items-center gap-3" to="/wishlist">
+                                                    <div className="bg-danger bg-opacity-10 p-2 rounded text-danger"><i className="bi bi-heart"></i></div> Wishlist
                                                 </Link>
                                             </li>
                                         </>
                                     )}
 
-                                    {/* TOMBOL LOGOUT UNTUK SEMUANYA */}
+                                    <li><hr className="dropdown-divider" /></li>
                                     <li>
-                                        <hr className="dropdown-divider" />
-                                    </li>
-                                    <li>
-                                        <button
-                                            className="dropdown-item text-danger"
+                                        <button 
+                                            className="dropdown-item text-danger py-2 d-flex align-items-center gap-2 fw-medium" 
                                             onClick={handleLogout}
                                         >
-                                            <i className="bi bi-box-arrow-right me-2"></i> Logout
+                                            <i className="bi bi-box-arrow-right fs-5"></i> Logout
                                         </button>
                                     </li>
                                 </ul>
                             </div>
                         ) : (
-                            <div className="gap-2 d-flex">
-                                <Link to="/login" className="btn btn-outline-primary btn-sm">
+                            /* MENU GUEST (Belum Login) */
+                            <div className="d-flex gap-2">
+                                <Link to="/login" className="btn btn-outline-primary rounded-pill px-4 fw-medium shadow-sm bg-white">
                                     Login
                                 </Link>
-                                <Link to="/register" className="btn btn-primary btn-sm">
+                                <Link to="/register" className="btn btn-primary rounded-pill px-4 fw-medium shadow-sm">
                                     Daftar
                                 </Link>
                             </div>
                         )}
                     </div>
+
                 </div>
             </div>
         </nav>
