@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { productApi } from "../../api/productApi";
+import { categoryApi } from "../../api/categoryApi";
 import ProductCard from "../../components/ui/ProductCard";
 import LoadingSpinner from "../../components/ui/LoadingSpinner";
 import ErrorMessage from "../../components/ui/ErrorMessage";
@@ -11,6 +12,7 @@ const HomePage = () => {
 
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [categories, setCategories] = useState([]);
 
   // Search & Filter States (Ditambah Kategori dan Rating)
   const [searchInput, setSearchInput] = useState("");
@@ -21,7 +23,7 @@ const HomePage = () => {
     maxPrice: "",
     sortBy: "newest",
     category: "", // Tambahan state kategori
-    rating: "",   // Tambahan state rating
+    rating: "", // Tambahan state rating
   });
 
   const fetchProducts = async () => {
@@ -37,7 +39,7 @@ const HomePage = () => {
         maxPrice: filters.maxPrice,
         sortBy: filters.sortBy,
         category: filters.category,
-        rating: filters.rating, 
+        rating: filters.rating,
       });
 
       setProducts(response.data);
@@ -50,9 +52,22 @@ const HomePage = () => {
     }
   };
 
+  const fetchCategories = async () => {
+    try {
+      const data = await categoryApi.getAllCategories();
+      setCategories(data || []);
+    } catch (err) {
+      console.error("Gagal mengambil kategori:", err);
+    }
+  };
+
   useEffect(() => {
     fetchProducts();
+    fetchCategories();
   }, [currentPage, filters]);
+  useEffect(() => {
+    fetchCategories();
+  }, []);
 
   const handleApplyFilter = (e) => {
     e.preventDefault();
@@ -66,11 +81,11 @@ const HomePage = () => {
   };
 
   return (
-    <div 
-      className="min-vh-100" 
-      style={{ 
+    <div
+      className="min-vh-100"
+      style={{
         background: "linear-gradient(135deg, #f0f4f8 0%, #d9e2ec 100%)",
-        fontFamily: "'Inter', sans-serif" 
+        fontFamily: "'Inter', sans-serif",
       }}
     >
       {/* =========================================
@@ -81,14 +96,14 @@ const HomePage = () => {
       <div className="container py-5">
         {/* HEADER SECTION */}
         <div className="text-center mb-5 mt-4">
-          <h2 
-            className="fw-bold mb-3" 
-            style={{ 
-              background: "linear-gradient(90deg, #0b5ed7, #0dcaf0)", 
-              WebkitBackgroundClip: "text", 
+          <h2
+            className="fw-bold mb-3"
+            style={{
+              background: "linear-gradient(90deg, #0b5ed7, #0dcaf0)",
+              WebkitBackgroundClip: "text",
               WebkitTextFillColor: "transparent",
               display: "inline-block",
-              filter: "drop-shadow(0px 2px 2px rgba(13, 110, 253, 0.2))"
+              filter: "drop-shadow(0px 2px 2px rgba(13, 110, 253, 0.2))",
             }}
           >
             ✨ Katalog Produk
@@ -101,18 +116,27 @@ const HomePage = () => {
         {/* SEARCH BAR - GLASSMORPHISM EFFECT */}
         <div
           className="card border-0 shadow-sm mb-4"
-          style={{ 
-            borderRadius: "20px", 
-            background: "rgba(255, 255, 255, 0.5)", 
+          style={{
+            borderRadius: "20px",
+            background: "rgba(255, 255, 255, 0.5)",
             backdropFilter: "blur(16px)",
-            border: "1px solid rgba(255, 255, 255, 0.8)"
+            border: "1px solid rgba(255, 255, 255, 0.8)",
           }}
         >
           <div className="card-body p-3 p-md-4">
-            <form onSubmit={handleApplyFilter} className="d-flex flex-column flex-md-row gap-3">
+            <form
+              onSubmit={handleApplyFilter}
+              className="d-flex flex-column flex-md-row gap-3"
+            >
               <div className="flex-grow-1">
-                <div className="input-group input-group-lg shadow-sm" style={{ borderRadius: "15px", overflow: "hidden" }}>
-                  <span className="input-group-text border-0 text-primary px-4" style={{ background: "rgba(255, 255, 255, 0.8)" }}>
+                <div
+                  className="input-group input-group-lg shadow-sm"
+                  style={{ borderRadius: "15px", overflow: "hidden" }}
+                >
+                  <span
+                    className="input-group-text border-0 text-primary px-4"
+                    style={{ background: "rgba(255, 255, 255, 0.8)" }}
+                  >
                     <i className="bi bi-search"></i>
                   </span>
                   <input
@@ -123,7 +147,10 @@ const HomePage = () => {
                     value={searchInput}
                     onChange={(e) => setSearchInput(e.target.value)}
                   />
-                  <button type="submit" className="btn btn-primary px-4 fw-medium d-none d-md-block">
+                  <button
+                    type="submit"
+                    className="btn btn-primary px-4 fw-medium d-none d-md-block"
+                  >
                     Cari
                   </button>
                 </div>
@@ -133,15 +160,23 @@ const HomePage = () => {
                 type="button"
                 className={`btn ${isFilterOpen ? "btn-primary shadow" : "btn-light shadow-sm"} rounded-pill px-4 py-2 py-md-0 d-flex align-items-center justify-content-center gap-2 transition-all`}
                 onClick={() => setIsFilterOpen(!isFilterOpen)}
-                title={isFilterOpen ? "Tutup Filter Lanjutan" : "Buka Filter Lanjutan"}
-                style={{ 
-                  minWidth: "140px", 
+                title={
+                  isFilterOpen
+                    ? "Tutup Filter Lanjutan"
+                    : "Buka Filter Lanjutan"
+                }
+                style={{
+                  minWidth: "140px",
                   background: isFilterOpen ? "" : "rgba(255, 255, 255, 0.8)",
-                  border: isFilterOpen ? "" : "1px solid rgba(255,255,255,0.9)"
+                  border: isFilterOpen ? "" : "1px solid rgba(255,255,255,0.9)",
                 }}
               >
-                <i className={`bi bi-funnel${isFilterOpen ? "-fill" : " text-primary"}`}></i>
-                <span className={`fw-medium ${isFilterOpen ? "" : "text-primary"}`}>
+                <i
+                  className={`bi bi-funnel${isFilterOpen ? "-fill" : " text-primary"}`}
+                ></i>
+                <span
+                  className={`fw-medium ${isFilterOpen ? "" : "text-primary"}`}
+                >
                   {isFilterOpen ? "Tutup Filter" : "Filter"}
                 </span>
               </button>
@@ -161,12 +196,16 @@ const HomePage = () => {
             marginBottom: isFilterOpen ? "30px" : "0",
             background: "rgba(255, 255, 255, 0.45)",
             backdropFilter: "blur(16px)",
-            border: isFilterOpen ? "1px solid rgba(255, 255, 255, 0.8)" : "none"
+            border: isFilterOpen
+              ? "1px solid rgba(255, 255, 255, 0.8)"
+              : "none",
           }}
         >
-          <div className="card-body p-4" style={{ visibility: isFilterOpen ? "visible" : "hidden" }}>
+          <div
+            className="card-body p-4"
+            style={{ visibility: isFilterOpen ? "visible" : "hidden" }}
+          >
             <form className="row g-4 align-items-end">
-              
               {/* --- BARIS 1 --- */}
               {/* 1. Kategori */}
               <div className="col-12 col-md-4">
@@ -175,26 +214,38 @@ const HomePage = () => {
                 </label>
                 <select
                   className="form-select form-select-lg border-0 shadow-sm"
-                  style={{ borderRadius: "12px", fontSize: "0.95rem", background: "rgba(255, 255, 255, 0.8)" }}
+                  style={{
+                    borderRadius: "12px",
+                    fontSize: "0.95rem",
+                    background: "rgba(255, 255, 255, 0.8)",
+                  }}
                   value={filters.category}
-                  onChange={(e) => handleFilterChange("category", e.target.value)}
+                  onChange={(e) =>
+                    handleFilterChange("category", e.target.value)
+                  }
                 >
                   <option value="">Semua Kategori</option>
-                  <option value="pakaian-pria">Pakaian Pria</option>
-                  <option value="pakaian-wanita">Pakaian Wanita</option>
-                  <option value="aksesoris">Aksesoris</option>
-                  <option value="elektronik">Elektronik</option>
+                  {categories.map((category) => (
+                    <option key={category.id} value={category.slug}>
+                      {category.name}
+                    </option>
+                  ))}
                 </select>
               </div>
 
               {/* 2. Rating */}
               <div className="col-12 col-md-4">
                 <label className="form-label fw-bold text-dark small mb-2 d-flex align-items-center gap-2">
-                  <i className="bi bi-star-fill text-warning"></i> Rating Minimum
+                  <i className="bi bi-star-fill text-warning"></i> Rating
+                  Minimum
                 </label>
                 <select
                   className="form-select form-select-lg border-0 shadow-sm"
-                  style={{ borderRadius: "12px", fontSize: "0.95rem", background: "rgba(255, 255, 255, 0.8)" }}
+                  style={{
+                    borderRadius: "12px",
+                    fontSize: "0.95rem",
+                    background: "rgba(255, 255, 255, 0.8)",
+                  }}
                   value={filters.rating}
                   onChange={(e) => handleFilterChange("rating", e.target.value)}
                 >
@@ -208,11 +259,16 @@ const HomePage = () => {
               {/* 3. Urutkan */}
               <div className="col-12 col-md-4">
                 <label className="form-label fw-bold text-dark small mb-2 d-flex align-items-center gap-2">
-                  <i className="bi bi-sort-down text-primary"></i> Urutkan Berdasarkan
+                  <i className="bi bi-sort-down text-primary"></i> Urutkan
+                  Berdasarkan
                 </label>
                 <select
                   className="form-select form-select-lg border-0 shadow-sm"
-                  style={{ borderRadius: "12px", fontSize: "0.95rem", background: "rgba(255, 255, 255, 0.8)" }}
+                  style={{
+                    borderRadius: "12px",
+                    fontSize: "0.95rem",
+                    background: "rgba(255, 255, 255, 0.8)",
+                  }}
                   value={filters.sortBy}
                   onChange={(e) => handleFilterChange("sortBy", e.target.value)}
                 >
@@ -229,27 +285,53 @@ const HomePage = () => {
                   <i className="bi bi-tags text-primary"></i> Rentang Harga
                 </label>
                 <div className="d-flex align-items-center gap-2">
-                  <div className="input-group input-group-lg shadow-sm" style={{ borderRadius: "12px", overflow: "hidden" }}>
-                    <span className="input-group-text border-0 fs-6" style={{ background: "rgba(240, 244, 248, 0.9)" }}>Rp</span>
+                  <div
+                    className="input-group input-group-lg shadow-sm"
+                    style={{ borderRadius: "12px", overflow: "hidden" }}
+                  >
+                    <span
+                      className="input-group-text border-0 fs-6"
+                      style={{ background: "rgba(240, 244, 248, 0.9)" }}
+                    >
+                      Rp
+                    </span>
                     <input
                       type="number"
                       className="form-control border-0"
                       style={{ background: "rgba(255, 255, 255, 0.8)" }}
                       placeholder="Min"
                       value={filters.minPrice}
-                      onChange={(e) => setFilters((prev) => ({ ...prev, minPrice: e.target.value }))}
+                      onChange={(e) =>
+                        setFilters((prev) => ({
+                          ...prev,
+                          minPrice: e.target.value,
+                        }))
+                      }
                     />
                   </div>
                   <span className="text-secondary fw-bold">-</span>
-                  <div className="input-group input-group-lg shadow-sm" style={{ borderRadius: "12px", overflow: "hidden" }}>
-                    <span className="input-group-text border-0 fs-6" style={{ background: "rgba(240, 244, 248, 0.9)" }}>Rp</span>
+                  <div
+                    className="input-group input-group-lg shadow-sm"
+                    style={{ borderRadius: "12px", overflow: "hidden" }}
+                  >
+                    <span
+                      className="input-group-text border-0 fs-6"
+                      style={{ background: "rgba(240, 244, 248, 0.9)" }}
+                    >
+                      Rp
+                    </span>
                     <input
                       type="number"
                       className="form-control border-0"
                       style={{ background: "rgba(255, 255, 255, 0.8)" }}
                       placeholder="Max"
                       value={filters.maxPrice}
-                      onChange={(e) => setFilters((prev) => ({ ...prev, maxPrice: e.target.value }))}
+                      onChange={(e) =>
+                        setFilters((prev) => ({
+                          ...prev,
+                          maxPrice: e.target.value,
+                        }))
+                      }
                     />
                   </div>
                 </div>
@@ -271,14 +353,20 @@ const HomePage = () => {
                   style={{ borderRadius: "12px", border: "none" }}
                   onClick={() => {
                     setSearchInput("");
-                    setFilters({ search: "", minPrice: "", maxPrice: "", sortBy: "newest", category: "", rating: "" });
+                    setFilters({
+                      search: "",
+                      minPrice: "",
+                      maxPrice: "",
+                      sortBy: "newest",
+                      category: "",
+                      rating: "",
+                    });
                   }}
                   title="Reset Semua Filter"
                 >
                   <i className="bi bi-arrow-counterclockwise fs-5"></i>
                 </button>
               </div>
-
             </form>
           </div>
         </div>
@@ -295,20 +383,25 @@ const HomePage = () => {
 
         {/* CONTENT AREA */}
         {loading ? (
-          <div className="py-5 text-center"><LoadingSpinner /></div>
+          <div className="py-5 text-center">
+            <LoadingSpinner />
+          </div>
         ) : error ? (
           <ErrorMessage message={error} onRetry={fetchProducts} />
         ) : products.length === 0 ? (
-          <div 
-            className="alert text-center p-5 rounded-4 border-0 shadow-sm" 
-            style={{ 
-              background: "rgba(255, 255, 255, 0.4)", 
+          <div
+            className="alert text-center p-5 rounded-4 border-0 shadow-sm"
+            style={{
+              background: "rgba(255, 255, 255, 0.4)",
               backdropFilter: "blur(10px)",
-              border: "1px solid rgba(255, 255, 255, 0.6)"
+              border: "1px solid rgba(255, 255, 255, 0.6)",
             }}
           >
             <div className="mb-4">
-              <i className="bi bi-search text-primary opacity-50" style={{ fontSize: "4rem" }}></i>
+              <i
+                className="bi bi-search text-primary opacity-50"
+                style={{ fontSize: "4rem" }}
+              ></i>
             </div>
             <h4 className="fw-bold text-dark">Oops! Produk tidak ditemukan</h4>
             <p className="text-secondary mb-0">
@@ -319,8 +412,14 @@ const HomePage = () => {
           <>
             <div className="row g-4 mb-5">
               {products.map((product) => (
-                <div key={product.id} className="col-12 col-sm-6 col-md-4 col-lg-3">
-                  <div className="h-100 transition-hover" style={{ borderRadius: "16px", overflow: "hidden" }}>
+                <div
+                  key={product.id}
+                  className="col-12 col-sm-6 col-md-4 col-lg-3"
+                >
+                  <div
+                    className="h-100 transition-hover"
+                    style={{ borderRadius: "16px", overflow: "hidden" }}
+                  >
                     <ProductCard product={product} />
                   </div>
                 </div>
@@ -332,24 +431,45 @@ const HomePage = () => {
               <div className="d-flex justify-content-center align-items-center gap-3 mt-5">
                 <button
                   className="btn btn-primary rounded-circle shadow-sm"
-                  style={{ width: "45px", height: "45px", display: "flex", alignItems: "center", justifyContent: "center" }}
-                  onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                  style={{
+                    width: "45px",
+                    height: "45px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                  onClick={() =>
+                    setCurrentPage((prev) => Math.max(prev - 1, 1))
+                  }
                   disabled={currentPage === 1}
                 >
                   <i className="bi bi-chevron-left"></i>
                 </button>
-                
-                <div 
+
+                <div
                   className="shadow-sm px-4 py-2 rounded-pill fw-bold text-primary"
-                  style={{ background: "rgba(255, 255, 255, 0.7)", backdropFilter: "blur(10px)" }}
+                  style={{
+                    background: "rgba(255, 255, 255, 0.7)",
+                    backdropFilter: "blur(10px)",
+                  }}
                 >
-                  Halaman {currentPage} <span className="text-secondary fw-normal mx-1">dari</span> {totalPages}
+                  Halaman {currentPage}{" "}
+                  <span className="text-secondary fw-normal mx-1">dari</span>{" "}
+                  {totalPages}
                 </div>
 
                 <button
                   className="btn btn-primary rounded-circle shadow-sm"
-                  style={{ width: "45px", height: "45px", display: "flex", alignItems: "center", justifyContent: "center" }}
-                  onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                  style={{
+                    width: "45px",
+                    height: "45px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                  onClick={() =>
+                    setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+                  }
                   disabled={currentPage === totalPages}
                 >
                   <i className="bi bi-chevron-right"></i>

@@ -26,6 +26,7 @@ import WishlistPage from "./pages/customer/WishlistPage";
 import DashboardAdmin from "./pages/admin/DashboardAdmin";
 import ManageProducts from "./pages/admin/ManageProducts";
 import ManageOrders from "./pages/admin/ManageOrders";
+import ManageCategories from "./pages/admin/ManageCategories";
 
 import Footer from "./components/layout/Footer";
 
@@ -109,6 +110,14 @@ function App() {
                 element={
                   <AdminRoute>
                     <ManageProducts />
+                  </AdminRoute>
+                }
+              />
+              <Route
+                path="/admin/categories"
+                element={
+                  <AdminRoute>
+                    <ManageCategories />
                   </AdminRoute>
                 }
               />

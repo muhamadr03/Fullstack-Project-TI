@@ -8,6 +8,7 @@ router.get("/", categoryController.getAllCategories);
 
 // Rute Privat (Hanya Admin yang punya token)
 router.post("/", verifyToken, isAdmin, categoryController.createCategory);
+router.put("/:id", verifyToken, isAdmin, categoryController.updateCategory);
 router.delete("/:id", verifyToken, isAdmin, categoryController.deleteCategory);
 
 module.exports = router;
