@@ -292,7 +292,7 @@ const ManageProductsPage = () => {
                       <tr key={product.id}>
                         <td className="ps-3">
                           <img
-                            src={`${API_URL}${product.image_url}`}
+                            src={product.image_url ? (product.image_url.startsWith('http') ? product.image_url : `${API_URL}${product.image_url}`) : "https://via.placeholder.com/50"}
                             alt=""
                             style={{
                               width: "50px",

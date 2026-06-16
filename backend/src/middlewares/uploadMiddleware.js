@@ -1,31 +1,27 @@
 const multer = require("multer");
-const path = require("path");
+const { CloudinaryStorage } = require("multer-storage-cloudinary");
+const cloudinary = require("cloudinary").v2;
 
-// 1. Pengaturan Tempat Penyimpanan & Penamaan File
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, "public/uploads/"); // Pastikan folder ini sudah dibuat!
-  },
-  filename: function (req, file, cb) {
-    // Membuat nama file unik (TahunBulanTanggal-NamaFileAsli)
-    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
-    cb(null, uniqueSuffix + path.extname(file.originalname));
+// Konfigurasi Cloudinary dari Environment Variables
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
+
+// 1. Pengaturan Penyimpanan di Cloudinary
+const storage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: {
+    folder: "ecommerce_uploads", // Folder di dalam Cloudinary
+    allowed_formats: ["jpg", "png", "jpeg", "webp"], // Tipe file yang diizinkan
+    // transformation: [{ width: 800, height: 800, crop: "limit" }] // Opsional: kompresi/resize gambar
   },
 });
 
-// 2. Filter Tipe File (Hanya boleh gambar)
-const fileFilter = (req, file, cb) => {
-  if (file.mimetype.startsWith("image/")) {
-    cb(null, true);
-  } else {
-    cb(new Error("Hanya file gambar yang diperbolehkan!"), false);
-  }
-};
-
-// 3. Eksekusi Multer (Maksimal ukuran file 5MB)
+// 2. Eksekusi Multer (Maksimal ukuran file 5MB)
 const upload = multer({
   storage: storage,
-  fileFilter: fileFilter,
   limits: { fileSize: 5 * 1024 * 1024 }, // 5 MB
 });
 

@@ -109,8 +109,8 @@ exports.createProduct = async (req, res) => {
     const { category_id, name, description, price, stock } = req.body;
 
     // Cek apakah ada file yang diunggah
-    // Jika ada, buat rute URL-nya. Jika tidak, kosongkan.
-    const image_url = req.file ? `/uploads/${req.file.filename}` : null;
+    // Jika ada, simpan URL Cloudinary yang otomatis ada di req.file.path
+    const image_url = req.file ? req.file.path : null;
 
     const newProduct = await Product.create({
       category_id,
@@ -134,11 +134,14 @@ exports.createProduct = async (req, res) => {
 exports.updateProduct = async (req, res) => {
   try {
     // Cek apakah ada file yang diunggah
-    // Jika ada, buat rute URL-nya. Jika tidak, gunakan nilai yang sudah ada.
-    const image_url = req.file ? `/uploads/${req.file.filename}` : null;
+    // Jika ada, simpan URL Cloudinary. Jika tidak, abaikan pembaruan gambar.
+    const updateData = { ...req.body };
+    if (req.file) {
+      updateData.image_url = req.file.path;
+    }
 
     await Product.update(
-      { ...req.body, image_url },
+      updateData,
       { where: { id: req.params.id } }
     );
     res.status(200).json({ message: "Produk berhasil diupdate!" });

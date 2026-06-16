@@ -54,7 +54,7 @@ const CartPage = () => {
                             <img
                               src={
                                 productData.image_url
-                                  ? `http://localhost:5000${productData.image_url}`
+                                  ? (productData.image_url.startsWith('http') ? productData.image_url : `http://localhost:5000${productData.image_url}`)
                                   : "https://via.placeholder.com/50"
                               }
                               alt={productData.name || "Produk"}

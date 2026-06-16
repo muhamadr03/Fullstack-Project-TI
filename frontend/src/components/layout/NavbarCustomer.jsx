@@ -36,7 +36,7 @@ const NavbarCustomer = () => {
                     </div>
                     <span 
                         style={{ 
-                            background: "linear-gradient(90deg, #0b5ed7, #0dcaf0)", 
+                            background: "linear-gradient(90deg, var(--bs-primary), var(--bs-info))", 
                             WebkitBackgroundClip: "text", 
                             WebkitTextFillColor: "transparent",
                             letterSpacing: "0.5px"
@@ -121,7 +121,7 @@ const NavbarCustomer = () => {
                                     style={{ 
                                         background: "white", 
                                         border: "1px solid rgba(13, 110, 253, 0.2)",
-                                        color: "#0b5ed7"
+                                        color: "var(--bs-primary)"
                                     }}
                                 >
                                     <i className="bi bi-person-circle fs-5"></i>

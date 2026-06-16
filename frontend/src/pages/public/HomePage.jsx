@@ -84,7 +84,7 @@ const HomePage = () => {
     <div
       className="min-vh-100"
       style={{
-        background: "linear-gradient(135deg, #f0f4f8 0%, #d9e2ec 100%)",
+        background: "linear-gradient(135deg, var(--bs-light) 0%, #e2e8f0 100%)",
         fontFamily: "'Inter', sans-serif",
       }}
     >
@@ -93,17 +93,103 @@ const HomePage = () => {
           (KARENA SUDAH KAMU PISAH DI NavbarCustomer.jsx)
       ========================================= */}
 
-      <div className="container py-5">
+      {/* HERO SECTION */}
+      <div 
+        className="position-relative mb-5 d-flex align-items-center justify-content-center text-center text-white" 
+        style={{
+          minHeight: "550px",
+          background: "url('/hero_banner.png') center/cover no-repeat",
+          borderRadius: "0 0 40px 40px",
+          boxShadow: "0 20px 40px rgba(0,0,0,0.1)",
+          overflow: "hidden"
+        }}
+      >
+        {/* Blur & Gradient Overlay */}
+        <div
+          className="position-absolute top-0 start-0 w-100 h-100"
+          style={{
+            background: "linear-gradient(135deg, rgba(15, 23, 42, 0.7) 0%, rgba(30, 27, 75, 0.6) 50%, rgba(49, 46, 129, 0.7) 100%)",
+            backdropFilter: "blur(12px)",
+            WebkitBackdropFilter: "blur(12px)",
+            zIndex: 1
+          }}
+        ></div>
+
+        <div className="container position-relative z-2 px-4 py-5 mt-4">
+          <span className="badge bg-info bg-opacity-20 text-info border border-info-subtle rounded-pill px-4 py-2 fw-semibold mb-4 text-uppercase tracking-wider" style={{ fontSize: "0.85rem", letterSpacing: "1.5px", boxShadow: "0 4px 15px rgba(13, 202, 240, 0.2)" }}>
+            🚀 Rilis Terbaru &amp; Promo Spesial
+          </span>
+          
+          <h1 className="display-3 fw-bold mb-4 lh-sm text-white" style={{ fontWeight: "800", letterSpacing: "-1px", textShadow: "0 4px 20px rgba(0,0,0,0.3)" }}>
+            Temukan Tren Gadget <br className="d-none d-md-block" /> &amp; Lifestyle Impianmu
+          </h1>
+          
+          <p className="lead text-indigo-100 mb-5 mx-auto opacity-90" style={{ maxWidth: "800px", fontSize: "1.2rem", fontWeight: "300", color: "var(--bs-light)", textShadow: "0 2px 10px rgba(0,0,0,0.2)" }}>
+            Dapatkan produk teknologi, kemeja keren, jam tangan, dan sepatu berkualitas terbaik dengan penawaran kupon spesial dan gratis ongkos kirim.
+          </p>
+          
+          <div className="d-flex flex-column flex-sm-row gap-3 justify-content-center">
+            <a 
+              href="#catalog-section" 
+              className="btn btn-info btn-lg px-5 py-3 fw-bold rounded-pill text-dark shadow-lg transition-all"
+              style={{ background: "var(--bs-info)", borderColor: "var(--bs-info)", transition: "all 0.3s ease", color: "var(--bs-dark)" }}
+              onMouseOver={(e) => {
+                e.currentTarget.style.transform = "translateY(-4px)";
+                e.currentTarget.style.boxShadow = "0 15px 25px rgba(13,202,240,0.4)";
+              }}
+              onMouseOut={(e) => {
+                e.currentTarget.style.transform = "translateY(0)";
+                e.currentTarget.style.boxShadow = "0 5px 15px rgba(0,0,0,0.2)";
+              }}
+            >
+              Mulai Belanja <i className="bi bi-arrow-right ms-2"></i>
+            </a>
+            <a 
+              href="/wishlist" 
+              className="btn btn-outline-light btn-lg px-5 py-3 fw-bold rounded-pill shadow-lg transition-all"
+              style={{ transition: "all 0.3s ease", backdropFilter: "blur(5px)" }}
+              onMouseOver={(e) => {
+                e.currentTarget.style.transform = "translateY(-4px)";
+                e.currentTarget.style.background = "rgba(255,255,255,0.15)";
+              }}
+              onMouseOut={(e) => {
+                e.currentTarget.style.transform = "translateY(0)";
+                e.currentTarget.style.background = "transparent";
+              }}
+            >
+              <i className="bi bi-heart-fill text-danger me-2"></i> Wishlist Saya
+            </a>
+          </div>
+
+          {/* Trust Badges */}
+          <div className="d-flex flex-wrap justify-content-center gap-4 gap-md-5 mt-5 pt-4 border-top border-light border-opacity-25 mx-auto" style={{ maxWidth: "800px" }}>
+            <div className="d-flex align-items-center gap-2">
+              <i className="bi bi-truck fs-3 text-info"></i>
+              <span className="fw-medium text-white" style={{ textShadow: "0 2px 4px rgba(0,0,0,0.5)" }}>Gratis Ongkir</span>
+            </div>
+            <div className="d-flex align-items-center gap-2">
+              <i className="bi bi-shield-check fs-3 text-info"></i>
+              <span className="fw-medium text-white" style={{ textShadow: "0 2px 4px rgba(0,0,0,0.5)" }}>100% Garansi Asli</span>
+            </div>
+            <div className="d-flex align-items-center gap-2">
+              <i className="bi bi-credit-card fs-3 text-info"></i>
+              <span className="fw-medium text-white" style={{ textShadow: "0 2px 4px rgba(0,0,0,0.5)" }}>Bayar via Midtrans</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="container py-4" id="catalog-section">
         {/* HEADER SECTION */}
-        <div className="text-center mb-5 mt-4">
+        <div className="text-center mb-5 mt-2">
           <h2
             className="fw-bold mb-3"
             style={{
-              background: "linear-gradient(90deg, #0b5ed7, #0dcaf0)",
+              background: "linear-gradient(90deg, var(--bs-primary), var(--bs-info))",
               WebkitBackgroundClip: "text",
               WebkitTextFillColor: "transparent",
               display: "inline-block",
-              filter: "drop-shadow(0px 2px 2px rgba(13, 110, 253, 0.2))",
+              filter: "drop-shadow(0px 2px 2px rgba(6, 182, 212, 0.3))",
             }}
           >
             ✨ Katalog Produk
@@ -383,8 +469,20 @@ const HomePage = () => {
 
         {/* CONTENT AREA */}
         {loading ? (
-          <div className="py-5 text-center">
-            <LoadingSpinner />
+          <div className="row g-4 mb-5">
+            {[...Array(8)].map((_, idx) => (
+              <div key={idx} className="col-12 col-sm-6 col-md-4 col-lg-3">
+                <div className="card h-100 skeleton-card p-0 border-0 shadow-sm">
+                  <div className="skeleton-image" style={{ height: "200px" }}></div>
+                  <div className="card-body d-flex flex-column text-center align-items-center gap-2 p-3">
+                    <div className="skeleton-line skeleton-title"></div>
+                    <div className="skeleton-line skeleton-rating"></div>
+                    <div className="skeleton-line skeleton-price mt-1"></div>
+                    <div className="skeleton-btn mt-3"></div>
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         ) : error ? (
           <ErrorMessage message={error} onRetry={fetchProducts} />

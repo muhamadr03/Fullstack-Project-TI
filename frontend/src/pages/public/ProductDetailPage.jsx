@@ -320,7 +320,7 @@ const ProductDetailPage = () => {
 
   const backendUrl = "http://localhost:5000";
   const imageUrl = product.image_url
-    ? `${backendUrl}${product.image_url}`
+    ? (product.image_url.startsWith('http') ? product.image_url : `${backendUrl}${product.image_url}`)
     : "https://via.placeholder.com/500x500?text=No+Image";
 
   const displayedReviews = showAllReviews ? reviews : reviews.slice(0, 4);
