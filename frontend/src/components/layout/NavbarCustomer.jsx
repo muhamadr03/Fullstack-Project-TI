@@ -1,209 +1,252 @@
-import React, { useContext } from "react";
-import { Link, useNavigate } from "react-router-dom";
+// src/components/layout/NavbarCustomer.jsx — Premium Fashion Store Navbar
+import React, { useContext, useState, useEffect, useRef } from "react";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { CartContext } from "../../context/CartContext";
 import { AuthContext } from "../../context/AuthContext";
 
+const NAV_LINKS = [
+  { label: "Home", to: "/" },
+  { label: "Products", to: "/#products" },
+  { label: "Categories", to: "/#categories" },
+  { label: "Contact", to: "/#contact" },
+];
+
 const NavbarCustomer = () => {
-    const { totalItems } = useContext(CartContext);
-    const { user, logout } = useContext(AuthContext);
-    const navigate = useNavigate();
+  const { totalItems } = useContext(CartContext);
+  const { user, logout } = useContext(AuthContext);
+  const navigate = useNavigate();
+  const location = useLocation();
 
-    // Fungsi logout yang mengarahkan user kembali ke halaman login
-    const handleLogout = () => {
-        logout();
-        navigate("/login");
-    };
+  const [scrolled, setScrolled] = useState(false);
+  const [searchVal, setSearchVal] = useState("");
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const searchRef = useRef(null);
 
-    return (
-        <nav 
-            className="navbar navbar-expand-lg sticky-top" 
-            style={{ 
-                background: "rgba(255, 255, 255, 0.85)", 
-                backdropFilter: "blur(12px)", 
-                borderBottom: "1px solid rgba(226, 232, 240, 0.8)",
-                boxShadow: "0 4px 30px rgba(0, 0, 0, 0.03)"
-            }}
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 8);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  useEffect(() => {
+    setMobileOpen(false);
+  }, [location]);
+
+  const handleLogout = () => {
+    logout();
+    navigate("/login");
+  };
+
+  const handleSearch = (e) => {
+    e.preventDefault();
+    if (searchVal.trim()) {
+      navigate(`/?search=${encodeURIComponent(searchVal.trim())}`);
+      setSearchVal("");
+      setSearchOpen(false);
+    }
+  };
+
+  return (
+    <nav className={`lx-navbar ${scrolled ? "scrolled" : ""}`}>
+      <div className="container-xl px-3 w-100 d-flex align-items-center gap-3">
+
+        {/* ── LOGO ── */}
+        <Link to="/" className="lx-logo flex-shrink-0" style={{ minWidth: 100 }}>
+          Luxe<span>Store</span>
+        </Link>
+
+        {/* ── NAV LINKS (desktop) ── */}
+        <ul className="nav d-none d-lg-flex align-items-center gap-1 mb-0 ps-2">
+          {NAV_LINKS.map((l) => (
+            <li key={l.to} className="nav-item">
+              <Link
+                to={l.to}
+                className={`lx-nav-link ${location.pathname === l.to ? "active" : ""}`}
+              >
+                {l.label}
+              </Link>
+            </li>
+          ))}
+        </ul>
+
+        {/* ── SEARCH BAR (desktop) ── */}
+        <form
+          onSubmit={handleSearch}
+          className="lx-search d-none d-md-flex mx-auto"
+          style={{ flex: 1, maxWidth: 360 }}
         >
-            <div className="container py-2">
-                
-                {/* LOGO SECTION */}
-                <Link className="navbar-brand fw-bold fs-4 d-flex align-items-center gap-2" to="/">
-                    <div 
-                        className="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center shadow-sm" 
-                        style={{ width: '38px', height: '38px' }}
-                    >
-                        <i className="bi bi-shop fs-5"></i>
-                    </div>
-                    <span 
-                        style={{ 
-                            background: "linear-gradient(90deg, var(--bs-primary), var(--bs-info))", 
-                            WebkitBackgroundClip: "text", 
-                            WebkitTextFillColor: "transparent",
-                            letterSpacing: "0.5px"
-                        }}
-                    >
-                        E-SHOP
-                    </span>
-                </Link>
+          <i className="bi bi-search me-2" style={{ color: "#bbb", fontSize: "0.85rem", flexShrink: 0 }} />
+          <input
+            type="text"
+            placeholder="Search for products..."
+            value={searchVal}
+            onChange={(e) => setSearchVal(e.target.value)}
+            aria-label="Search products"
+          />
+          <button type="submit" className="lx-search-btn" aria-label="Search">
+            <i className="bi bi-search" />
+          </button>
+        </form>
 
-                {/* TOGGLE BUTTON MOBILE */}
-                <button
-                    className="navbar-toggler border-0 shadow-none"
-                    type="button"
-                    data-bs-toggle="collapse"
-                    data-bs-target="#navbarNav"
-                    aria-controls="navbarNav"
-                    aria-expanded="false"
-                    aria-label="Toggle navigation"
+        {/* ── RIGHT ACTIONS ── */}
+        <div className="d-flex align-items-center gap-1 ms-auto flex-shrink-0">
+
+          {/* Search icon (mobile) */}
+          <button
+            className="lx-icon-btn d-flex d-md-none"
+            onClick={() => setSearchOpen(!searchOpen)}
+            aria-label="Search"
+          >
+            <i className="bi bi-search" />
+          </button>
+
+          {/* Wishlist */}
+          <Link to="/wishlist" className="lx-icon-btn" title="Wishlist">
+            <i className="bi bi-heart" />
+          </Link>
+
+          {/* Cart */}
+          <Link to="/cart" className="lx-icon-btn" title="Cart" style={{ position: "relative" }}>
+            <i className="bi bi-bag" />
+            {totalItems > 0 && (
+              <span className="lx-cart-badge">{totalItems > 9 ? "9+" : totalItems}</span>
+            )}
+          </Link>
+
+          {/* Divider */}
+          <div className="d-none d-md-block" style={{ width: 1, height: 26, background: "#eee", margin: "0 4px" }} />
+
+          {/* Auth */}
+          {user ? (
+            <div className="dropdown">
+              <button
+                className="btn d-flex align-items-center gap-2 rounded-pill px-3 py-2"
+                style={{
+                  background: "#f5f5f5", border: "none",
+                  fontFamily: "'Poppins',sans-serif", fontWeight: 600,
+                  fontSize: "0.8rem", color: "#1f1f1f",
+                }}
+                data-bs-toggle="dropdown"
+              >
+                <div
+                  style={{
+                    width: 28, height: 28, borderRadius: "50%",
+                    background: "linear-gradient(135deg,#ff9800,#ffd54f)",
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    color: "#fff", fontWeight: 800, fontSize: "0.75rem",
+                    fontFamily: "'Poppins',sans-serif",
+                  }}
                 >
-                    <span className="navbar-toggler-icon"></span>
-                </button>
-
-                <div className="collapse navbar-collapse" id="navbarNav">
-                    {/* MENU LINKS */}
-                    <ul className="navbar-nav me-auto ms-lg-4 mb-2 mb-lg-0 mt-3 mt-lg-0 text-center text-lg-start">
-                        <li className="nav-item">
-                            <Link 
-                                className="nav-link fw-bold text-primary px-3 d-inline-block d-lg-block" 
-                                to="/"
-                                style={{ 
-                                    background: "rgba(13, 110, 253, 0.08)", 
-                                    borderRadius: "10px",
-                                }}
-                            >
-                                Beranda
-                            </Link>
-                        </li>
-                    </ul>
-
-                    {/* RIGHT ACTIONS (Icons & Profile) */}
-                    <div className="d-flex align-items-center justify-content-center justify-content-lg-end gap-4 mt-3 mt-lg-0 pb-2 pb-lg-0">
-                        
-                        {/* Wishlist Icon */}
-                        <Link 
-                            to="/wishlist" 
-                            className="text-danger position-relative" 
-                            style={{ transition: "transform 0.2s" }} 
-                            title="Daftar Keinginan"
-                        >
-                            <i className="bi bi-heart-fill fs-5" style={{ filter: "drop-shadow(0 2px 4px rgba(220, 53, 69, 0.3))" }}></i>
-                        </Link>
-
-                        {/* Cart Icon with Dynamic Badge */}
-                        <Link 
-                            to="/cart" 
-                            className="text-dark position-relative" 
-                            style={{ transition: "transform 0.2s" }} 
-                            title="Keranjang"
-                        >
-                            <i className="bi bi-cart3 fs-5"></i>
-                            {totalItems > 0 && (
-                                <span 
-                                    className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger shadow-sm"
-                                    style={{ fontSize: "0.65rem", transform: "translate(-30%, -30%)" }}
-                                >
-                                    {totalItems}
-                                </span>
-                            )}
-                        </Link>
-
-                        {/* Vertical Divider */}
-                        <div className="vr d-none d-lg-block text-secondary" style={{ width: "2px", opacity: "0.2" }}></div>
-
-                        {/* User / Auth Options */}
-                        {user ? (
-                            <div className="dropdown">
-                                <button 
-                                    className="btn btn-light dropdown-toggle rounded-pill d-flex align-items-center gap-2 px-3 py-2 fw-medium shadow-sm" 
-                                    type="button" 
-                                    data-bs-toggle="dropdown" 
-                                    aria-expanded="false"
-                                    style={{ 
-                                        background: "white", 
-                                        border: "1px solid rgba(13, 110, 253, 0.2)",
-                                        color: "var(--bs-primary)"
-                                    }}
-                                >
-                                    <i className="bi bi-person-circle fs-5"></i>
-                                    <span>{user.name}</span>
-                                </button>
-                                
-                                <ul className="dropdown-menu dropdown-menu-end shadow-lg border-0 mt-3" style={{ borderRadius: "16px", minWidth: "220px" }}>
-                                    <div className="px-3 py-2 mb-2 border-bottom">
-                                        <span className="fw-bold text-dark d-block">{user.name}</span>
-                                        <span className="badge bg-primary bg-opacity-10 text-primary border border-primary-subtle rounded-pill small mt-1">
-                                            Role: {user.role}
-                                        </span>
-                                    </div>
-
-                                    {/* MENU ADMIN */}
-                                    {user.role === "admin" ? (
-                                        <>
-                                            <li>
-                                                <Link className="dropdown-item py-2 d-flex align-items-center gap-3" to="/admin/dashboard">
-                                                    <div className="bg-primary bg-opacity-10 p-2 rounded text-primary"><i className="bi bi-grid"></i></div> Dashboard Utama
-                                                </Link>
-                                            </li>
-                                            <li>
-                                                <Link className="dropdown-item py-2 d-flex align-items-center gap-3" to="/admin/orders">
-                                                    <div className="bg-success bg-opacity-10 p-2 rounded text-success"><i className="bi bi-receipt"></i></div> Kelola Pesanan
-                                                </Link>
-                                            </li>
-                                            <li>
-                                                <Link className="dropdown-item py-2 d-flex align-items-center gap-3" to="/admin/products">
-                                                    <div className="bg-info bg-opacity-10 p-2 rounded text-info"><i className="bi bi-box-seam"></i></div> Kelola Produk
-                                                </Link>
-                                            </li>
-                                        </>
-                                    ) : (
-                                        /* MENU CUSTOMER */
-                                        <>
-                                            <li>
-                                                <Link className="dropdown-item py-2 d-flex align-items-center gap-3" to="/profile">
-                                                    <div className="bg-primary bg-opacity-10 p-2 rounded text-primary"><i className="bi bi-person"></i></div> Profil Saya
-                                                </Link>
-                                            </li>
-                                            <li>
-                                                <Link className="dropdown-item py-2 d-flex align-items-center gap-3" to="/orders">
-                                                    <div className="bg-success bg-opacity-10 p-2 rounded text-success"><i className="bi bi-bag-check"></i></div> Riwayat Belanja
-                                                </Link>
-                                            </li>
-                                            <li>
-                                                <Link className="dropdown-item py-2 d-flex align-items-center gap-3" to="/wishlist">
-                                                    <div className="bg-danger bg-opacity-10 p-2 rounded text-danger"><i className="bi bi-heart"></i></div> Wishlist
-                                                </Link>
-                                            </li>
-                                        </>
-                                    )}
-
-                                    <li><hr className="dropdown-divider" /></li>
-                                    <li>
-                                        <button 
-                                            className="dropdown-item text-danger py-2 d-flex align-items-center gap-2 fw-medium" 
-                                            onClick={handleLogout}
-                                        >
-                                            <i className="bi bi-box-arrow-right fs-5"></i> Logout
-                                        </button>
-                                    </li>
-                                </ul>
-                            </div>
-                        ) : (
-                            /* MENU GUEST (Belum Login) */
-                            <div className="d-flex gap-2">
-                                <Link to="/login" className="btn btn-outline-primary rounded-pill px-4 fw-medium shadow-sm bg-white">
-                                    Login
-                                </Link>
-                                <Link to="/register" className="btn btn-primary rounded-pill px-4 fw-medium shadow-sm">
-                                    Daftar
-                                </Link>
-                            </div>
-                        )}
-                    </div>
-
+                  {user.name?.charAt(0)?.toUpperCase()}
                 </div>
+                <span className="d-none d-lg-inline">{user.name?.split(" ")[0]}</span>
+                <i className="bi bi-chevron-down" style={{ fontSize: "0.65rem" }} />
+              </button>
+
+              <ul
+                className="dropdown-menu dropdown-menu-end shadow-lg border-0 mt-2"
+                style={{ borderRadius: 16, minWidth: 210, padding: 8 }}
+              >
+                <li className="px-3 py-2 mb-1">
+                  <div style={{ fontSize: "0.85rem", fontWeight: 700, fontFamily: "'Poppins',sans-serif" }}>{user.name}</div>
+                  <div style={{ fontSize: "0.72rem", color: "#999" }}>{user.email}</div>
+                </li>
+                <li><hr className="dropdown-divider my-1" /></li>
+
+                {user.role === "admin" ? (
+                  <>
+                    <li><Link className="dropdown-item rounded-2 py-2 d-flex align-items-center gap-2" to="/admin/dashboard">
+                      <i className="bi bi-grid" style={{ color: "#ff9800" }} /> Dashboard
+                    </Link></li>
+                    <li><Link className="dropdown-item rounded-2 py-2 d-flex align-items-center gap-2" to="/admin/products">
+                      <i className="bi bi-box-seam" style={{ color: "#666" }} /> Kelola Produk
+                    </Link></li>
+                    <li><Link className="dropdown-item rounded-2 py-2 d-flex align-items-center gap-2" to="/admin/orders">
+                      <i className="bi bi-receipt" style={{ color: "#666" }} /> Kelola Pesanan
+                    </Link></li>
+                  </>
+                ) : (
+                  <>
+                    <li><Link className="dropdown-item rounded-2 py-2 d-flex align-items-center gap-2" to="/profile">
+                      <i className="bi bi-person" style={{ color: "#ff9800" }} /> My Profile
+                    </Link></li>
+                    <li><Link className="dropdown-item rounded-2 py-2 d-flex align-items-center gap-2" to="/orders">
+                      <i className="bi bi-bag-check" style={{ color: "#666" }} /> My Orders
+                    </Link></li>
+                    <li><Link className="dropdown-item rounded-2 py-2 d-flex align-items-center gap-2" to="/wishlist">
+                      <i className="bi bi-heart" style={{ color: "#e53935" }} /> Wishlist
+                    </Link></li>
+                  </>
+                )}
+
+                <li><hr className="dropdown-divider my-1" /></li>
+                <li>
+                  <button className="dropdown-item rounded-2 py-2 text-danger d-flex align-items-center gap-2" onClick={handleLogout}>
+                    <i className="bi bi-box-arrow-right" /> Sign Out
+                  </button>
+                </li>
+              </ul>
             </div>
-        </nav>
-    );
+          ) : (
+            <div className="d-flex gap-2">
+              <Link to="/login" className="btn btn-outline-primary btn-sm px-3 d-none d-sm-inline-flex" style={{ fontSize: "0.8rem" }}>
+                Login
+              </Link>
+              <Link to="/register" className="btn btn-primary btn-sm px-3" style={{ fontSize: "0.8rem" }}>
+                Register
+              </Link>
+            </div>
+          )}
+
+          {/* Hamburger (mobile) */}
+          <button
+            className="lx-icon-btn d-lg-none"
+            onClick={() => setMobileOpen(!mobileOpen)}
+            aria-label="Menu"
+          >
+            <i className={`bi bi-${mobileOpen ? "x-lg" : "list"}`} />
+          </button>
+        </div>
+      </div>
+
+      {/* ── MOBILE SEARCH ── */}
+      {searchOpen && (
+        <div className="d-md-none px-3 pb-3 pt-1 border-top" style={{ background: "rgba(255,255,255,0.98)" }}>
+          <form onSubmit={handleSearch} className="lx-search w-100">
+            <i className="bi bi-search me-2" style={{ color: "#bbb", fontSize: "0.85rem", flexShrink: 0 }} />
+            <input
+              type="text"
+              placeholder="Search for products..."
+              value={searchVal}
+              onChange={(e) => setSearchVal(e.target.value)}
+              autoFocus
+            />
+            <button type="submit" className="lx-search-btn">
+              <i className="bi bi-search" />
+            </button>
+          </form>
+        </div>
+      )}
+
+      {/* ── MOBILE MENU ── */}
+      {mobileOpen && (
+        <div className="d-lg-none border-top" style={{ background: "#fff", padding: "8px 16px 16px" }}>
+          {NAV_LINKS.map((l) => (
+            <Link key={l.to} to={l.to} className="lx-nav-link d-block py-2 my-1" style={{ display: "block" }}>
+              {l.label}
+            </Link>
+          ))}
+          {!user && (
+            <div className="d-flex gap-2 mt-3">
+              <Link to="/login" className="btn btn-outline-primary btn-sm flex-grow-1">Login</Link>
+              <Link to="/register" className="btn btn-primary btn-sm flex-grow-1">Register</Link>
+            </div>
+          )}
+        </div>
+      )}
+    </nav>
+  );
 };
 
 export default NavbarCustomer;

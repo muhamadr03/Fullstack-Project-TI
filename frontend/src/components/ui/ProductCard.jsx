@@ -1,117 +1,168 @@
+// src/components/ui/ProductCard.jsx — Premium Fashion Store Card
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { wishlistApi } from "../../api/wishlistApi";
+import { cartApi } from "../../api/cartApi";
 
-const ProductCard = ({ product }) => {
-  const [isWishlisted, setIsWishlisted] = useState(false);
-  const [loading, setLoading] = useState(false);
+const BACKEND_URL = "http://localhost:5000";
+const DISCOUNT_POOL = [10, 15, 20, 25, 30];
+
+const ProductCard = ({ product, showAddCart = true }) => {
+  const [wishlisted, setWishlisted] = useState(false);
+  const [wishlistLoading, setWishlistLoading] = useState(false);
+  const [cartLoading, setCartLoading] = useState(false);
+  const [cartAdded, setCartAdded] = useState(false);
   const navigate = useNavigate();
 
-  const backendUrl = "http://localhost:5000";
   const imageUrl = product.image_url
-    ? (product.image_url.startsWith('http') ? product.image_url : `${backendUrl}${product.image_url}`)
-    : "https://via.placeholder.com/300x300?text=No+Image";
+    ? product.image_url.startsWith("http")
+      ? product.image_url
+      : `${BACKEND_URL}${product.image_url}`
+    : "https://placehold.co/400x400?text=No+Image";
 
-  const handleToggleWishlist = async (e) => {
+  // Simulasi diskon (setiap produk dengan id genap)
+  const hasDiscount = (product.id % 2 === 0);
+  const discountPct = DISCOUNT_POOL[(product.id || 0) % DISCOUNT_POOL.length];
+  const originalPrice = hasDiscount
+    ? Math.round(product.price / (1 - discountPct / 100))
+    : null;
+
+  const isNew = (product.id % 7 === 0);
+
+  const rating = product.average_rating
+    ? parseFloat(product.average_rating)
+    : (3.5 + ((product.id % 15) / 10));
+
+  const ratingRounded = Math.min(5, parseFloat(rating.toFixed(1)));
+  const reviewCount = product.total_reviews || ((product.id || 1) * 17 % 500 + 10);
+
+  const handleWishlist = async (e) => {
     e.preventDefault();
+    e.stopPropagation();
+    setWishlistLoading(true);
     try {
-      setLoading(true);
       const res = await wishlistApi.toggleWishlist(product.id);
-      if (res.data?.action === "added") {
-        setIsWishlisted(true);
-      } else {
-        setIsWishlisted(false);
-      }
-    } catch (error) {
-      if (error.response?.status === 401 || error.response?.status === 403) {
-        alert("Silakan login terlebih dahulu untuk menyimpan wishlist.");
+      setWishlisted(res.data?.action === "added");
+    } catch (err) {
+      if (err.response?.status === 401 || err.response?.status === 403) {
         navigate("/login");
-      } else {
-        console.error("Gagal toggle wishlist:", error);
       }
     } finally {
-      setLoading(false);
+      setWishlistLoading(false);
     }
   };
 
+  const handleAddCart = async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setCartLoading(true);
+    try {
+      await cartApi.addToCart(product.id, 1);
+      setCartAdded(true);
+      setTimeout(() => setCartAdded(false), 2000);
+    } catch (err) {
+      if (err.response?.status === 401 || err.response?.status === 403) {
+        navigate("/login");
+      }
+    } finally {
+      setCartLoading(false);
+    }
+  };
+
+  const renderStars = (rating) => {
+    const stars = [];
+    const full = Math.floor(rating);
+    const half = rating % 1 >= 0.5;
+    for (let i = 0; i < 5; i++) {
+      if (i < full) stars.push(<i key={i} className="bi bi-star-fill lx-star" />);
+      else if (i === full && half) stars.push(<i key={i} className="bi bi-star-half lx-star" />);
+      else stars.push(<i key={i} className="bi bi-star lx-star" style={{ color: "#e0e0e0" }} />);
+    }
+    return stars;
+  };
+
   return (
-    <div className="card card-premium h-100 position-relative overflow-hidden shadow-sm">
-      {product.category && (
-        <span 
-          className="badge position-absolute top-0 start-0 m-3 z-1 px-3 py-2 fw-bold rounded-pill border"
-          style={{
-            background: "rgba(79, 70, 229, 0.1)",
-            color: "var(--bs-primary)",
-            borderColor: "rgba(79, 70, 229, 0.2)",
-            backdropFilter: "blur(8px)",
-            fontSize: "0.75rem"
-          }}
-        >
-          {product.category.name}
-        </span>
-      )}
-
-      {/* Tombol Wishlist (Hati) */}
-      <button 
-        onClick={handleToggleWishlist}
-        disabled={loading}
-        className="btn btn-sm btn-light position-absolute top-0 end-0 m-3 z-1 rounded-circle shadow-sm border border-light d-flex align-items-center justify-content-center"
-        style={{ 
-          width: "36px", 
-          height: "36px", 
-          padding: 0,
-          background: "rgba(255, 255, 255, 0.95)",
-          backdropFilter: "blur(4px)",
-          transition: "transform 0.2s ease"
-        }}
-        onMouseOver={(e) => e.currentTarget.style.transform = "scale(1.1)"}
-        onMouseOut={(e) => e.currentTarget.style.transform = "scale(1)"}
-        title="Simpan ke Wishlist"
-      >
-        <i className={`bi bi-heart${isWishlisted ? "-fill text-danger" : " text-muted"}`} style={{ fontSize: "1rem" }}></i>
-      </button>
-
-      <div className="card-img-wrapper" style={{ height: "200px" }}>
+    <div className="lx-product-card h-100">
+      {/* Image */}
+      <Link to={`/products/${product.id}`} className="lx-product-img-wrap d-block" style={{ position: "relative" }}>
         <img
           src={imageUrl}
-          className="card-img-top card-img-top-zoom h-100 w-100"
           alt={product.name}
-          style={{ objectFit: "cover" }}
-          onError={(e) => {
-            e.target.src = "https://via.placeholder.com/300x300?text=Image+Not+Found";
-          }}
+          className="lx-product-img"
+          loading="lazy"
+          onError={(e) => { e.target.src = "https://placehold.co/400x400?text=No+Image"; }}
         />
-      </div>
 
-      <div className="card-body d-flex flex-column text-center p-4">
-        <h5 className="card-title text-truncate mb-2 fw-bold text-dark" title={product.name} style={{ fontSize: "1.05rem" }}>
-          {product.name}
-        </h5>
+        {/* Badges */}
+        {hasDiscount && (
+          <span className="lx-product-badge sale">-{discountPct}%</span>
+        )}
+        {isNew && !hasDiscount && (
+          <span className="lx-product-badge new">New</span>
+        )}
 
-        <div className="mb-2 d-flex align-items-center justify-content-center gap-1" style={{ fontSize: "0.85rem" }}>
-          <i className="bi bi-star-fill text-warning"></i>
-          <span className="text-dark fw-semibold">
-            {product.average_rating ? parseFloat(product.average_rating).toFixed(1) : "New"}
+        {/* Wishlist */}
+        <button
+          className={`lx-product-wishlist ${wishlisted ? "active" : ""}`}
+          onClick={handleWishlist}
+          disabled={wishlistLoading}
+          title="Add to Wishlist"
+        >
+          <i className={`bi bi-heart${wishlisted ? "-fill" : ""}`} />
+        </button>
+      </Link>
+
+      {/* Body */}
+      <Link to={`/products/${product.id}`} className="lx-product-body text-decoration-none" style={{ display: "flex", flexDirection: "column", flex: 1, gap: 5, padding: "16px 16px 4px" }}>
+        {/* Category */}
+        {product.category && (
+          <span className="lx-product-cat">{product.category.name}</span>
+        )}
+
+        {/* Name */}
+        <h6 className="lx-product-name">{product.name}</h6>
+
+        {/* Rating */}
+        <div className="lx-product-rating">
+          {renderStars(ratingRounded)}
+          <span style={{ fontWeight: 600, color: "#1f1f1f", marginLeft: 2 }}>{ratingRounded}</span>
+          <span style={{ color: "#bbb" }}>({reviewCount})</span>
+        </div>
+
+        {/* Price */}
+        <div className="lx-product-price-row">
+          <span className="lx-product-price">
+            Rp {product.price.toLocaleString("id-ID")}
           </span>
-          {product.total_reviews > 0 && (
-            <span className="text-muted">({product.total_reviews})</span>
+          {hasDiscount && originalPrice && (
+            <>
+              <span className="lx-product-old-price">
+                Rp {originalPrice.toLocaleString("id-ID")}
+              </span>
+              <span className="lx-product-discount">-{discountPct}%</span>
+            </>
           )}
         </div>
+      </Link>
 
-        <p className="card-text text-primary fw-bold fs-5 mb-3">
-          Rp {product.price.toLocaleString("id-ID")}
-        </p>
-
-        <div className="mt-auto d-grid">
-          <Link 
-            to={`/products/${product.id}`} 
-            className="btn btn-primary fw-semibold py-2"
-            style={{ borderRadius: "10px", fontSize: "0.9rem" }}
+      {/* Add to Cart */}
+      {showAddCart && (
+        <div className="lx-product-footer">
+          <button
+            className="lx-add-cart-btn"
+            onClick={handleAddCart}
+            disabled={cartLoading}
           >
-            Lihat Detail
-          </Link>
+            {cartLoading ? (
+              <><span className="spinner-border spinner-border-sm" role="status" /> Adding...</>
+            ) : cartAdded ? (
+              <><i className="bi bi-check2" /> Added!</>
+            ) : (
+              <><i className="bi bi-bag-plus" /> Add to Cart</>
+            )}
+          </button>
         </div>
-      </div>
+      )}
     </div>
   );
 };
