@@ -19,22 +19,33 @@ exports.getAllProducts = async (req, res, next) => {
     // 3. Siapkan Kondisi (WHERE Clause)
     let whereCondition = {};
     let includeCondition = {
-      model: Category,
-      as: "category",
-      attributes: ["id", "name"],
+        model: Category,
+        as: "category",
+        attributes: ["id", "name", "slug"],
     };
 
     if (search) {
-      whereCondition.name = {
-        [Op.like]: `%${search}%`,
-      };
+      whereCondition[Op.or] = [
+        {
+          name: {
+            [Op.like]: `%${search}%`,
+          },
+        },
+        {
+          description: {
+            [Op.like]: `%${search}%`,
+          },
+        },
+      ];
     }
 
     if (category) {
       const categoryId = Number(category);
       if (!Number.isNaN(categoryId)) {
+        // Category passed as ID
         whereCondition.category_id = categoryId;
       } else {
+        // Category passed as slug
         includeCondition.where = { slug: category };
         includeCondition.required = true;
       }
@@ -87,6 +98,7 @@ exports.getAllProducts = async (req, res, next) => {
       },
     });
   } catch (error) {
+    console.error("❌ [getAllProducts Error]:", error.message);
     next(error);
   }
 };
@@ -94,7 +106,7 @@ exports.getAllProducts = async (req, res, next) => {
 exports.getProductById = async (req, res) => {
   try {
     const product = await Product.findByPk(req.params.id, {
-      include: [{ model: Category, as: "category", attributes: ["name"] }],
+      include: [{ model: Category, as: "category", attributes: ["id", "name", "slug"] }],
     });
     if (!product)
       return res.status(404).json({ message: "Produk tidak ditemukan." });

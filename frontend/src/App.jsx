@@ -16,6 +16,8 @@ import RegisterPage from "./pages/auth/RegisterPage";
 // Customer (placeholder — akan diisi Sprint berikutnya)
 import HomePage from "./pages/public/HomePage";
 import ProductDetailPage from "./pages/public/ProductDetailPage";
+import ProductsPage from "./pages/public/ProductsPage";
+import CategoriesPage from "./pages/public/CategoriesPage";
 import CartPage from "./pages/customer/CartPage";
 import CheckoutPage from "./pages/customer/CheckoutPage";
 import OrdersPage from "./pages/customer/OrdersPage";
@@ -52,6 +54,9 @@ function App() {
               <Route path="/login" element={<LoginPage />} />
               <Route path="/register" element={<RegisterPage />} />
               <Route path="/" element={<HomePage />} />
+              <Route path="/categories" element={<CategoriesPage />} />
+              <Route path="/products" element={<ProductsPage />} />
+              <Route path="/products/category/:categorySlug" element={<ProductsPage />} />
               <Route path="/products/:id" element={<ProductDetailPage />} />
               <Route
                 path="/cart"

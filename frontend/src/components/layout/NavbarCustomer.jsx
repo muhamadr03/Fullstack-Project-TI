@@ -6,8 +6,8 @@ import { AuthContext } from "../../context/AuthContext";
 
 const NAV_LINKS = [
   { label: "Home", to: "/" },
-  { label: "Products", to: "/#products" },
-  { label: "Categories", to: "/#categories" },
+  { label: "Products", to: "/products" },
+  { label: "Categories", to: "/categories" },
   { label: "Contact", to: "/#contact" },
 ];
 
@@ -38,13 +38,33 @@ const NavbarCustomer = () => {
     navigate("/login");
   };
 
+  const handleContactClick = (e) => {
+    e.preventDefault();
+    if (location.pathname === "/") {
+      // Already on home page, just smooth scroll to contact
+      const contactElement = document.getElementById("contact");
+      if (contactElement) {
+        contactElement.scrollIntoView({ behavior: "smooth" });
+      }
+    } else {
+      // Not on home page, navigate to home then scroll
+      navigate("/");
+      setTimeout(() => {
+        const contactElement = document.getElementById("contact");
+        if (contactElement) {
+          contactElement.scrollIntoView({ behavior: "smooth" });
+        }
+      }, 100);
+    }
+  };
+
   const handleSearch = (e) => {
     e.preventDefault();
-    if (searchVal.trim()) {
-      navigate(`/?search=${encodeURIComponent(searchVal.trim())}`);
-      setSearchVal("");
-      setSearchOpen(false);
-    }
+    const query = searchVal.trim();
+    const target = query ? `/products?search=${encodeURIComponent(query)}` : "/products";
+    navigate(target);
+    setSearchVal("");
+    setSearchOpen(false);
   };
 
   return (
@@ -58,16 +78,30 @@ const NavbarCustomer = () => {
 
         {/* ── NAV LINKS (desktop) ── */}
         <ul className="nav d-none d-lg-flex align-items-center gap-1 mb-0 ps-2">
-          {NAV_LINKS.map((l) => (
-            <li key={l.to} className="nav-item">
-              <Link
-                to={l.to}
-                className={`lx-nav-link ${location.pathname === l.to ? "active" : ""}`}
-              >
-                {l.label}
-              </Link>
-            </li>
-          ))}
+          {NAV_LINKS.map((l) => {
+            const isContact = l.label === "Contact";
+            return (
+              <li key={l.to} className="nav-item">
+                {isContact ? (
+                  <a
+                    href="#contact"
+                    onClick={handleContactClick}
+                    className="lx-nav-link"
+                    style={{ cursor: "pointer" }}
+                  >
+                    {l.label}
+                  </a>
+                ) : (
+                  <Link
+                    to={l.to}
+                    className={`lx-nav-link ${l.to === "/" ? (location.pathname === "/" ? "active" : "") : (location.pathname.startsWith(l.to) ? "active" : "")}`}
+                  >
+                    {l.label}
+                  </Link>
+                )}
+              </li>
+            );
+          })}
         </ul>
 
         {/* ── SEARCH BAR (desktop) ── */}
@@ -232,11 +266,24 @@ const NavbarCustomer = () => {
       {/* ── MOBILE MENU ── */}
       {mobileOpen && (
         <div className="d-lg-none border-top" style={{ background: "#fff", padding: "8px 16px 16px" }}>
-          {NAV_LINKS.map((l) => (
-            <Link key={l.to} to={l.to} className="lx-nav-link d-block py-2 my-1" style={{ display: "block" }}>
-              {l.label}
-            </Link>
-          ))}
+          {NAV_LINKS.map((l) => {
+            const isContact = l.label === "Contact";
+            return isContact ? (
+              <a
+                key={l.to}
+                href="#contact"
+                onClick={handleContactClick}
+                className="lx-nav-link d-block py-2 my-1"
+                style={{ display: "block", cursor: "pointer" }}
+              >
+                {l.label}
+              </a>
+            ) : (
+              <Link key={l.to} to={l.to} className="lx-nav-link d-block py-2 my-1" style={{ display: "block" }}>
+                {l.label}
+              </Link>
+            );
+          })}
           {!user && (
             <div className="d-flex gap-2 mt-3">
               <Link to="/login" className="btn btn-outline-primary btn-sm flex-grow-1">Login</Link>
