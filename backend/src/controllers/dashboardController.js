@@ -1,5 +1,6 @@
 const { Product, Order, User } = require("../models");
-const { Op } = require("sequelize");
+const { Op, fn, col, literal } = require("sequelize");
+const sequelize = require("../config/db");
 
 exports.getDashboardStats = async (req, res) => {
   try {
@@ -31,18 +32,44 @@ exports.getDashboardStats = async (req, res) => {
       limit: 10,
     });
 
-    // 6. Data Penjualan Bulanan (Untuk Chart - Mock Data / Basic Grouping)
-    // Secara ideal, ini di-group menggunakan query SQL yang lebih kompleks.
-    // Sebagai permulaan kita sediakan data dummy jika belum ada data riwayat yang panjang, 
-    // atau mengambil orders 6 bulan terakhir.
-    const monthlySales = [
-      { name: "Jan", sales: 4000 },
-      { name: "Feb", sales: 3000 },
-      { name: "Mar", sales: 5000 },
-      { name: "Apr", sales: 4500 },
-      { name: "May", sales: 6000 },
-      { name: "Jun", sales: 7000 },
-    ];
+    // 6. Data Penjualan Bulanan dari database (6 bulan terakhir)
+    const sixMonthsAgo = new Date();
+    sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 5);
+    sixMonthsAgo.setDate(1);
+    sixMonthsAgo.setHours(0, 0, 0, 0);
+
+    const monthNames = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"];
+
+    const rawMonthlySales = await Order.findAll({
+      attributes: [
+        [fn("MONTH", col("created_at")), "month"],
+        [fn("YEAR", col("created_at")), "year"],
+        [fn("SUM", col("total_amount")), "sales"],
+      ],
+      where: {
+        created_at: { [Op.gte]: sixMonthsAgo },
+        status: { [Op.in]: ["paid", "shipped", "completed"] },
+      },
+      group: [fn("YEAR", col("created_at")), fn("MONTH", col("created_at"))],
+      order: [[fn("YEAR", col("created_at")), "ASC"], [fn("MONTH", col("created_at")), "ASC"]],
+      raw: true,
+    });
+
+    // Buat array 6 bulan dengan nilai 0 jika tidak ada data
+    const monthlySales = [];
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date();
+      d.setMonth(d.getMonth() - i);
+      const m = d.getMonth() + 1;
+      const y = d.getFullYear();
+      const found = rawMonthlySales.find(
+        (r) => parseInt(r.month) === m && parseInt(r.year) === y
+      );
+      monthlySales.push({
+        name: monthNames[m - 1],
+        sales: found ? parseFloat(found.sales) : 0,
+      });
+    }
 
     res.status(200).json({
       success: true,
@@ -50,7 +77,7 @@ exports.getDashboardStats = async (req, res) => {
         totalProducts,
         totalOrders,
         totalCustomers,
-        totalRevenue: totalRevenue || 0, // Jika null, jadikan 0
+        totalRevenue: totalRevenue || 0,
         lowStockProducts,
         monthlySales,
       },
