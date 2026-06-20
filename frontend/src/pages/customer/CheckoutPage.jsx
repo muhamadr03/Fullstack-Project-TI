@@ -30,10 +30,14 @@ const CheckoutPage = () => {
     setCouponStatus("loading");
     setAppliedCoupon(null);
     try {
-      const res = await couponApi.validateCoupon(couponInput.trim());
-      if (res.data?.success) {
-        setAppliedCoupon(res.data.data);
+      // couponApi.validateCoupon sudah return response.data
+      // sehingga res = { success, message, data: { coupon object } }
+      const res = await couponApi.validateCoupon(couponInput.trim().toUpperCase());
+      if (res?.success) {
+        setAppliedCoupon(res.data);
         setCouponStatus("valid");
+      } else {
+        setCouponStatus("invalid");
       }
     } catch (err) {
       setCouponStatus("invalid");
@@ -47,11 +51,11 @@ const CheckoutPage = () => {
     setCouponStatus(null);
   };
 
-  // Hitung diskon
+  // Hitung diskon berdasarkan field DB: discount_percentage, max_discount
   const discountAmount = appliedCoupon
     ? Math.min(
-        (totalPrice * appliedCoupon.discount_percentage) / 100,
-        appliedCoupon.max_discount || Infinity
+        Math.floor((totalPrice * Number(appliedCoupon.discount_percentage)) / 100),
+        appliedCoupon.max_discount ? Number(appliedCoupon.max_discount) : Infinity
       )
     : 0;
   const finalTotal = totalPrice - discountAmount;
@@ -153,7 +157,14 @@ const CheckoutPage = () => {
               <div className="alert alert-success d-flex justify-content-between align-items-center py-2 mb-0">
                 <div>
                   <i className="bi bi-check-circle-fill me-2"></i>
-                  <strong>{appliedCoupon.code}</strong> — Diskon {appliedCoupon.discount_percentage}%
+                  <strong>{appliedCoupon.code}</strong>
+                  {" — Diskon "}
+                  <strong>{appliedCoupon.discount_percentage}%</strong>
+                  {appliedCoupon.max_discount && (
+                    <span className="text-muted ms-1" style={{ fontSize: "0.8rem" }}>
+                      (maks. Rp {Number(appliedCoupon.max_discount).toLocaleString("id-ID")})
+                    </span>
+                  )}
                 </div>
                 <button className="btn btn-sm btn-link text-danger p-0" onClick={handleRemoveCoupon}>
                   <i className="bi bi-x-lg"></i>
