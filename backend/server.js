@@ -19,7 +19,9 @@ const addressRoutes = require("./src/routes/addressRoutes");
 const reviewRoutes = require("./src/routes/reviewRoutes");
 const webhookRoutes = require("./src/routes/webhookRoutes");
 const wishlistRoutes = require("./src/routes/wishlistRoutes");
-const couponRoutes = require("./src/routes/couponRoutes");
+const couponRoutes = require('./src/routes/couponRoutes');
+const userRoutes = require('./src/routes/userRoutes');
+const bannerRoutes = require('./src/routes/bannerRoutes');
 
 // MOUNT ROUTES
 app.use("/api/auth", authRoutes);
@@ -32,7 +34,9 @@ app.use("/api/addresses", addressRoutes);
 app.use("/api/reviews", reviewRoutes);
 app.use("/api/webhooks", webhookRoutes);
 app.use("/api/wishlist", wishlistRoutes);
-app.use("/api/coupons", couponRoutes);
+app.use('/api/coupons', couponRoutes);
+app.use('/api/users', userRoutes);
+app.use('/api/banners', bannerRoutes);
 
 const errorHandler = require("./src/middlewares/errorHandler");
 app.use(errorHandler);

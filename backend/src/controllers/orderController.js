@@ -179,22 +179,16 @@ exports.updateOrderStatus = async (req, res) => {
 exports.getAllOrders = async (req, res) => {
   try {
     const orders = await Order.findAll({
-      order: [["created_at", "DESC"]], 
-      // Jika Anda punya model User, sangat disarankan menambahkan include agar tahu siapa pembelinya:
-      // include: [{ model: User, attributes: ['name', 'email'] }]
+      order: [['created_at', 'DESC']],
+      include: [
+        { model: User, as: 'user', attributes: ['name', 'email'] },
+        { model: OrderItem, as: 'items', include: [{ model: Product, as: 'product', attributes: ['id', 'name', 'image_url', 'price'] }] }
+      ]
     });
-
-    return res.status(200).json({ 
-      status: "success", 
-      data: orders 
-    });
+    return res.status(200).json({ status: 'success', data: orders });
   } catch (error) {
-    console.error("🔥 ERROR DI GET ALL ORDERS ADMIN:", error);
-    return res.status(500).json({
-      status: "error",
-      message: "Gagal mengambil semua data pesanan.",
-      error: error.message,
-    });
+    console.error('ERROR DI GET ALL ORDERS ADMIN:', error);
+    return res.status(500).json({ status: 'error', message: 'Gagal mengambil semua data pesanan.', error: error.message });
   }
 };
 

@@ -90,6 +90,54 @@ const SidebarAdmin = ({ isCollapsed, toggleCollapse }) => {
           </li>
         </ul>
 
+        <div className="nav-section-title">KONTEN & PENGGUNA</div>
+        <ul className="nav nav-pills flex-column mb-3">
+          <li className="nav-item">
+            <NavLink
+              to="/admin/users"
+              className={({ isActive }) =>
+                `nav-link ${isActive ? "active" : ""}`
+              }
+            >
+              <i className="bi bi-people"></i>
+              <span className="sidebar-text ms-2">Kelola Pengguna</span>
+            </NavLink>
+          </li>
+          <li className="nav-item">
+            <NavLink
+              to="/admin/coupons"
+              className={({ isActive }) =>
+                `nav-link ${isActive ? "active" : ""}`
+              }
+            >
+              <i className="bi bi-ticket-perforated"></i>
+              <span className="sidebar-text ms-2">Kelola Kupon</span>
+            </NavLink>
+          </li>
+          <li className="nav-item">
+            <NavLink
+              to="/admin/reviews"
+              className={({ isActive }) =>
+                `nav-link ${isActive ? "active" : ""}`
+              }
+            >
+              <i className="bi bi-star-half"></i>
+              <span className="sidebar-text ms-2">Moderasi Ulasan</span>
+            </NavLink>
+          </li>
+          <li className="nav-item">
+            <NavLink
+              to="/admin/banners"
+              className={({ isActive }) =>
+                `nav-link ${isActive ? "active" : ""}`
+              }
+            >
+              <i className="bi bi-image"></i>
+              <span className="sidebar-text ms-2">Kelola Banner</span>
+            </NavLink>
+          </li>
+        </ul>
+
         <div className="nav-section-title">LAINNYA</div>
         <ul className="nav nav-pills flex-column mb-3">
           <li className="nav-item">

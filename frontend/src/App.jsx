@@ -24,11 +24,15 @@ import OrdersPage from "./pages/customer/OrdersPage";
 import ProfilePage from "./pages/customer/ProfilePage";
 import WishlistPage from "./pages/customer/WishlistPage";
 
-// Admin (placeholder — akan diisi Sprint berikutnya)
+// Admin
 import DashboardAdmin from "./pages/admin/DashboardAdmin";
 import ManageProducts from "./pages/admin/ManageProducts";
 import ManageOrders from "./pages/admin/ManageOrders";
 import ManageCategories from "./pages/admin/ManageCategories";
+import ManageUsers from "./pages/admin/ManageUsers";
+import ManageCoupons from "./pages/admin/ManageCoupons";
+import ManageReviews from "./pages/admin/ManageReviews";
+import ManageBanners from "./pages/admin/ManageBanners";
 
 import Footer from "./components/layout/Footer";
 
@@ -131,6 +135,38 @@ function App() {
                 element={
                   <AdminRoute>
                     <ManageOrders />
+                  </AdminRoute>
+                }
+              />
+              <Route
+                path="/admin/users"
+                element={
+                  <AdminRoute>
+                    <ManageUsers />
+                  </AdminRoute>
+                }
+              />
+              <Route
+                path="/admin/coupons"
+                element={
+                  <AdminRoute>
+                    <ManageCoupons />
+                  </AdminRoute>
+                }
+              />
+              <Route
+                path="/admin/reviews"
+                element={
+                  <AdminRoute>
+                    <ManageReviews />
+                  </AdminRoute>
+                }
+              />
+              <Route
+                path="/admin/banners"
+                element={
+                  <AdminRoute>
+                    <ManageBanners />
                   </AdminRoute>
                 }
               />

@@ -13,6 +13,10 @@ const ManageProductsPage = () => {
   // STATE PENCARIAN & PAGINASI
   // ==========================================
   const [searchTerm, setSearchTerm] = useState("");
+  const [filterCategory, setFilterCategory] = useState("");
+  const [filterMonth, setFilterMonth] = useState("");
+  const [filterDate, setFilterDate] = useState("");
+  const [sortBy, setSortBy] = useState("newest");
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 8;
 
@@ -62,9 +66,38 @@ const ManageProductsPage = () => {
   // ==========================================
   // LOGIKA FILTER & PAGINASI
   // ==========================================
-  const filteredProducts = products.filter((p) =>
-    p.name.toLowerCase().includes(searchTerm.toLowerCase()),
-  );
+  let filteredProducts = products.filter((p) => {
+    const matchSearch = p.name.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchCategory = filterCategory ? p.category_id?.toString() === filterCategory : true;
+    
+    let matchMonth = true;
+    let matchDate = true;
+
+    if (p.created_at) {
+      const productDate = new Date(p.created_at);
+      
+      if (filterMonth) {
+        const [y, m] = filterMonth.split("-");
+        matchMonth = productDate.getFullYear() === parseInt(y, 10) && (productDate.getMonth() + 1) === parseInt(m, 10);
+      }
+      
+      if (filterDate) {
+        // Adjust local timezone mapping safely
+        const offset = productDate.getTimezoneOffset() * 60000;
+        const localDateStr = new Date(productDate.getTime() - offset).toISOString().split("T")[0];
+        matchDate = localDateStr === filterDate;
+      }
+    }
+
+    return matchSearch && matchCategory && matchMonth && matchDate;
+  });
+
+  filteredProducts.sort((a, b) => {
+    if (!a.created_at || !b.created_at) return 0;
+    const dateA = new Date(a.created_at).getTime();
+    const dateB = new Date(b.created_at).getTime();
+    return sortBy === "newest" ? dateB - dateA : dateA - dateB;
+  });
 
   const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
   const indexOfLastItem = currentPage * itemsPerPage;
@@ -251,9 +284,9 @@ const ManageProductsPage = () => {
         </div>
       ) : (
         <>
-          {/* SEARCH BAR */}
-          <div className="row mb-3">
-            <div className="col-md-4">
+          {/* FILTER & PENCARIAN */}
+          <div className="row mb-3 gy-2">
+            <div className="col-md-3">
               <div className="input-group">
                 <span className="input-group-text bg-white">
                   <i className="bi bi-search"></i>
@@ -269,6 +302,57 @@ const ManageProductsPage = () => {
                   }}
                 />
               </div>
+            </div>
+            <div className="col-md-2">
+              <select
+                className="form-select"
+                value={filterCategory}
+                onChange={(e) => { setFilterCategory(e.target.value); setCurrentPage(1); }}
+              >
+                <option value="">Semua Kategori</option>
+                {categories.map((c) => (
+                  <option key={c.id} value={c.id}>{c.name}</option>
+                ))}
+              </select>
+            </div>
+            <div className="col-md-3">
+              <div className="input-group">
+                <span className="input-group-text bg-white" title="Filter Bulan">
+                  <i className="bi bi-calendar-month"></i>
+                </span>
+                <input
+                  type="month"
+                  className="form-control"
+                  value={filterMonth}
+                  onChange={(e) => { setFilterMonth(e.target.value); setFilterDate(""); setCurrentPage(1); }}
+                  title="Filter berdasarkan Bulan"
+                />
+              </div>
+            </div>
+            <div className="col-md-2">
+              <div className="input-group">
+                <span className="input-group-text bg-white" title="Pencarian Tanggal">
+                  <i className="bi bi-calendar-date"></i>
+                </span>
+                <input
+                  type="date"
+                  className="form-control"
+                  value={filterDate}
+                  onChange={(e) => { setFilterDate(e.target.value); setFilterMonth(""); setCurrentPage(1); }}
+                  title="Pencarian berdasarkan Tanggal"
+                />
+              </div>
+            </div>
+            <div className="col-md-2">
+              <select
+                className="form-select"
+                value={sortBy}
+                onChange={(e) => { setSortBy(e.target.value); setCurrentPage(1); }}
+                title="Urutkan"
+              >
+                <option value="newest">Terbaru</option>
+                <option value="oldest">Terlama</option>
+              </select>
             </div>
           </div>
 

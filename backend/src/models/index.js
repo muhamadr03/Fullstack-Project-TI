@@ -11,6 +11,7 @@ const OrderItem = require("./OrderItem");
 const Review = require("./Review");
 const Wishlist = require("./Wishlist");
 const Coupon = require("./Coupon");
+const Banner = require('./Banner');
 
 // Relasi User - Address (One-to-Many)
 User.hasMany(Address, { foreignKey: "user_id", as: "addresses" });
@@ -72,4 +73,5 @@ module.exports = {
   Review,
   Wishlist,
   Coupon,
+  Banner,
 };

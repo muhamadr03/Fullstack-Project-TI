@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const reviewController = require("../controllers/reviewController");
-const { verifyToken } = require("../middlewares/authMiddleware");
+const { verifyToken, isAdmin } = require('../middlewares/authMiddleware');
 const Joi = require("joi");
 const { validate } = require("../middlewares/validator");
 
@@ -19,6 +19,12 @@ router.get("/eligible-orders", verifyToken, reviewController.getEligibleOrders);
 router.get("/:productId", reviewController.getProductReviews);
 
 // [CUSTOMER - Login Required] Kirim ulasan
-router.post("/", verifyToken, validate(reviewSchema), reviewController.addReview);
+router.post('/', verifyToken, validate(reviewSchema), reviewController.addReview);
+
+// [ADMIN] Ambil semua ulasan
+router.get('/admin/all', verifyToken, isAdmin, reviewController.getAllReviews);
+
+// [ADMIN] Hapus ulasan
+router.delete('/admin/:id', verifyToken, isAdmin, reviewController.deleteReview);
 
 module.exports = router;

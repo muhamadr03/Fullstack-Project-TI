@@ -94,6 +94,8 @@ CREATE TABLE `orders` (
   `midtrans_transaction_id` varchar(255) DEFAULT NULL,
   `shipping_address` text DEFAULT NULL,
   `tracking_number` varchar(100) DEFAULT NULL,
+  `coupon_code` varchar(255) DEFAULT NULL,
+  `discount_amount` int(11) NOT NULL DEFAULT 0,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 

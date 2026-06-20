@@ -117,3 +117,25 @@ exports.getEligibleOrders = async (req, res) => {
       .json({ message: "Gagal mengambil daftar pesanan.", error: error.message });
   }
 };
+
+// ADMIN: Ambil semua ulasan
+exports.getAllReviews = async (req, res) => {
+  try {
+    const reviews = await Review.findAll({
+      include: [
+        { model: User, as: 'user', attributes: ['name', 'email'] },
+      ],
+      order: [['created_at', 'DESC']]
+    });
+    res.status(200).json({ success: true, data: reviews });
+  } catch (e) { res.status(500).json({ message: 'Gagal mengambil ulasan.', error: e.message }); }
+};
+
+// ADMIN: Hapus ulasan
+exports.deleteReview = async (req, res) => {
+  try {
+    const rows = await Review.destroy({ where: { id: req.params.id } });
+    if (!rows) return res.status(404).json({ message: 'Ulasan tidak ditemukan.' });
+    res.status(200).json({ success: true, message: 'Ulasan berhasil dihapus.' });
+  } catch (e) { res.status(500).json({ message: 'Gagal menghapus ulasan.' }); }
+};
