@@ -252,6 +252,7 @@ CREATE TABLE `products` (
   `image_url` varchar(255) DEFAULT NULL,
   `average_rating` decimal(3,2) DEFAULT 0.00,
   `total_reviews` int(11) DEFAULT 0,
+  `sold_count` int(11) NOT NULL DEFAULT 0,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
