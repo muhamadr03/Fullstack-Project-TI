@@ -1067,3 +1067,10 @@ h6 {
     padding: 24px 18px;
   }
 }
+
+/* ─── TOAST NOTIFICATION ─── */
+@keyframes slideInToast {
+  from { transform: translateY(20px); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+

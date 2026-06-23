@@ -71,9 +71,13 @@ exports.checkout = async (req, res) => {
 
     await OrderItem.bulkCreate(orderItemsData);
 
-    // Update stok satu per satu (atau bisa menggunakan transaksi DB untuk keamanan data)
+    // Update stok dan jumlah terjual (sold_count)
     for (const item of cartItems) {
       await Product.decrement("stock", {
+        by: item.quantity,
+        where: { id: item.product_id },
+      });
+      await Product.increment("sold_count", {
         by: item.quantity,
         where: { id: item.product_id },
       });

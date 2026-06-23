@@ -22,7 +22,7 @@ const HomePage = () => {
     const fetchFeaturedProducts = async () => {
       setLoadingProducts(true);
       try {
-        const res = await productApi.getAllProducts({ page: 1, limit: 4, sortBy: "newest" });
+        const res = await productApi.getAllProducts({ page: 1, limit: 4, sortBy: "popular" });
         setProducts(res.data || []);
       } catch {
         setProducts([]);
@@ -75,27 +75,6 @@ const HomePage = () => {
 
             <div className="col-12 col-lg-6 d-none d-lg-block" style={{ minHeight: 520, position: "relative" }}>
               <img src="/hero_model.png" alt="Hero" className="lx-hero-img" loading="eager" />
-              <div
-                style={{
-                  position: "absolute",
-                  bottom: 32,
-                  left: 24,
-                  background: "rgba(255,255,255,0.92)",
-                  borderRadius: 20,
-                  padding: "18px 22px",
-                  boxShadow: "0 16px 40px rgba(0,0,0,0.08)",
-                }}
-              >
-                <div className="d-flex align-items-center gap-3">
-                  <div className="lx-feature-icon" style={{ width: 48, height: 48, borderRadius: 18 }}>
-                    <i className="bi bi-bag-check" />
-                  </div>
-                  <div>
-                    <div className="fw-bold" style={{ fontSize: "0.95rem" }}>Free Delivery</div>
-                    <div style={{ color: "#666", fontSize: "0.85rem" }}>On all orders within Indonesia.</div>
-                  </div>
-                </div>
-              </div>
             </div>
           </div>
         </div>

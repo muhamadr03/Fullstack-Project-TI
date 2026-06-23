@@ -71,6 +71,11 @@ exports.getAllProducts = async (req, res, next) => {
       orderCondition = [["price", "DESC"]];
     } else if (sortBy === "oldest" || sortBy === "terlama") {
       orderCondition = [["created_at", "ASC"]];
+    } else if (sortBy === "popular") {
+      orderCondition = [
+        ["sold_count", "DESC"],
+        ["average_rating", "DESC"],
+      ];
     }
 
     // 5. Eksekusi Query

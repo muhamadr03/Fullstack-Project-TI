@@ -4,6 +4,7 @@ import { productApi } from "../../api/productApi";
 import { reviewApi } from "../../api/reviewApi";
 import { wishlistApi } from "../../api/wishlistApi";
 import { CartContext } from "../../context/CartContext";
+import { WishlistContext } from "../../context/WishlistContext";
 
 const StarRating = ({ rating, onRate, readOnly = false, size = "1.5rem" }) => {
   const [hovered, setHovered] = useState(0);
@@ -267,7 +268,8 @@ const ProductDetailPage = () => {
   const [reviewLoading, setReviewLoading] = useState(true);
   const [submitLoading, setSubmitLoading] = useState(false);
   const [wishlistLoading, setWishlistLoading] = useState(false);
-  const [isWishlisted, setIsWishlisted] = useState(false);
+  const { isWishlisted: checkWishlist, toggleWishlist } = useContext(WishlistContext);
+  const isWishlisted = product ? checkWishlist(product.id) : false;
   const [activeTab, setActiveTab] = useState("description");
   const [reviewForm, setReviewForm] = useState({
     order_id: "",
@@ -370,19 +372,17 @@ const ProductDetailPage = () => {
   const handleToggleWishlist = async () => {
     try {
       setWishlistLoading(true);
-      const res = await wishlistApi.toggleWishlist(product.id);
-      if (res.data?.action === "added") {
-        setIsWishlisted(true);
-      } else {
-        setIsWishlisted(false);
+      const res = await toggleWishlist(product.id);
+      if (!res.success) {
+        if (res.message?.toLowerCase().includes("token") || res.message?.toLowerCase().includes("login")) {
+          alert("Silakan login terlebih dahulu untuk menyimpan wishlist.");
+          navigate("/login");
+        } else {
+          console.error("Gagal toggle wishlist:", res.message);
+        }
       }
     } catch (error) {
-      if (error.response?.status === 401 || error.response?.status === 403) {
-        alert("Silakan login terlebih dahulu untuk menyimpan wishlist.");
-        navigate("/login");
-      } else {
-        console.error("Gagal toggle wishlist:", error);
-      }
+      console.error("Gagal toggle wishlist:", error);
     } finally {
       setWishlistLoading(false);
     }
@@ -394,6 +394,21 @@ const ProductDetailPage = () => {
       alert(`Berhasil! ${quantity} buah ${product.name} masuk ke keranjang 🛒`);
     } else {
       alert(`Ups, gagal memasukkan ke keranjang: ${result.message}`);
+      if (
+        result.message.toLowerCase().includes("token") ||
+        result.message.toLowerCase().includes("login")
+      ) {
+        navigate("/login");
+      }
+    }
+  };
+
+  const handleBuyNow = async () => {
+    const result = await addToCart(product.id, quantity);
+    if (result.success) {
+      navigate("/checkout");
+    } else {
+      alert(`Ups, gagal memproses pembelian: ${result.message}`);
       if (
         result.message.toLowerCase().includes("token") ||
         result.message.toLowerCase().includes("login")
@@ -871,13 +886,29 @@ const ProductDetailPage = () => {
 
                   <button
                     className="btn btn-primary px-4 py-3 fw-semibold"
+                    onClick={handleBuyNow}
+                    style={{
+                      borderRadius: "16px",
+                      minWidth: "160px",
+                      background: "linear-gradient(135deg, #10b981, #059669)",
+                      border: "none",
+                      boxShadow: "0 14px 30px rgba(16,185,129,0.22)",
+                    }}
+                  >
+                    <i className="bi bi-bag-check me-2"></i>
+                    Beli Sekarang
+                  </button>
+
+                  <button
+                    className="btn btn-outline-primary px-4 py-3 fw-semibold"
                     onClick={handleAddToCart}
                     style={{
                       borderRadius: "16px",
-                      minWidth: "210px",
-                      background: "linear-gradient(135deg, #4f46e5, #2563eb)",
-                      border: "none",
-                      boxShadow: "0 14px 30px rgba(79,70,229,0.22)",
+                      minWidth: "190px",
+                      background: "#fff",
+                      color: "#4f46e5",
+                      border: "2px solid #4f46e5",
+                      boxShadow: "0 8px 20px rgba(79,70,229,0.08)",
                     }}
                   >
                     <i className="bi bi-cart-plus me-2"></i>

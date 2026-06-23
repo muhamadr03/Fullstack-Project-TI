@@ -3,16 +3,22 @@ import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { wishlistApi } from "../../api/wishlistApi";
 import { cartApi } from "../../api/cartApi";
+import { CartContext } from "../../context/CartContext";
+import { WishlistContext } from "../../context/WishlistContext";
+import { useContext } from "react";
 
 const BACKEND_URL = "http://localhost:5000";
 const DISCOUNT_POOL = [10, 15, 20, 25, 30];
 
 const ProductCard = ({ product, showAddCart = true }) => {
-  const [wishlisted, setWishlisted] = useState(false);
   const [wishlistLoading, setWishlistLoading] = useState(false);
   const [cartLoading, setCartLoading] = useState(false);
   const [cartAdded, setCartAdded] = useState(false);
+  const { addToCart } = useContext(CartContext);
+  const { isWishlisted, toggleWishlist } = useContext(WishlistContext);
   const navigate = useNavigate();
+
+  const wishlisted = isWishlisted(product.id);
 
   const imageUrl = product.image_url
     ? product.image_url.startsWith("http")
@@ -40,12 +46,12 @@ const ProductCard = ({ product, showAddCart = true }) => {
     e.stopPropagation();
     setWishlistLoading(true);
     try {
-      const res = await wishlistApi.toggleWishlist(product.id);
-      setWishlisted(res.data?.action === "added");
-    } catch (err) {
-      if (err.response?.status === 401 || err.response?.status === 403) {
+      const res = await toggleWishlist(product.id);
+      if (!res.success && (res.message?.toLowerCase().includes("token") || res.message?.toLowerCase().includes("login"))) {
         navigate("/login");
       }
+    } catch (err) {
+      navigate("/login");
     } finally {
       setWishlistLoading(false);
     }
@@ -56,13 +62,39 @@ const ProductCard = ({ product, showAddCart = true }) => {
     e.stopPropagation();
     setCartLoading(true);
     try {
-      await cartApi.addToCart(product.id, 1);
-      setCartAdded(true);
-      setTimeout(() => setCartAdded(false), 2000);
+      const result = await addToCart(product.id, 1);
+      if (result.success) {
+        setCartAdded(true);
+        setTimeout(() => setCartAdded(false), 2000);
+      } else if (result.message && (result.message.toLowerCase().includes("token") || result.message.toLowerCase().includes("login"))) {
+        navigate("/login");
+      } else {
+        alert(`Gagal menambah ke keranjang: ${result.message}`);
+      }
     } catch (err) {
       if (err.response?.status === 401 || err.response?.status === 403) {
         navigate("/login");
       }
+    } finally {
+      setCartLoading(false);
+    }
+  };
+
+  const handleBuyNow = async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setCartLoading(true);
+    try {
+      const result = await addToCart(product.id, 1);
+      if (result.success) {
+        navigate("/checkout");
+      } else if (result.message && (result.message.toLowerCase().includes("token") || result.message.toLowerCase().includes("login"))) {
+        navigate("/login");
+      } else {
+        alert(`Gagal memproses pembelian: ${result.message}`);
+      }
+    } catch (err) {
+      navigate("/login");
     } finally {
       setCartLoading(false);
     }
@@ -144,21 +176,31 @@ const ProductCard = ({ product, showAddCart = true }) => {
         </div>
       </Link>
 
-      {/* Add to Cart */}
+      {/* Add to Cart & Buy Now */}
       {showAddCart && (
-        <div className="lx-product-footer">
+        <div className="lx-product-footer" style={{ display: "flex", gap: "8px" }}>
           <button
             className="lx-add-cart-btn"
+            style={{ flex: 1, fontSize: "0.85rem", padding: "8px 4px" }}
             onClick={handleAddCart}
             disabled={cartLoading}
           >
             {cartLoading ? (
-              <><span className="spinner-border spinner-border-sm" role="status" /> Adding...</>
+              <span className="spinner-border spinner-border-sm" role="status" />
             ) : cartAdded ? (
-              <><i className="bi bi-check2" /> Added!</>
+              <><i className="bi bi-check2" /> Added</>
             ) : (
-              <><i className="bi bi-bag-plus" /> Add to Cart</>
+              <><i className="bi bi-cart-plus" /> Cart</>
             )}
+          </button>
+
+          <button
+            className="lx-add-cart-btn"
+            style={{ flex: 1.2, fontSize: "0.85rem", padding: "8px 4px", background: "linear-gradient(135deg, #10b981, #059669)", color: "#fff", border: "none" }}
+            onClick={handleBuyNow}
+            disabled={cartLoading}
+          >
+            <i className="bi bi-bag-check" /> Beli
           </button>
         </div>
       )}

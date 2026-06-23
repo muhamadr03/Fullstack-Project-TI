@@ -39,7 +39,7 @@ export const CartProvider = ({ children }) => {
       await cartApi.addToCart(productId, quantity);
       // Refresh keranjang dari backend agar datanya akurat
       const response = await cartApi.getCart();
-      setCartItems(response.data || []);
+      setCartItems(response || []);
       return { success: true };
     } catch (error) {
       console.error("Gagal menambah ke keranjang:", error);

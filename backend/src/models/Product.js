@@ -13,6 +13,7 @@ const Product = sequelize.define(
     image_url: { type: DataTypes.STRING },
     average_rating: { type: DataTypes.DECIMAL(3, 2), defaultValue: 0 },
     total_reviews: { type: DataTypes.INTEGER, defaultValue: 0 },
+    sold_count: { type: DataTypes.INTEGER, defaultValue: 0 },
   },
   {
     tableName: "products",
