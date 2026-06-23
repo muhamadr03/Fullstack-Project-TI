@@ -29,12 +29,11 @@ const ProductCard = ({ product, showAddCart = true }) => {
 
   const isNew = (product.id % 7 === 0);
 
-  const rating = product.average_rating
-    ? parseFloat(product.average_rating)
-    : (3.5 + ((product.id % 15) / 10));
-
+  // Gunakan data asli dari database
+  // Jika total_reviews 0, maka rating juga 0
+  const rating = parseFloat(product.average_rating || 0);
   const ratingRounded = Math.min(5, parseFloat(rating.toFixed(1)));
-  const reviewCount = product.total_reviews || ((product.id || 1) * 17 % 500 + 10);
+  const reviewCount = parseInt(product.total_reviews || 0, 10);
 
   const handleWishlist = async (e) => {
     e.preventDefault();

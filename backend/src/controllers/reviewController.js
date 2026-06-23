@@ -1,5 +1,16 @@
-const { Review, User, Order, OrderItem } = require("../models");
+const { Review, User, Order, OrderItem, Product, Category } = require("../models");
 const { Op } = require("sequelize");
+
+// Fungsi helper untuk update rating produk
+const updateProductRating = async (productId) => {
+  const reviews = await Review.findAll({ where: { product_id: productId } });
+  const total = reviews.length;
+  const avg = total > 0 ? reviews.reduce((sum, r) => sum + r.rating, 0) / total : 0;
+  await Product.update(
+    { total_reviews: total, average_rating: avg },
+    { where: { id: productId } }
+  );
+};
 
 // CUSTOMER: Menambahkan ulasan
 exports.addReview = async (req, res) => {
@@ -43,6 +54,9 @@ exports.addReview = async (req, res) => {
       rating,
       comment,
     });
+
+    // Update rating produk
+    await updateProductRating(product_id);
 
     res
       .status(201)
@@ -124,18 +138,33 @@ exports.getAllReviews = async (req, res) => {
     const reviews = await Review.findAll({
       include: [
         { model: User, as: 'user', attributes: ['name', 'email'] },
+        { 
+          model: Product, 
+          as: 'product', 
+          attributes: ['name', 'category_id'],
+          include: [
+            { model: Category, as: 'category', attributes: ['name'] }
+          ]
+        }
       ],
       order: [['created_at', 'DESC']]
     });
-    res.status(200).json({ success: true, data: reviews });
+    res.status(200).json(reviews);
   } catch (e) { res.status(500).json({ message: 'Gagal mengambil ulasan.', error: e.message }); }
 };
 
 // ADMIN: Hapus ulasan
 exports.deleteReview = async (req, res) => {
   try {
-    const rows = await Review.destroy({ where: { id: req.params.id } });
-    if (!rows) return res.status(404).json({ message: 'Ulasan tidak ditemukan.' });
+    const review = await Review.findByPk(req.params.id);
+    if (!review) return res.status(404).json({ message: 'Ulasan tidak ditemukan.' });
+    
+    const productId = review.product_id;
+    await review.destroy();
+    
+    // Update rating produk
+    await updateProductRating(productId);
+
     res.status(200).json({ success: true, message: 'Ulasan berhasil dihapus.' });
   } catch (e) { res.status(500).json({ message: 'Gagal menghapus ulasan.' }); }
 };

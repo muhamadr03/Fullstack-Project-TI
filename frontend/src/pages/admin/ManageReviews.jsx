@@ -1,18 +1,32 @@
 import React, { useState, useEffect } from "react";
 import { reviewAdminApi } from "../../api/reviewAdminApi";
+import { categoryApi } from "../../api/categoryApi";
+import * as XLSX from "xlsx";
 
 const ManageReviewsPage = () => {
   const [reviews, setReviews] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterRating, setFilterRating] = useState("");
+  const [filterCategory, setFilterCategory] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
   useEffect(() => {
     fetchReviews();
+    fetchCategories();
   }, []);
+
+  const fetchCategories = async () => {
+    try {
+      const data = await categoryApi.getAllCategories();
+      setCategories(Array.isArray(data) ? data : data?.data || []);
+    } catch (err) {
+      console.error("Gagal memuat kategori:", err);
+    }
+  };
 
   const fetchReviews = async () => {
     try {
@@ -55,7 +69,8 @@ const ManageReviewsPage = () => {
       r.user?.name?.toLowerCase().includes(searchLower) ||
       r.comment?.toLowerCase().includes(searchLower);
     const matchRating = filterRating ? r.rating === parseInt(filterRating, 10) : true;
-    return matchSearch && matchRating;
+    const matchCategory = filterCategory ? r.product?.category_id === parseInt(filterCategory, 10) : true;
+    return matchSearch && matchRating && matchCategory;
   });
 
   const totalPages = Math.ceil(filteredReviews.length / itemsPerPage);
@@ -64,6 +79,25 @@ const ManageReviewsPage = () => {
   const currentReviews = filteredReviews.slice(indexOfFirst, indexOfLast);
 
   const paginate = (page) => setCurrentPage(page);
+
+  const handleExportExcel = () => {
+    const dataToExport = filteredReviews.map((r) => ({
+      "Review ID": r.id,
+      "Product ID": r.product_id,
+      "Product Name": r.product?.name || "-",
+      "Category": r.product?.category?.name || "-",
+      "Reviewer Name": r.user?.name || "Anonim",
+      "Reviewer Email": r.user?.email || "-",
+      "Rating": r.rating,
+      "Comment": r.comment || "-",
+      "Date": r.created_at ? new Date(r.created_at).toLocaleDateString("id-ID") : "-",
+    }));
+
+    const worksheet = XLSX.utils.json_to_sheet(dataToExport);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Ulasan");
+    XLSX.writeFile(workbook, "Data_Ulasan.xlsx");
+  };
 
   if (loading) {
     return (
@@ -82,16 +116,21 @@ const ManageReviewsPage = () => {
         <h2 className="fw-bold m-0">
           <i className="bi bi-chat-square-text-fill me-2"></i>Moderasi Ulasan
         </h2>
-        <button onClick={fetchReviews} className="btn btn-outline-secondary btn-sm">
-          <i className="bi bi-arrow-clockwise me-1"></i>Refresh Data
-        </button>
+        <div className="d-flex gap-2">
+          <button onClick={handleExportExcel} className="btn btn-success btn-sm">
+            <i className="bi bi-file-earmark-excel me-1"></i>Export Excel
+          </button>
+          <button onClick={fetchReviews} className="btn btn-outline-secondary btn-sm">
+            <i className="bi bi-arrow-clockwise me-1"></i>Refresh Data
+          </button>
+        </div>
       </div>
 
       {error && <div className="alert alert-danger">{error}</div>}
 
       {/* FILTER & PENCARIAN */}
       <div className="row mb-3 gy-2">
-        <div className="col-md-5">
+        <div className="col-md-4">
           <div className="input-group">
             <span className="input-group-text bg-white">
               <i className="bi bi-search"></i>
@@ -111,6 +150,21 @@ const ManageReviewsPage = () => {
         <div className="col-md-3">
           <select
             className="form-select"
+            value={filterCategory}
+            onChange={(e) => {
+              setFilterCategory(e.target.value);
+              setCurrentPage(1);
+            }}
+          >
+            <option value="">Semua Kategori</option>
+            {categories.map((cat) => (
+              <option key={cat.id} value={cat.id}>{cat.name}</option>
+            ))}
+          </select>
+        </div>
+        <div className="col-md-2">
+          <select
+            className="form-select"
             value={filterRating}
             onChange={(e) => {
               setFilterRating(e.target.value);
@@ -125,7 +179,7 @@ const ManageReviewsPage = () => {
             <option value="1">1 Bintang</option>
           </select>
         </div>
-        <div className="col-md-4 text-end text-muted small d-flex align-items-center justify-content-end">
+        <div className="col-md-3 text-end text-muted small d-flex align-items-center justify-content-end">
           {filteredReviews.length} ulasan ditemukan
         </div>
       </div>
@@ -137,7 +191,7 @@ const ManageReviewsPage = () => {
             <table className="table table-hover align-middle mb-0">
               <thead className="table-dark">
                 <tr>
-                  <th className="ps-3">Produk ID</th>
+                  <th className="ps-3">Produk / Kategori</th>
                   <th>Reviewer</th>
                   <th>Rating</th>
                   <th>Komentar</th>
@@ -156,9 +210,10 @@ const ManageReviewsPage = () => {
                   currentReviews.map((review) => (
                     <tr key={review.id}>
                       <td className="ps-3">
-                        <span className="badge bg-light text-dark border">
-                          #{review.product_id}
-                        </span>
+                        <div className="fw-bold text-truncate" style={{ maxWidth: "150px" }} title={review.product?.name}>
+                          {review.product?.name || `Produk #${review.product_id}`}
+                        </div>
+                        <small className="text-muted">{review.product?.category?.name || "Tanpa Kategori"}</small>
                       </td>
                       <td>
                         <div className="fw-bold">{review.user?.name || "Anonim"}</div>

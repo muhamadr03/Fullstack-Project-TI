@@ -12,6 +12,12 @@ const reviewSchema = Joi.object({
   comment: Joi.string().allow("").optional(),
 });
 
+// [ADMIN] Ambil semua ulasan
+router.get('/admin/all', verifyToken, isAdmin, reviewController.getAllReviews);
+
+// [ADMIN] Hapus ulasan
+router.delete('/admin/:id', verifyToken, isAdmin, reviewController.deleteReview);
+
 // [CUSTOMER - Login Required] Ambil daftar order yang eligible untuk review
 router.get("/eligible-orders", verifyToken, reviewController.getEligibleOrders);
 
@@ -20,11 +26,5 @@ router.get("/:productId", reviewController.getProductReviews);
 
 // [CUSTOMER - Login Required] Kirim ulasan
 router.post('/', verifyToken, validate(reviewSchema), reviewController.addReview);
-
-// [ADMIN] Ambil semua ulasan
-router.get('/admin/all', verifyToken, isAdmin, reviewController.getAllReviews);
-
-// [ADMIN] Hapus ulasan
-router.delete('/admin/:id', verifyToken, isAdmin, reviewController.deleteReview);
 
 module.exports = router;
