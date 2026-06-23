@@ -1,4 +1,4 @@
-const { Telegraf, Markup } = require("telegraf");
+const { Telegraf } = require("telegraf");
 const Product = require("../models/Product");
 const Order = require("../models/Order");
 
@@ -36,16 +36,24 @@ const statusEmoji = {
 const escapeHtml = (str) =>
   String(str)
     .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
+    .replace(/</, "&lt;")
     .replace(/>/g, "&gt;");
 
-// ─── Keyboard utama ───────────────────────────────────────────────────────────
-const mainKeyboard = Markup.keyboard([
-  ["📦 Daftar Produk", "🔍 Cek Pesanan"],
-  ["🌐 Kunjungi Toko",  "❓ Bantuan"],
-])
-  .resize()
-  .persistent();
+// ─── Keyboard utama (plain object — paling reliable) ─────────────────────────
+const mainReplyMarkup = {
+  reply_markup: {
+    keyboard: [
+      ["📦 Daftar Produk", "🔍 Cek Pesanan"],
+      ["🌐 Kunjungi Toko",  "❓ Bantuan"],
+    ],
+    resize_keyboard: true,
+    is_persistent: true,
+  },
+};
+
+// Helper: kirim pesan HTML + keyboard sekaligus
+const replyHTML = (ctx, text, extra = {}) =>
+  ctx.reply(text, { parse_mode: "HTML", ...mainReplyMarkup, ...extra });
 
 // ─── State: user yang sedang menunggu input Order ID ─────────────────────────
 const awaitingOrderId = new Set();
@@ -62,7 +70,7 @@ bot.start((ctx) => {
     `❓ <b>Bantuan</b> – panduan penggunaan\n\n` +
     `Pilih menu di bawah ini ⬇️`;
 
-  ctx.reply(welcomeText, { parse_mode: "HTML", ...mainKeyboard });
+  replyHTML(ctx, welcomeText);
 });
 
 // ─── /help ────────────────────────────────────────────────────────────────────
@@ -78,9 +86,9 @@ bot.command("order", (ctx) => askOrderId(ctx));
 bot.hears("📦 Daftar Produk", (ctx) => sendProductList(ctx));
 bot.hears("🔍 Cek Pesanan",   (ctx) => askOrderId(ctx));
 bot.hears("🌐 Kunjungi Toko", (ctx) => {
-  ctx.reply(
-    `🌐 Klik link berikut untuk membuka toko kami:\n<a href="${frontendUrl}">${frontendUrl}</a>`,
-    { parse_mode: "HTML", ...mainKeyboard }
+  replyHTML(
+    ctx,
+    `🌐 Klik link berikut untuk membuka toko kami:\n<a href="${frontendUrl}">${frontendUrl}</a>`
   );
 });
 bot.hears("❓ Bantuan", (ctx) => sendHelp(ctx));
@@ -88,7 +96,7 @@ bot.hears("❓ Bantuan", (ctx) => sendHelp(ctx));
 // ─── Handler: semua pesan teks (input Order ID & fallback) ───────────────────
 bot.on("text", async (ctx) => {
   const chatId = ctx.chat.id;
-  const text = ctx.message.text.trim();
+  const text   = ctx.message.text.trim();
 
   // Proses input Order ID
   if (awaitingOrderId.has(chatId)) {
@@ -96,9 +104,9 @@ bot.on("text", async (ctx) => {
     const orderId = parseInt(text, 10);
 
     if (isNaN(orderId)) {
-      return ctx.reply(
-        "⚠️ Order ID tidak valid. Masukkan angka saja, contoh: <code>123</code>",
-        { parse_mode: "HTML", ...mainKeyboard }
+      return replyHTML(
+        ctx,
+        "⚠️ Order ID tidak valid. Masukkan angka saja, contoh: <code>123</code>"
       );
     }
 
@@ -111,9 +119,9 @@ bot.on("text", async (ctx) => {
       });
 
       if (!order) {
-        return ctx.reply(
-          `😔 Order dengan ID <b>#${orderId}</b> tidak ditemukan.\nPastikan nomor order Anda benar.`,
-          { parse_mode: "HTML", ...mainKeyboard }
+        return replyHTML(
+          ctx,
+          `😔 Order dengan ID <b>#${orderId}</b> tidak ditemukan.\nPastikan nomor order Anda benar.`
         );
       }
 
@@ -133,24 +141,17 @@ bot.on("text", async (ctx) => {
         `📌 Status: <b>${statusLabel}</b>\n\n` +
         `🔗 <a href="${frontendUrl}/orders">Lihat Detail di Toko</a>`;
 
-      return ctx.reply(detail, {
-        parse_mode: "HTML",
-        disable_web_page_preview: true,
-        ...mainKeyboard,
-      });
+      return replyHTML(ctx, detail, { disable_web_page_preview: true });
     } catch (err) {
       console.error("[TelegramBot] Error cek order:", err.message);
-      return ctx.reply(
-        "❌ Gagal mengambil data pesanan. Silakan coba lagi.",
-        mainKeyboard
-      );
+      return replyHTML(ctx, "❌ Gagal mengambil data pesanan. Silakan coba lagi.");
     }
   }
 
   // Fallback
-  ctx.reply(
-    "🤖 Maaf, saya belum mengerti pesan tersebut.\n\nKetik /help untuk melihat daftar perintah yang tersedia.",
-    mainKeyboard
+  replyHTML(
+    ctx,
+    "🤖 Maaf, saya belum mengerti pesan tersebut.\n\nKetik /help untuk melihat daftar perintah yang tersedia."
   );
 });
 
@@ -166,7 +167,7 @@ async function sendProductList(ctx) {
     });
 
     if (!products.length) {
-      return ctx.reply("😔 Belum ada produk yang tersedia saat ini.", mainKeyboard);
+      return replyHTML(ctx, "😔 Belum ada produk yang tersedia saat ini.");
     }
 
     let pesan =
@@ -182,19 +183,12 @@ async function sendProductList(ctx) {
         `🔗 <a href="${frontendUrl}/products/${p.id}">Lihat Produk</a>\n\n`;
     });
 
-    pesan += `\n🌐 <a href="${frontendUrl}/products">Lihat semua produk di toko kami</a>`;
+    pesan += `🌐 <a href="${frontendUrl}/products">Lihat semua produk di toko kami</a>`;
 
-    ctx.reply(pesan, {
-      parse_mode: "HTML",
-      disable_web_page_preview: true,
-      ...mainKeyboard,
-    });
+    replyHTML(ctx, pesan, { disable_web_page_preview: true });
   } catch (err) {
     console.error("[TelegramBot] Error ambil produk:", err.message);
-    ctx.reply(
-      "❌ Maaf, terjadi kesalahan saat mengambil data produk. Coba lagi nanti.",
-      mainKeyboard
-    );
+    replyHTML(ctx, "❌ Maaf, terjadi kesalahan saat mengambil data produk. Coba lagi nanti.");
   }
 }
 
@@ -217,7 +211,7 @@ function sendHelp(ctx) {
     `/help – Tampilkan panduan ini\n\n` +
     `💬 Atau gunakan tombol menu di bawah keyboard Anda.`;
 
-  ctx.reply(helpText, { parse_mode: "HTML", ...mainKeyboard });
+  replyHTML(ctx, helpText);
 }
 
 // ─── Error handler ────────────────────────────────────────────────────────────
