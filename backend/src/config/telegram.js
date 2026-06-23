@@ -16,7 +16,11 @@ const bot = new Telegraf(token);
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 const formatRupiah = (n) =>
-  new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(n);
+  new Intl.NumberFormat("id-ID", {
+    style: "currency",
+    currency: "IDR",
+    maximumFractionDigits: 0,
+  }).format(n);
 
 const esc = (str) =>
   String(str ?? "")
@@ -32,66 +36,75 @@ const statusLabel = {
   cancelled: "❌ Dibatalkan",
 };
 
-// ─── Keyboard — cara paling native Telegraf ───────────────────────────────────
-const mainMenu = Markup.keyboard([
-  ["📦 Daftar Produk", "🔍 Cek Pesanan"],
-  ["🌐 Kunjungi Toko",  "❓ Bantuan"],
-]).resize();
+// ─── Inline Keyboard — muncul di dalam pesan, support SEMUA platform ──────────
+const mainMenuInline = Markup.inlineKeyboard([
+  [
+    Markup.button.callback("📦 Daftar Produk", "menu_products"),
+    Markup.button.callback("🔍 Cek Pesanan",   "menu_order"),
+  ],
+  [
+    Markup.button.url("🌐 Kunjungi Toko", frontendUrl),
+    Markup.button.callback("❓ Bantuan",        "menu_help"),
+  ],
+]);
 
-// ─── State cek order ──────────────────────────────────────────────────────────
+// ─── State: menunggu input order ID ──────────────────────────────────────────
 const awaitingOrder = new Set();
 
 // ─── /start ───────────────────────────────────────────────────────────────────
-bot.start(async (ctx) => {
+bot.start((ctx) => {
   const name = esc(ctx.from.first_name || "Pelanggan");
-
-  // Langkah 1: kirim keyboard tanpa HTML dulu (paling reliable)
-  await ctx.reply(
-    `👋 Halo, ${name}! Selamat datang di E-Shop Support Bot 🛍️`,
-    mainMenu
-  );
-
-  // Langkah 2: kirim detail menu dengan HTML (terpisah dari keyboard)
-  await ctx.replyWithHTML(
+  ctx.replyWithHTML(
+    `👋 <b>Halo, ${name}!</b> Selamat datang di <b>E-Shop Support Bot</b> 🛍️\n\n` +
     `Saya siap membantu Anda:\n\n` +
     `📦 <b>Daftar Produk</b> – lihat produk terbaru\n` +
     `🔍 <b>Cek Pesanan</b> – cek status order Anda\n` +
     `🌐 <b>Kunjungi Toko</b> – buka website kami\n` +
     `❓ <b>Bantuan</b> – panduan penggunaan\n\n` +
-    `Pilih menu di bawah ⬇️`
+    `Pilih menu di bawah ini ⬇️`,
+    mainMenuInline
   );
 });
 
-// ─── /help ────────────────────────────────────────────────────────────────────
-bot.command("help", (ctx) => sendHelp(ctx));
-bot.help((ctx) => sendHelp(ctx));
-
-// ─── /produk ──────────────────────────────────────────────────────────────────
+// ─── /help & /produk & /order ─────────────────────────────────────────────────
+bot.help((ctx)    => sendHelp(ctx));
+bot.command("help",   (ctx) => sendHelp(ctx));
 bot.command("produk", (ctx) => sendProductList(ctx));
+bot.command("order",  (ctx) => askOrderId(ctx));
 
-// ─── /order ───────────────────────────────────────────────────────────────────
-bot.command("order", (ctx) => askOrderId(ctx));
-
-// ─── Tombol keyboard ─────────────────────────────────────────────────────────
-bot.hears("📦 Daftar Produk", (ctx) => sendProductList(ctx));
-bot.hears("🔍 Cek Pesanan",   (ctx) => askOrderId(ctx));
-bot.hears("🌐 Kunjungi Toko", async (ctx) => {
-  await ctx.reply("🌐 Buka toko kami di sini:", mainMenu);
-  await ctx.reply(frontendUrl);
+// ─── Callback dari tombol inline ──────────────────────────────────────────────
+bot.action("menu_products", async (ctx) => {
+  await ctx.answerCbQuery(); // wajib agar loading spinner hilang
+  sendProductList(ctx);
 });
-bot.hears("❓ Bantuan", (ctx) => sendHelp(ctx));
 
-// ─── Pesan umum (input order ID + fallback) ───────────────────────────────────
+bot.action("menu_order", async (ctx) => {
+  await ctx.answerCbQuery();
+  askOrderId(ctx);
+});
+
+bot.action("menu_help", async (ctx) => {
+  await ctx.answerCbQuery();
+  sendHelp(ctx);
+});
+
+// ─── Pesan teks: input order ID + fallback ────────────────────────────────────
 bot.on("text", async (ctx) => {
   const chatId = ctx.chat.id;
   const text   = ctx.message.text.trim();
+
+  // Abaikan perintah slash agar tidak double-handle
+  if (text.startsWith("/")) return;
 
   if (awaitingOrder.has(chatId)) {
     awaitingOrder.delete(chatId);
 
     const orderId = parseInt(text, 10);
     if (isNaN(orderId)) {
-      return ctx.reply("⚠️ Order ID tidak valid. Masukkan angka saja.\n\nContoh: 123", mainMenu);
+      return ctx.replyWithHTML(
+        `⚠️ Order ID tidak valid. Masukkan angka saja.\n\nContoh: <code>123</code>`,
+        mainMenuInline
+      );
     }
 
     try {
@@ -100,38 +113,57 @@ bot.on("text", async (ctx) => {
       });
 
       if (!order) {
-        return ctx.reply(`😔 Order #${orderId} tidak ditemukan.\nPastikan nomor order Anda benar.`, mainMenu);
+        return ctx.replyWithHTML(
+          `😔 Order <b>#${orderId}</b> tidak ditemukan.\nPastikan nomor order Anda benar.`,
+          mainMenuInline
+        );
       }
 
-      const tgl  = new Date(order.created_at).toLocaleDateString("id-ID", { day: "2-digit", month: "long", year: "numeric" });
+      const tgl  = new Date(order.created_at).toLocaleDateString("id-ID", {
+        day: "2-digit", month: "long", year: "numeric",
+      });
       const resi = order.tracking_number || "Belum tersedia";
       const stat = statusLabel[order.status] ?? order.status;
 
-      await ctx.reply(
-        `📋 Detail Pesanan #${order.id}\n` +
+      ctx.replyWithHTML(
+        `📋 <b>Detail Pesanan #${order.id}</b>\n` +
         `━━━━━━━━━━━━━━━━━━━━━━━━\n\n` +
         `📅 Tanggal : ${tgl}\n` +
         `💰 Total   : ${formatRupiah(order.total_amount)}\n` +
-        `📍 Alamat  : ${order.shipping_address}\n` +
-        `🚚 Resi    : ${resi}\n` +
-        `📌 Status  : ${stat}\n\n` +
-        `Lihat detail: ${frontendUrl}/orders`,
-        mainMenu
+        `📍 Alamat  : ${esc(order.shipping_address)}\n` +
+        `🚚 Resi    : <code>${esc(resi)}</code>\n` +
+        `📌 Status  : <b>${stat}</b>`,
+        Markup.inlineKeyboard([
+          [Markup.button.url("🔗 Lihat di Toko", `${frontendUrl}/orders`)],
+          [Markup.button.callback("🏠 Menu Utama", "back_to_menu")],
+        ])
       );
     } catch (err) {
       console.error("[TelegramBot] Error cek order:", err.message);
-      ctx.reply("❌ Gagal mengambil data pesanan. Silakan coba lagi.", mainMenu);
+      ctx.replyWithHTML("❌ Gagal mengambil data pesanan. Silakan coba lagi.", mainMenuInline);
     }
     return;
   }
 
   // Fallback
-  ctx.reply("🤖 Perintah tidak dikenali.\n\nKetik /help untuk melihat panduan.", mainMenu);
+  ctx.replyWithHTML(
+    "🤖 Perintah tidak dikenali.\n\nGunakan tombol menu di bawah atau ketik /help.",
+    mainMenuInline
+  );
 });
 
-// ─── Helper functions ─────────────────────────────────────────────────────────
+// ─── Callback: kembali ke menu utama ─────────────────────────────────────────
+bot.action("back_to_menu", async (ctx) => {
+  await ctx.answerCbQuery();
+  ctx.replyWithHTML(
+    "🏠 <b>Menu Utama</b>\n\nPilih menu yang Anda inginkan:",
+    mainMenuInline
+  );
+});
+
+// ─── Helper: Daftar Produk ────────────────────────────────────────────────────
 async function sendProductList(ctx) {
-  await ctx.reply("⏳ Mengambil data produk...", mainMenu);
+  await ctx.replyWithHTML("⏳ Mengambil data produk terbaru...");
 
   try {
     const products = await Product.findAll({
@@ -141,49 +173,70 @@ async function sendProductList(ctx) {
     });
 
     if (!products.length) {
-      return ctx.reply("😔 Belum ada produk yang tersedia saat ini.", mainMenu);
+      return ctx.replyWithHTML(
+        "😔 Belum ada produk yang tersedia saat ini.",
+        mainMenuInline
+      );
     }
 
-    let msg = `🛍️ 5 Produk Terbaru\n━━━━━━━━━━━━━━━━━━━━━━━━\n\n`;
-    products.forEach((p, i) => {
-      const stok = p.stock > 0 ? `✅ Stok: ${p.stock}` : "❌ Habis";
-      msg +=
-        `${i + 1}. ${p.name}\n` +
-        `💰 ${formatRupiah(p.price)}  ${stok}\n` +
-        `🔗 ${frontendUrl}/products/${p.id}\n\n`;
-    });
-    msg += `🌐 Semua produk: ${frontendUrl}/products`;
+    let html = `🛍️ <b>5 Produk Terbaru di E-Shop</b>\n━━━━━━━━━━━━━━━━━━━━━━━━\n\n`;
+    const buttons = [];
 
-    ctx.reply(msg, mainMenu);
+    products.forEach((p, i) => {
+      const stok = p.stock > 0 ? `✅ ${p.stock} stok` : "❌ Habis";
+      html +=
+        `<b>${i + 1}. ${esc(p.name)}</b>\n` +
+        `💰 ${formatRupiah(p.price)}  |  ${stok}\n\n`;
+      buttons.push([
+        Markup.button.url(`🔗 ${i + 1}. ${p.name}`, `${frontendUrl}/products/${p.id}`),
+      ]);
+    });
+
+    buttons.push([
+      Markup.button.url("🛒 Lihat Semua Produk", `${frontendUrl}/products`),
+    ]);
+    buttons.push([
+      Markup.button.callback("🏠 Menu Utama", "back_to_menu"),
+    ]);
+
+    ctx.replyWithHTML(html, Markup.inlineKeyboard(buttons));
   } catch (err) {
     console.error("[TelegramBot] Error ambil produk:", err.message);
-    ctx.reply("❌ Gagal mengambil data produk. Coba lagi nanti.", mainMenu);
+    ctx.replyWithHTML(
+      "❌ Gagal mengambil data produk. Coba lagi nanti.",
+      mainMenuInline
+    );
   }
 }
 
+// ─── Helper: Tanya Order ID ───────────────────────────────────────────────────
 function askOrderId(ctx) {
   awaitingOrder.add(ctx.chat.id);
-  ctx.reply("🔍 Masukkan Nomor Order ID Anda (angka):\n\nContoh: 123");
-}
-
-function sendHelp(ctx) {
-  ctx.reply(
-    `📖 Panduan Bot E-Shop\n━━━━━━━━━━━━━━━━━━━━━━━━\n\n` +
-    `Perintah:\n` +
-    `/start – Mulai ulang\n` +
-    `/produk – Lihat produk terbaru\n` +
-    `/order – Cek status pesanan\n` +
-    `/help – Panduan ini\n\n` +
-    `💬 Atau gunakan tombol keyboard di bawah.`,
-    mainMenu
+  ctx.replyWithHTML(
+    "🔍 Masukkan <b>Nomor Order ID</b> Anda:\n\nContoh: <code>123</code>"
   );
 }
 
-// ─── Error & Launch ───────────────────────────────────────────────────────────
+// ─── Helper: Bantuan ─────────────────────────────────────────────────────────
+function sendHelp(ctx) {
+  ctx.replyWithHTML(
+    `📖 <b>Panduan Bot E-Shop</b>\n━━━━━━━━━━━━━━━━━━━━━━━━\n\n` +
+    `<b>Perintah:</b>\n` +
+    `/start – Mulai ulang bot\n` +
+    `/produk – Lihat 5 produk terbaru\n` +
+    `/order – Cek status pesanan\n` +
+    `/help – Panduan ini\n\n` +
+    `💬 Atau gunakan tombol di bawah pesan.`,
+    mainMenuInline
+  );
+}
+
+// ─── Error handler ────────────────────────────────────────────────────────────
 bot.catch((err, ctx) => {
   console.error(`[TelegramBot] Error (${ctx.updateType}):`, err.message);
 });
 
+// ─── Launch ───────────────────────────────────────────────────────────────────
 bot.launch().then(() => {
   console.log(`✅ [TelegramBot] Bot @${botUsername} aktif (polling)...`);
 }).catch((err) => {
