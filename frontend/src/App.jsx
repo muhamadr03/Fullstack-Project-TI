@@ -8,7 +8,7 @@ import AdminRoute from "./components/AdminRoute";
 import NavbarCustomer from "./components/layout/NavbarCustomer";
 import AdminLayout from "./components/admin/AdminLayout";
 import { Outlet } from "react-router-dom";
-import WhatsAppWidget from "./components/ui/WhatsAppWidget";
+import TelegramWidget from "./components/ui/TelegramWidget";
 
 // Auth
 import LoginPage from "./pages/auth/LoginPage";
@@ -44,7 +44,7 @@ const CustomerLayout = () => (
       <Outlet />
     </main>
     <Footer />
-    <WhatsAppWidget />
+    <TelegramWidget />
   </div>
 );
 
