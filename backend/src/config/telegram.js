@@ -32,6 +32,13 @@ const statusEmoji = {
   cancelled: "❌ Dibatalkan",
 };
 
+// Escape karakter khusus HTML agar aman dikirim via parse_mode HTML
+const escapeHtml = (str) =>
+  String(str)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+
 // ─── Keyboard utama ───────────────────────────────────────────────────────────
 const mainKeyboard = Markup.keyboard([
   ["📦 Daftar Produk", "🔍 Cek Pesanan"],
@@ -45,17 +52,17 @@ const awaitingOrderId = new Set();
 
 // ─── /start ───────────────────────────────────────────────────────────────────
 bot.start((ctx) => {
-  const firstName = ctx.from.first_name || "Pelanggan";
+  const firstName = escapeHtml(ctx.from.first_name || "Pelanggan");
   const welcomeText =
-    `👋 *Halo, ${firstName}\\!* Selamat datang di *E\\-Shop Support Bot* 🛍️\n\n` +
+    `👋 <b>Halo, ${firstName}!</b> Selamat datang di <b>E-Shop Support Bot</b> 🛍️\n\n` +
     `Saya siap membantu Anda dengan:\n` +
-    `📦 *Daftar Produk* – lihat produk terbaru\n` +
-    `🔍 *Cek Pesanan* – cek status order Anda\n` +
-    `🌐 *Kunjungi Toko* – buka website kami\n` +
-    `❓ *Bantuan* – panduan penggunaan\n\n` +
+    `📦 <b>Daftar Produk</b> – lihat produk terbaru\n` +
+    `🔍 <b>Cek Pesanan</b> – cek status order Anda\n` +
+    `🌐 <b>Kunjungi Toko</b> – buka website kami\n` +
+    `❓ <b>Bantuan</b> – panduan penggunaan\n\n` +
     `Pilih menu di bawah ini ⬇️`;
 
-  ctx.replyWithMarkdownV2(welcomeText, mainKeyboard);
+  ctx.reply(welcomeText, { parse_mode: "HTML", ...mainKeyboard });
 });
 
 // ─── /help ────────────────────────────────────────────────────────────────────
@@ -67,34 +74,31 @@ bot.command("produk", (ctx) => sendProductList(ctx));
 // ─── /order ───────────────────────────────────────────────────────────────────
 bot.command("order", (ctx) => askOrderId(ctx));
 
-// ─── Tombol keyboard: Daftar Produk ──────────────────────────────────────────
+// ─── Tombol keyboard ─────────────────────────────────────────────────────────
 bot.hears("📦 Daftar Produk", (ctx) => sendProductList(ctx));
-
-// ─── Tombol keyboard: Cek Pesanan ─────────────────────────────────────────────
-bot.hears("🔍 Cek Pesanan", (ctx) => askOrderId(ctx));
-
-// ─── Tombol keyboard: Kunjungi Toko ──────────────────────────────────────────
+bot.hears("🔍 Cek Pesanan",   (ctx) => askOrderId(ctx));
 bot.hears("🌐 Kunjungi Toko", (ctx) => {
-  ctx.reply(`🌐 Klik link berikut untuk membuka toko kami:\n${frontendUrl}`, mainKeyboard);
+  ctx.reply(
+    `🌐 Klik link berikut untuk membuka toko kami:\n<a href="${frontendUrl}">${frontendUrl}</a>`,
+    { parse_mode: "HTML", ...mainKeyboard }
+  );
 });
-
-// ─── Tombol keyboard: Bantuan ─────────────────────────────────────────────────
 bot.hears("❓ Bantuan", (ctx) => sendHelp(ctx));
 
-// ─── Handler: semua pesan teks (untuk input Order ID & fallback) ──────────────
+// ─── Handler: semua pesan teks (input Order ID & fallback) ───────────────────
 bot.on("text", async (ctx) => {
   const chatId = ctx.chat.id;
   const text = ctx.message.text.trim();
 
-  // Proses input Order ID jika user sedang dalam mode cek pesanan
+  // Proses input Order ID
   if (awaitingOrderId.has(chatId)) {
     awaitingOrderId.delete(chatId);
     const orderId = parseInt(text, 10);
 
     if (isNaN(orderId)) {
       return ctx.reply(
-        "⚠️ Order ID tidak valid. Masukkan angka saja, contoh: 123",
-        mainKeyboard
+        "⚠️ Order ID tidak valid. Masukkan angka saja, contoh: <code>123</code>",
+        { parse_mode: "HTML", ...mainKeyboard }
       );
     }
 
@@ -108,8 +112,8 @@ bot.on("text", async (ctx) => {
 
       if (!order) {
         return ctx.reply(
-          `😔 Order dengan ID *#${orderId}* tidak ditemukan.\nPastikan nomor order Anda benar.`,
-          { parse_mode: "Markdown", ...mainKeyboard }
+          `😔 Order dengan ID <b>#${orderId}</b> tidak ditemukan.\nPastikan nomor order Anda benar.`,
+          { parse_mode: "HTML", ...mainKeyboard }
         );
       }
 
@@ -120,16 +124,17 @@ bot.on("text", async (ctx) => {
       const resi = order.tracking_number || "Belum tersedia";
 
       const detail =
-        `📋 *Detail Pesanan #${order.id}*\n${"─".repeat(28)}\n\n` +
+        `📋 <b>Detail Pesanan #${order.id}</b>\n` +
+        `━━━━━━━━━━━━━━━━━━━━━━━━\n\n` +
         `📅 Tanggal: ${tanggal}\n` +
         `💰 Total: ${formatRupiah(order.total_amount)}\n` +
-        `📍 Alamat: ${order.shipping_address}\n` +
-        `🚚 No\\. Resi: \`${resi}\`\n` +
-        `📌 Status: *${statusLabel}*\n\n` +
-        `🔗 [Lihat Detail di Toko](${frontendUrl}/orders)`;
+        `📍 Alamat: ${escapeHtml(order.shipping_address)}\n` +
+        `🚚 No. Resi: <code>${escapeHtml(resi)}</code>\n` +
+        `📌 Status: <b>${statusLabel}</b>\n\n` +
+        `🔗 <a href="${frontendUrl}/orders">Lihat Detail di Toko</a>`;
 
       return ctx.reply(detail, {
-        parse_mode: "Markdown",
+        parse_mode: "HTML",
         disable_web_page_preview: true,
         ...mainKeyboard,
       });
@@ -157,29 +162,30 @@ async function sendProductList(ctx) {
     const products = await Product.findAll({
       limit: 5,
       order: [["created_at", "DESC"]],
-      attributes: ["id", "name", "price", "stock", "image_url"],
+      attributes: ["id", "name", "price", "stock"],
     });
 
     if (!products.length) {
       return ctx.reply("😔 Belum ada produk yang tersedia saat ini.", mainKeyboard);
     }
 
-    let pesan = `🛍️ *5 Produk Terbaru di E\\-Shop*\n${"─".repeat(28)}\n\n`;
+    let pesan =
+      `🛍️ <b>5 Produk Terbaru di E-Shop</b>\n` +
+      `━━━━━━━━━━━━━━━━━━━━━━━━\n\n`;
 
     products.forEach((p, i) => {
       const stok = p.stock > 0 ? `✅ Stok: ${p.stock}` : "❌ Habis";
-      // Escape karakter MarkdownV2 pada nama produk
-      const namaSafe = p.name.replace(/[_*[\]()~`>#+=|{}.!-]/g, "\\$&");
       pesan +=
-        `*${i + 1}\\. ${namaSafe}*\n` +
+        `<b>${i + 1}. ${escapeHtml(p.name)}</b>\n` +
         `💰 ${formatRupiah(p.price)}\n` +
         `${stok}\n` +
-        `🔗 [Lihat Produk](${frontendUrl}/products/${p.id})\n\n`;
+        `🔗 <a href="${frontendUrl}/products/${p.id}">Lihat Produk</a>\n\n`;
     });
 
-    pesan += `\n🌐 [Lihat semua produk di toko kami](${frontendUrl}/products)`;
+    pesan += `\n🌐 <a href="${frontendUrl}/products">Lihat semua produk di toko kami</a>`;
 
-    ctx.replyWithMarkdownV2(pesan, {
+    ctx.reply(pesan, {
+      parse_mode: "HTML",
       disable_web_page_preview: true,
       ...mainKeyboard,
     });
@@ -195,22 +201,23 @@ async function sendProductList(ctx) {
 function askOrderId(ctx) {
   awaitingOrderId.add(ctx.chat.id);
   ctx.reply(
-    "🔍 Silakan masukkan *Nomor Order ID* Anda (angka):\n\nContoh: `123`",
-    { parse_mode: "Markdown" }
+    "🔍 Silakan masukkan <b>Nomor Order ID</b> Anda (angka):\n\nContoh: <code>123</code>",
+    { parse_mode: "HTML" }
   );
 }
 
 function sendHelp(ctx) {
   const helpText =
-    `📖 *Panduan Penggunaan Bot E\\-Shop*\n${"─".repeat(28)}\n\n` +
-    `*Perintah yang tersedia:*\n` +
-    `/start \\– Mulai ulang bot\n` +
-    `/produk \\– Lihat 5 produk terbaru\n` +
-    `/order \\– Cek status pesanan\n` +
-    `/help \\– Tampilkan panduan ini\n\n` +
-    `💬 Atau gunakan tombol menu di bawah keyboard Anda\\.`;
+    `📖 <b>Panduan Penggunaan Bot E-Shop</b>\n` +
+    `━━━━━━━━━━━━━━━━━━━━━━━━\n\n` +
+    `<b>Perintah yang tersedia:</b>\n` +
+    `/start – Mulai ulang bot\n` +
+    `/produk – Lihat 5 produk terbaru\n` +
+    `/order – Cek status pesanan\n` +
+    `/help – Tampilkan panduan ini\n\n` +
+    `💬 Atau gunakan tombol menu di bawah keyboard Anda.`;
 
-  ctx.replyWithMarkdownV2(helpText, mainKeyboard);
+  ctx.reply(helpText, { parse_mode: "HTML", ...mainKeyboard });
 }
 
 // ─── Error handler ────────────────────────────────────────────────────────────
@@ -229,7 +236,7 @@ bot
   });
 
 // Graceful stop saat server dimatikan
-process.once("SIGINT", () => bot.stop("SIGINT"));
+process.once("SIGINT",  () => bot.stop("SIGINT"));
 process.once("SIGTERM", () => bot.stop("SIGTERM"));
 
 module.exports = bot;
