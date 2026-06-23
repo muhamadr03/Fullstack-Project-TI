@@ -31,6 +31,24 @@ const connectDB = async () => {
       );
       console.log("Kolom sold_count berhasil ditambahkan ke tabel products.");
     }
+
+    const [tables] = await sequelize.query("SHOW TABLES LIKE 'wishlists';");
+    if (!tables || tables.length === 0) {
+      console.log("Membuat tabel wishlists yang hilang...");
+      await sequelize.query(`
+        CREATE TABLE wishlists (
+          id INT(11) NOT NULL AUTO_INCREMENT,
+          user_id INT(11) NOT NULL,
+          product_id INT(11) NOT NULL,
+          createdAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          updatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+          PRIMARY KEY (id),
+          KEY user_id (user_id),
+          KEY product_id (product_id)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+      `);
+      console.log("Tabel wishlists berhasil dibuat.");
+    }
   } catch (error) {
     console.error("Gagal terhubung ke database:", error);
   }

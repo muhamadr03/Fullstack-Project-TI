@@ -32,6 +32,29 @@ async function alterTable() {
     } else {
       console.error("Error checking or altering products table:", error);
     }
+  }
+
+  try {
+    const [tables] = await sequelize.query("SHOW TABLES LIKE 'wishlists';");
+    if (!tables || tables.length === 0) {
+      await sequelize.query(`
+        CREATE TABLE wishlists (
+          id INT(11) NOT NULL AUTO_INCREMENT,
+          user_id INT(11) NOT NULL,
+          product_id INT(11) NOT NULL,
+          createdAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          updatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+          PRIMARY KEY (id),
+          KEY user_id (user_id),
+          KEY product_id (product_id)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+      `);
+      console.log("Column wishlists table created successfully.");
+    } else {
+      console.log("Table wishlists already exists.");
+    }
+  } catch (error) {
+    console.error("Error checking or creating wishlists table:", error);
   } finally {
     process.exit();
   }
