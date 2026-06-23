@@ -43,7 +43,7 @@ const mainMenuInline = Markup.inlineKeyboard([
     Markup.button.callback("🔍 Cek Pesanan",   "menu_order"),
   ],
   [
-    Markup.button.url("🌐 Kunjungi Toko", frontendUrl),
+    Markup.button.callback("🌐 Kunjungi Toko", "menu_store"),
     Markup.button.callback("❓ Bantuan",        "menu_help"),
   ],
 ]);
@@ -87,6 +87,13 @@ bot.action("menu_help", async (ctx) => {
   await ctx.answerCbQuery();
   sendHelp(ctx);
 });
+bot.action("menu_store", async (ctx) => {
+  await ctx.answerCbQuery();
+  ctx.replyWithHTML(
+    `🌐 <b>Kunjungi Toko Kami</b>\n\nBuka link berikut di browser Anda:\n${frontendUrl}`
+  );
+});
+
 
 // ─── Pesan teks: input order ID + fallback ────────────────────────────────────
 bot.on("text", async (ctx) => {
@@ -134,7 +141,7 @@ bot.on("text", async (ctx) => {
         `🚚 Resi    : <code>${esc(resi)}</code>\n` +
         `📌 Status  : <b>${stat}</b>`,
         Markup.inlineKeyboard([
-          [Markup.button.url("🔗 Lihat di Toko", `${frontendUrl}/orders`)],
+          [Markup.button.callback("🔗 Lihat Detail Pesanan", "menu_orders")],
           [Markup.button.callback("🏠 Menu Utama", "back_to_menu")],
         ])
       );
@@ -160,6 +167,32 @@ bot.action("back_to_menu", async (ctx) => {
     mainMenuInline
   );
 });
+
+// ─── Callback: lihat pesanan ──────────────────────────────────────────────────
+bot.action("menu_orders", async (ctx) => {
+  await ctx.answerCbQuery();
+  ctx.replyWithHTML(
+    `📦 <b>Halaman Pesanan</b>\n\nBuka link berikut untuk melihat pesanan Anda:\n${frontendUrl}/orders`
+  );
+});
+
+// ─── Callback: lihat semua produk ─────────────────────────────────────────────
+bot.action("menu_all_products", async (ctx) => {
+  await ctx.answerCbQuery();
+  ctx.replyWithHTML(
+    `🛒 <b>Semua Produk</b>\n\nBuka link berikut untuk melihat semua produk:\n${frontendUrl}/products`
+  );
+});
+
+// ─── Callback: detail produk spesifik ────────────────────────────────────────
+bot.action(/^product_(\d+)$/, async (ctx) => {
+  await ctx.answerCbQuery();
+  const productId = ctx.match[1];
+  ctx.replyWithHTML(
+    `🔗 <b>Detail Produk</b>\n\nBuka link berikut untuk melihat produk:\n${frontendUrl}/products/${productId}`
+  );
+});
+
 
 // ─── Helper: Daftar Produk ────────────────────────────────────────────────────
 async function sendProductList(ctx) {
@@ -188,12 +221,12 @@ async function sendProductList(ctx) {
         `<b>${i + 1}. ${esc(p.name)}</b>\n` +
         `💰 ${formatRupiah(p.price)}  |  ${stok}\n\n`;
       buttons.push([
-        Markup.button.url(`🔗 ${i + 1}. ${p.name}`, `${frontendUrl}/products/${p.id}`),
+        Markup.button.callback(`🔗 ${i + 1}. ${p.name}`, `product_${p.id}`),
       ]);
     });
 
     buttons.push([
-      Markup.button.url("🛒 Lihat Semua Produk", `${frontendUrl}/products`),
+      Markup.button.callback("🛒 Lihat Semua Produk", "menu_all_products"),
     ]);
     buttons.push([
       Markup.button.callback("🏠 Menu Utama", "back_to_menu"),
