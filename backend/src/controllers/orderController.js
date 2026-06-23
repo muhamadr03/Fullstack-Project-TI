@@ -1,5 +1,5 @@
 const snap = require("../config/midtrans");
-const { Order, OrderItem, Cart, Product, User, Coupon } = require("../models");
+const { Order, OrderItem, Cart, Product, User, Coupon, ProductImage } = require("../models");
 
 // CUSTOMER: Melakukan Checkout
 exports.checkout = async (req, res) => {
@@ -186,7 +186,7 @@ exports.getAllOrders = async (req, res) => {
       order: [['created_at', 'DESC']],
       include: [
         { model: User, as: 'user', attributes: ['name', 'email'] },
-        { model: OrderItem, as: 'items', include: [{ model: Product, as: 'product', attributes: ['id', 'name', 'image_url', 'price'] }] }
+        { model: OrderItem, as: 'items', include: [{ model: Product, as: 'product', attributes: ['id', 'name', 'price'], include: [{ model: ProductImage, as: 'images', attributes: ['image_url', 'is_primary'] }] }] }
       ]
     });
     return res.status(200).json({ status: 'success', data: orders });

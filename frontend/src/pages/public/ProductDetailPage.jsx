@@ -335,21 +335,17 @@ const ProductDetailPage = () => {
     setShowAllReviews(false);
   }, [id]);
 
-  // Parse images dari product: gunakan field `images` (array) jika ada,
-  // atau fallback ke split image_url
+  // Parse images dari product: gunakan field `images` (array of objects)
   const productImages = (() => {
     if (product?.images && product.images.length > 0) {
-      return product.images;
-    }
-    if (product?.image_url) {
-      return product.image_url.split(",").map((u) => u.trim()).filter(Boolean);
+      return product.images.map(img => img.image_url.replace(/\\/g, "/"));
     }
     return ["https://via.placeholder.com/900x900?text=No+Image"];
   })();
 
   const getImageUrl = (url) => {
     if (!url) return "https://via.placeholder.com/900x900?text=No+Image";
-    return url.startsWith("http") ? url : `${backendUrl}${url}`;
+    return url.startsWith("http") ? url : `${backendUrl}/${url}`;
   };
 
   const galleryItems = productImages.map((url, idx) => ({
@@ -363,7 +359,7 @@ const ProductDetailPage = () => {
       setActiveImage(galleryItems[0].src);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [product?.image_url]);
+  }, [product?.images]);
 
   const averageRating = reviews.length
     ? reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length

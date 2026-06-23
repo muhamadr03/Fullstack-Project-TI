@@ -1,4 +1,4 @@
-const { Product, Category } = require("../models");
+const { Product, Category, ProductImage } = require("../models");
 const { Op } = require("sequelize");
 
 exports.getAllProducts = async (req, res, next) => {
@@ -84,7 +84,11 @@ exports.getAllProducts = async (req, res, next) => {
       limit: limit,
       offset: offset,
       order: orderCondition,
-      include: [includeCondition],
+      include: [
+        includeCondition,
+        { model: ProductImage, as: "images", attributes: ["id", "image_url", "is_primary"] }
+      ],
+      distinct: true, // important when using limit with includes
     });
 
     const totalPages = Math.ceil(products.count / limit);
@@ -111,18 +115,15 @@ exports.getAllProducts = async (req, res, next) => {
 exports.getProductById = async (req, res) => {
   try {
     const product = await Product.findByPk(req.params.id, {
-      include: [{ model: Category, as: "category", attributes: ["id", "name", "slug"] }],
+      include: [
+        { model: Category, as: "category", attributes: ["id", "name", "slug"] },
+        { model: ProductImage, as: "images", attributes: ["id", "image_url", "is_primary"] }
+      ],
     });
     if (!product)
       return res.status(404).json({ message: "Produk tidak ditemukan." });
 
-    // Parse image_url (koma-separated) menjadi array
-    const productData = product.toJSON();
-    productData.images = productData.image_url
-      ? productData.image_url.split(",").map((url) => url.trim()).filter(Boolean)
-      : [];
-
-    res.status(200).json(productData);
+    res.status(200).json(product);
   } catch (error) {
     res.status(500).json({ message: "Terjadi kesalahan server." });
   }
@@ -132,21 +133,33 @@ exports.createProduct = async (req, res) => {
   try {
     const { category_id, name, description, price, stock } = req.body;
 
-    // Ambil semua URL gambar dari req.files["images"] (upload.fields)
-    let image_url = null;
-    const uploadedFiles = req.files && req.files["images"] ? req.files["images"] : [];
-    if (uploadedFiles.length > 0) {
-      image_url = uploadedFiles.map((file) => file.path).join(",");
-    }
-
     const newProduct = await Product.create({
       category_id,
       name,
       description,
       price,
       stock,
-      image_url,
     });
+
+    const imageRecords = [];
+    let hasPrimary = false;
+
+    for (let i = 1; i <= 3; i++) {
+      const fileArray = req.files && req.files[`image_${i}`] ? req.files[`image_${i}`] : [];
+      if (fileArray.length > 0) {
+        const file = fileArray[0];
+        imageRecords.push({
+          product_id: newProduct.id,
+          image_url: file.path,
+          is_primary: !hasPrimary, // First image found becomes primary
+        });
+        hasPrimary = true;
+      }
+    }
+
+    if (imageRecords.length > 0) {
+      await ProductImage.bulkCreate(imageRecords);
+    }
 
     res
       .status(201)
@@ -161,20 +174,49 @@ exports.createProduct = async (req, res) => {
 exports.updateProduct = async (req, res) => {
   try {
     const updateData = { ...req.body };
-
-    const uploadedFiles = req.files && req.files["images"] ? req.files["images"] : [];
-    if (uploadedFiles.length > 0) {
-      // Ada gambar baru diunggah → replace semua gambar lama
-      updateData.image_url = uploadedFiles.map((file) => file.path).join(",");
-    } else {
-      // Tidak ada gambar baru → pertahankan gambar lama
-      delete updateData.image_url;
-    }
+    delete updateData.existing_image_1;
+    delete updateData.existing_image_2;
+    delete updateData.existing_image_3;
 
     await Product.update(
       updateData,
       { where: { id: req.params.id } }
     );
+
+    const updateImages = [];
+    let hasPrimary = false;
+
+    for (let i = 1; i <= 3; i++) {
+      const fileArray = req.files && req.files[`image_${i}`] ? req.files[`image_${i}`] : [];
+      const existingUrl = req.body[`existing_image_${i}`];
+
+      if (fileArray.length > 0) {
+        // Ada gambar baru di slot i
+        const file = fileArray[0];
+        updateImages.push({
+          product_id: req.params.id,
+          image_url: file.path,
+          is_primary: !hasPrimary,
+        });
+        hasPrimary = true;
+      } else if (existingUrl) {
+        // Pertahankan gambar lama di slot i
+        updateImages.push({
+          product_id: req.params.id,
+          image_url: existingUrl,
+          is_primary: !hasPrimary,
+        });
+        hasPrimary = true;
+      }
+    }
+
+    // Hanya jika ada array updateImages kita reset tabelnya (atau jika user mengirim req, kita reset dan isi)
+    // Sebenarnya pada update, kita hapus semua gambar lama dari db dan masukkan yg baru sesuai urutan dari updateImages
+    await ProductImage.destroy({ where: { product_id: req.params.id } });
+    if (updateImages.length > 0) {
+      await ProductImage.bulkCreate(updateImages);
+    }
+
     res.status(200).json({ message: "Produk berhasil diupdate!" });
   } catch (error) {
     res.status(500).json({ message: "Gagal mengupdate produk.", error: error.message });

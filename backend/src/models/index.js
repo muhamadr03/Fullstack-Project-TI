@@ -12,6 +12,7 @@ const Review = require("./Review");
 const Wishlist = require("./Wishlist");
 const Coupon = require("./Coupon");
 const Banner = require('./Banner');
+const ProductImage = require("./ProductImage");
 
 // Relasi User - Address (One-to-Many)
 User.hasMany(Address, { foreignKey: "user_id", as: "addresses" });
@@ -61,6 +62,10 @@ Wishlist.belongsTo(User, { foreignKey: "user_id", as: "user" });
 Product.hasMany(Wishlist, { foreignKey: "product_id", as: "wishlists" });
 Wishlist.belongsTo(Product, { foreignKey: "product_id", as: "product" });
 
+// Relasi Product - ProductImage (One-to-Many)
+Product.hasMany(ProductImage, { foreignKey: "product_id", as: "images" });
+ProductImage.belongsTo(Product, { foreignKey: "product_id", as: "product" });
+
 module.exports = {
   sequelize,
   User,
@@ -74,4 +79,5 @@ module.exports = {
   Wishlist,
   Coupon,
   Banner,
+  ProductImage,
 };

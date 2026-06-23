@@ -20,10 +20,14 @@ const ProductCard = ({ product, showAddCart = true }) => {
 
   const wishlisted = isWishlisted(product.id);
 
-  const imageUrl = product.image_url
-    ? product.image_url.startsWith("http")
-      ? product.image_url
-      : `${BACKEND_URL}${product.image_url}`
+  let mainImage = "";
+  if (product.images && product.images.length > 0) {
+    mainImage = product.images[0].image_url;
+  }
+  const imageUrl = mainImage
+    ? mainImage.startsWith("http")
+      ? mainImage
+      : `${BACKEND_URL}/${mainImage.replace(/\\/g, "/")}`
     : "https://placehold.co/400x400?text=No+Image";
 
   // Simulasi diskon (setiap produk dengan id genap)

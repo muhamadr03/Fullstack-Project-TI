@@ -24,7 +24,11 @@ router.post(
   "/",
   verifyToken,
   isAdmin,
-  upload.fields([{ name: "images", maxCount: 5 }]),
+  upload.fields([
+    { name: "image_1", maxCount: 1 },
+    { name: "image_2", maxCount: 1 },
+    { name: "image_3", maxCount: 1 },
+  ]),
   validate(productSchema),
   productController.createProduct,
 );
@@ -32,7 +36,11 @@ router.put(
   "/:id",
   verifyToken,
   isAdmin,
-  upload.fields([{ name: "images", maxCount: 5 }]),
+  upload.fields([
+    { name: "image_1", maxCount: 1 },
+    { name: "image_2", maxCount: 1 },
+    { name: "image_3", maxCount: 1 },
+  ]),
   validate(productSchema),
   productController.updateProduct,
 );

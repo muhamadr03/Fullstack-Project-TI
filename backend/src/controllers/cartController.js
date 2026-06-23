@@ -1,4 +1,4 @@
-const { Cart, Product } = require("../models");
+const { Cart, Product, ProductImage } = require("../models");
 
 exports.getCart = async (req, res) => {
   try {
@@ -9,7 +9,8 @@ exports.getCart = async (req, res) => {
         {
           model: Product,
           as: "product",
-          attributes: ["name", "price", "image_url"],
+          attributes: ["id", "name", "price"],
+          include: [{ model: ProductImage, as: "images", attributes: ["image_url", "is_primary"] }],
         },
       ],
     });

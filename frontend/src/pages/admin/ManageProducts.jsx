@@ -27,10 +27,10 @@ const ManageProductsPage = () => {
     description: "",
     price: "",
     stock: "",
-    images: [], // Array file gambar baru yang dipilih
-    existingImageUrl: "", // URL gambar yang sudah ada di database
+    images: [null, null, null],
+    existingImages: [null, null, null],
   });
-  const [imagePreviews, setImagePreviews] = useState([]); // preview URL lokal
+  const [imagePreviews, setImagePreviews] = useState([null, null, null]);
 
   const API_URL =
     import.meta.env.VITE_API_URL?.replace("/api", "") ||
@@ -116,12 +116,32 @@ const ManageProductsPage = () => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleFileChange = (e) => {
-    const files = Array.from(e.target.files);
-    setFormData({ ...formData, images: files });
-    // Buat preview URL dari file lokal
-    const previews = files.map((file) => URL.createObjectURL(file));
-    setImagePreviews(previews);
+  const handleFileChangeSlot = (e, index) => {
+    const file = e.target.files[0];
+    if (file) {
+      const newImages = [...formData.images];
+      newImages[index] = file;
+
+      const newPreviews = [...imagePreviews];
+      newPreviews[index] = URL.createObjectURL(file);
+
+      setFormData({ ...formData, images: newImages });
+      setImagePreviews(newPreviews);
+    }
+  };
+
+  const handleRemoveImage = (index) => {
+    const newImages = [...formData.images];
+    newImages[index] = null;
+    
+    const newExisting = [...formData.existingImages];
+    newExisting[index] = null;
+    
+    const newPreviews = [...imagePreviews];
+    newPreviews[index] = null;
+    
+    setFormData({ ...formData, images: newImages, existingImages: newExisting });
+    setImagePreviews(newPreviews);
   };
 
   const handleAddClick = () => {
@@ -132,20 +152,27 @@ const ManageProductsPage = () => {
       description: "",
       price: "",
       stock: "",
-      images: [],
-      existingImageUrl: "",
+      images: [null, null, null],
+      existingImages: [null, null, null],
     });
-    setImagePreviews([]);
+    setImagePreviews([null, null, null]);
     setIsEditing(false);
     setShowForm(true);
   };
 
   const handleEditClick = (product) => {
-    const existingImageUrl = product.image_url || "";
-    // Tampilkan gambar lama sebagai preview
-    const existingPreviews = existingImageUrl
-      ? existingImageUrl.split(",").map((u) => u.trim()).filter(Boolean)
-      : [];
+    const existingPreviews = [null, null, null];
+    const existingImgs = [null, null, null];
+
+    if (product.images) {
+      product.images.forEach((img, idx) => {
+        if (idx < 3) {
+          existingPreviews[idx] = img.image_url;
+          existingImgs[idx] = img.image_url;
+        }
+      });
+    }
+
     setFormData({
       id: product.id,
       name: product.name,
@@ -153,8 +180,8 @@ const ManageProductsPage = () => {
       description: product.description,
       price: product.price,
       stock: product.stock,
-      images: [],
-      existingImageUrl,
+      images: [null, null, null],
+      existingImages: existingImgs,
     });
     setImagePreviews(existingPreviews);
     setIsEditing(true);
@@ -171,10 +198,18 @@ const ManageProductsPage = () => {
       dataToSubmit.append("description", formData.description);
       dataToSubmit.append("price", formData.price);
       dataToSubmit.append("stock", formData.stock);
-      // Kirim semua gambar dengan key "images"
-      if (formData.images && formData.images.length > 0) {
-        formData.images.forEach((file) => dataToSubmit.append("images", file));
-      }
+      // Kirim gambar per slot
+      formData.images.forEach((file, idx) => {
+        if (file) {
+          dataToSubmit.append(`image_${idx + 1}`, file);
+        }
+      });
+
+      formData.existingImages.forEach((url, idx) => {
+        if (url) {
+          dataToSubmit.append(`existing_image_${idx + 1}`, url);
+        }
+      });
 
       if (isEditing) {
         await productApi.updateProduct(formData.id, dataToSubmit);
@@ -280,38 +315,55 @@ const ManageProductsPage = () => {
                 </div>
               </div>
               <div className="mb-3">
-                <label className="form-label fw-bold">Gambar Produk <span className="text-muted fw-normal">(maks. 5 gambar)</span></label>
-                <input
-                  type="file"
-                  className="form-control"
-                  onChange={handleFileChange}
-                  accept="image/*"
-                  multiple
-                  required={!isEditing}
-                />
-                {isEditing && formData.images.length === 0 && (
-                  <div className="form-text text-muted">Biarkan kosong jika tidak ingin mengganti gambar.</div>
-                )}
-                {/* Preview Thumbnails */}
-                {imagePreviews.length > 0 && (
-                  <div className="d-flex flex-wrap gap-2 mt-2">
-                    {imagePreviews.map((src, idx) => (
-                      <img
-                        key={idx}
-                        src={src}
-                        alt={`preview-${idx}`}
-                        style={{
-                          width: "80px",
-                          height: "80px",
-                          objectFit: "cover",
-                          borderRadius: "8px",
-                          border: "2px solid #4f46e5",
-                        }}
-                        onError={(e) => { e.target.src = "https://via.placeholder.com/80"; }}
-                      />
-                    ))}
-                  </div>
-                )}
+                <label className="form-label fw-bold">Gambar Produk <span className="text-muted fw-normal">(tepat 3 slot gambar)</span></label>
+                <div className="row g-3 mt-1">
+                  {[0, 1, 2].map((idx) => (
+                    <div className="col-md-4" key={idx}>
+                      <div className="card h-100 shadow-sm border-0 bg-light">
+                        <div className="card-body text-center d-flex flex-column justify-content-between p-3">
+                          <p className="fw-bold mb-2" style={{ fontSize: "0.9rem", color: "#4f46e5" }}>
+                            Gambar {idx + 1} {idx === 0 && <span className="badge bg-primary ms-1">Utama</span>}
+                          </p>
+                          <div className="mb-3 d-flex justify-content-center align-items-center" style={{ height: "130px", backgroundColor: "#fff", borderRadius: "8px", overflow: "hidden", border: "1px dashed #ccc" }}>
+                            {imagePreviews[idx] ? (
+                              <img
+                                src={imagePreviews[idx].startsWith("http") || imagePreviews[idx].startsWith("blob:") ? imagePreviews[idx] : `${API_URL}/${imagePreviews[idx].replace(/\\/g, "/")}`}
+                                alt={`preview-${idx}`}
+                                style={{ width: "100%", height: "100%", objectFit: "contain" }}
+                              />
+                            ) : (
+                              <div className="text-muted small">
+                                <i className="bi bi-image" style={{ fontSize: "2rem", opacity: 0.5 }}></i><br/>
+                                Belum Ada Gambar
+                              </div>
+                            )}
+                          </div>
+                          <div>
+                            {imagePreviews[idx] ? (
+                              <button type="button" className="btn btn-sm btn-outline-danger w-100" onClick={() => handleRemoveImage(idx)}>
+                                Hapus Gambar
+                              </button>
+                            ) : (
+                              <>
+                                <input
+                                  type="file"
+                                  id={`file-upload-${idx}`}
+                                  className="d-none"
+                                  accept="image/*"
+                                  onChange={(e) => handleFileChangeSlot(e, idx)}
+                                  required={!isEditing && idx === 0}
+                                />
+                                <label htmlFor={`file-upload-${idx}`} className="btn btn-sm btn-outline-primary w-100 m-0" style={{ cursor: "pointer" }}>
+                                  Pilih Gambar
+                                </label>
+                              </>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
               <button type="submit" className="btn btn-success me-2">
                 {loading ? "Proses..." : "Simpan"}
@@ -420,8 +472,8 @@ const ManageProductsPage = () => {
                       <tr key={product.id}>
                         <td className="ps-3">
                           <img
-                            src={product.image_url ? (product.image_url.startsWith('http') ? product.image_url : `${API_URL}${product.image_url}`) : "https://via.placeholder.com/50"}
-                            alt=""
+                            src={product.images && product.images.length > 0 ? (product.images[0].image_url.startsWith('http') ? product.images[0].image_url : `${API_URL}/${product.images[0].image_url.replace(/\\/g, "/")}`) : "https://via.placeholder.com/50"}
+                            alt={product.name}
                             style={{
                               width: "50px",
                               height: "50px",
