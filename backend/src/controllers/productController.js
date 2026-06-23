@@ -110,7 +110,14 @@ exports.getProductById = async (req, res) => {
     });
     if (!product)
       return res.status(404).json({ message: "Produk tidak ditemukan." });
-    res.status(200).json(product);
+
+    // Parse image_url (koma-separated) menjadi array
+    const productData = product.toJSON();
+    productData.images = productData.image_url
+      ? productData.image_url.split(",").map((url) => url.trim()).filter(Boolean)
+      : [];
+
+    res.status(200).json(productData);
   } catch (error) {
     res.status(500).json({ message: "Terjadi kesalahan server." });
   }
@@ -120,9 +127,12 @@ exports.createProduct = async (req, res) => {
   try {
     const { category_id, name, description, price, stock } = req.body;
 
-    // Cek apakah ada file yang diunggah
-    // Jika ada, simpan URL Cloudinary yang otomatis ada di req.file.path
-    const image_url = req.file ? req.file.path : null;
+    // Ambil semua URL gambar dari req.files["images"] (upload.fields)
+    let image_url = null;
+    const uploadedFiles = req.files && req.files["images"] ? req.files["images"] : [];
+    if (uploadedFiles.length > 0) {
+      image_url = uploadedFiles.map((file) => file.path).join(",");
+    }
 
     const newProduct = await Product.create({
       category_id,
@@ -130,7 +140,7 @@ exports.createProduct = async (req, res) => {
       description,
       price,
       stock,
-      image_url, // Simpan rute lokal ini ke database
+      image_url,
     });
 
     res
@@ -145,11 +155,15 @@ exports.createProduct = async (req, res) => {
 
 exports.updateProduct = async (req, res) => {
   try {
-    // Cek apakah ada file yang diunggah
-    // Jika ada, simpan URL Cloudinary. Jika tidak, abaikan pembaruan gambar.
     const updateData = { ...req.body };
-    if (req.file) {
-      updateData.image_url = req.file.path;
+
+    const uploadedFiles = req.files && req.files["images"] ? req.files["images"] : [];
+    if (uploadedFiles.length > 0) {
+      // Ada gambar baru diunggah → replace semua gambar lama
+      updateData.image_url = uploadedFiles.map((file) => file.path).join(",");
+    } else {
+      // Tidak ada gambar baru → pertahankan gambar lama
+      delete updateData.image_url;
     }
 
     await Product.update(
@@ -158,7 +172,7 @@ exports.updateProduct = async (req, res) => {
     );
     res.status(200).json({ message: "Produk berhasil diupdate!" });
   } catch (error) {
-    res.status(500).json({ message: "Gagal mengupdate produk." });
+    res.status(500).json({ message: "Gagal mengupdate produk.", error: error.message });
   }
 };
 

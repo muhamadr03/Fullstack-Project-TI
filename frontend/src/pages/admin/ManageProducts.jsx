@@ -27,8 +27,10 @@ const ManageProductsPage = () => {
     description: "",
     price: "",
     stock: "",
-    image: null,
+    images: [], // Array file gambar baru yang dipilih
+    existingImageUrl: "", // URL gambar yang sudah ada di database
   });
+  const [imagePreviews, setImagePreviews] = useState([]); // preview URL lokal
 
   const API_URL =
     import.meta.env.VITE_API_URL?.replace("/api", "") ||
@@ -115,7 +117,11 @@ const ManageProductsPage = () => {
   };
 
   const handleFileChange = (e) => {
-    setFormData({ ...formData, image: e.target.files[0] });
+    const files = Array.from(e.target.files);
+    setFormData({ ...formData, images: files });
+    // Buat preview URL dari file lokal
+    const previews = files.map((file) => URL.createObjectURL(file));
+    setImagePreviews(previews);
   };
 
   const handleAddClick = () => {
@@ -126,13 +132,20 @@ const ManageProductsPage = () => {
       description: "",
       price: "",
       stock: "",
-      image: null,
+      images: [],
+      existingImageUrl: "",
     });
+    setImagePreviews([]);
     setIsEditing(false);
     setShowForm(true);
   };
 
   const handleEditClick = (product) => {
+    const existingImageUrl = product.image_url || "";
+    // Tampilkan gambar lama sebagai preview
+    const existingPreviews = existingImageUrl
+      ? existingImageUrl.split(",").map((u) => u.trim()).filter(Boolean)
+      : [];
     setFormData({
       id: product.id,
       name: product.name,
@@ -140,8 +153,10 @@ const ManageProductsPage = () => {
       description: product.description,
       price: product.price,
       stock: product.stock,
-      image: null,
+      images: [],
+      existingImageUrl,
     });
+    setImagePreviews(existingPreviews);
     setIsEditing(true);
     setShowForm(true);
   };
@@ -156,7 +171,10 @@ const ManageProductsPage = () => {
       dataToSubmit.append("description", formData.description);
       dataToSubmit.append("price", formData.price);
       dataToSubmit.append("stock", formData.stock);
-      if (formData.image) dataToSubmit.append("image", formData.image);
+      // Kirim semua gambar dengan key "images"
+      if (formData.images && formData.images.length > 0) {
+        formData.images.forEach((file) => dataToSubmit.append("images", file));
+      }
 
       if (isEditing) {
         await productApi.updateProduct(formData.id, dataToSubmit);
@@ -164,6 +182,7 @@ const ManageProductsPage = () => {
         await productApi.createProduct(dataToSubmit);
       }
       setShowForm(false);
+      setImagePreviews([]);
       fetchProducts();
     } catch (error) {
       alert("Gagal menyimpan produk.");
@@ -261,13 +280,38 @@ const ManageProductsPage = () => {
                 </div>
               </div>
               <div className="mb-3">
-                <label className="form-label">Gambar</label>
+                <label className="form-label fw-bold">Gambar Produk <span className="text-muted fw-normal">(maks. 5 gambar)</span></label>
                 <input
                   type="file"
                   className="form-control"
                   onChange={handleFileChange}
+                  accept="image/*"
+                  multiple
                   required={!isEditing}
                 />
+                {isEditing && formData.images.length === 0 && (
+                  <div className="form-text text-muted">Biarkan kosong jika tidak ingin mengganti gambar.</div>
+                )}
+                {/* Preview Thumbnails */}
+                {imagePreviews.length > 0 && (
+                  <div className="d-flex flex-wrap gap-2 mt-2">
+                    {imagePreviews.map((src, idx) => (
+                      <img
+                        key={idx}
+                        src={src}
+                        alt={`preview-${idx}`}
+                        style={{
+                          width: "80px",
+                          height: "80px",
+                          objectFit: "cover",
+                          borderRadius: "8px",
+                          border: "2px solid #4f46e5",
+                        }}
+                        onError={(e) => { e.target.src = "https://via.placeholder.com/80"; }}
+                      />
+                    ))}
+                  </div>
+                )}
               </div>
               <button type="submit" className="btn btn-success me-2">
                 {loading ? "Proses..." : "Simpan"}

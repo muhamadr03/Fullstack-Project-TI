@@ -276,6 +276,9 @@ const ProductDetailPage = () => {
   });
   const [reviewMsg, setReviewMsg] = useState({ type: "", text: "" });
   const [showAllReviews, setShowAllReviews] = useState(false);
+  const [activeImage, setActiveImage] = useState("");
+
+  const backendUrl = "http://localhost:5000";
 
   const isLoggedIn = !!localStorage.getItem("token");
 
@@ -330,24 +333,35 @@ const ProductDetailPage = () => {
     setShowAllReviews(false);
   }, [id]);
 
-  const backendUrl = "http://localhost:5000";
-  const imageUrl = product?.image_url
-    ? product.image_url.startsWith("http")
-      ? product.image_url
-      : `${backendUrl}${product.image_url}`
-    : "https://via.placeholder.com/900x900?text=No+Image";
+  // Parse images dari product: gunakan field `images` (array) jika ada,
+  // atau fallback ke split image_url
+  const productImages = (() => {
+    if (product?.images && product.images.length > 0) {
+      return product.images;
+    }
+    if (product?.image_url) {
+      return product.image_url.split(",").map((u) => u.trim()).filter(Boolean);
+    }
+    return ["https://via.placeholder.com/900x900?text=No+Image"];
+  })();
 
-  const [activeImage, setActiveImage] = useState(imageUrl);
+  const getImageUrl = (url) => {
+    if (!url) return "https://via.placeholder.com/900x900?text=No+Image";
+    return url.startsWith("http") ? url : `${backendUrl}${url}`;
+  };
 
+  const galleryItems = productImages.map((url, idx) => ({
+    label: idx === 0 ? "Utama" : `Gambar ${idx + 1}`,
+    src: getImageUrl(url),
+  }));
+
+  // Set gambar aktif ke gambar pertama setiap kali produk berganti
   useEffect(() => {
-    setActiveImage(imageUrl);
-  }, [imageUrl]);
-
-  const galleryItems = [
-    { label: "Main View", src: imageUrl },
-    { label: "Detail", src: imageUrl },
-    { label: "Lifestyle", src: imageUrl },
-  ];
+    if (galleryItems.length > 0) {
+      setActiveImage(galleryItems[0].src);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [product?.image_url]);
 
   const averageRating = reviews.length
     ? reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length

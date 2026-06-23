@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Jun 20, 2026 at 08:07 AM
+-- Generation Time: Jun 23, 2026 at 10:33 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -83,22 +83,23 @@ INSERT INTO `cart` (`id`, `user_id`, `product_id`, `quantity`) VALUES
 CREATE TABLE `categories` (
   `id` int(11) NOT NULL,
   `name` varchar(100) NOT NULL,
-  `slug` varchar(100) NOT NULL
+  `slug` varchar(100) NOT NULL,
+  `image_url` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `categories`
 --
 
-INSERT INTO `categories` (`id`, `name`, `slug`) VALUES
-(1, 'Elektronik', 'elektronik'),
-(2, 'Pakaian Pria', 'pakaian-pria'),
-(3, 'Pakaian Wanita', 'pakaian-wanita'),
-(4, 'Makanan & Minuman', 'makanan-minuman'),
-(5, 'Tas & Aksesoris', 'tas-aksesoris'),
-(6, 'Sepatu & Sandal', 'sepatu-sandal'),
-(7, 'Kecantikan', 'kecantikan'),
-(8, 'Olahraga', 'olahraga');
+INSERT INTO `categories` (`id`, `name`, `slug`, `image_url`) VALUES
+(1, 'Elektronik', 'elektronik', NULL),
+(2, 'Pakaian Pria', 'pakaian-pria', NULL),
+(3, 'Pakaian Wanita', 'pakaian-wanita', NULL),
+(4, 'Makanan & Minuman', 'makanan-minuman', NULL),
+(5, 'Tas & Aksesoris', 'tas-aksesoris', NULL),
+(6, 'Sepatu & Sandal', 'sepatu-sandal', NULL),
+(7, 'Kecantikan', 'kecantikan', NULL),
+(8, 'Olahraga', 'olahraga', NULL);
 
 -- --------------------------------------------------------
 
@@ -122,7 +123,7 @@ CREATE TABLE `coupons` (
 --
 
 INSERT INTO `coupons` (`id`, `code`, `discount_percentage`, `max_discount`, `valid_until`, `is_active`, `createdAt`, `updatedAt`) VALUES
-(2, 'KUPON1', 50, 100000, '2026-06-21 00:00:00', 1, '2026-06-20 08:01:36', '2026-06-20 08:01:36');
+(3, 'DISKONLEBARAN', 50, NULL, '2026-06-30 00:00:00', 1, '2026-06-21 09:01:54', '2026-06-21 09:01:54');
 
 -- --------------------------------------------------------
 
@@ -139,38 +140,41 @@ CREATE TABLE `orders` (
   `midtrans_transaction_id` varchar(255) DEFAULT NULL,
   `shipping_address` text DEFAULT NULL,
   `tracking_number` varchar(100) DEFAULT NULL,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `coupon_code` varchar(255) DEFAULT NULL,
+  `discount_amount` int(11) NOT NULL DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `orders`
 --
 
-INSERT INTO `orders` (`id`, `user_id`, `total_amount`, `status`, `snap_token`, `midtrans_transaction_id`, `shipping_address`, `tracking_number`, `created_at`) VALUES
-(1, 2, 7500000.00, 'completed', NULL, 'TXN-2026011001', 'Jl. Mawar No. 12 RT 03/RW 05, Jakarta Selatan 12345', 'JNE-001234567', '2026-01-15 10:00:00'),
-(2, 2, 1049000.00, 'completed', NULL, 'TXN-2026011501', 'Jl. Mawar No. 12 RT 03/RW 05, Jakarta Selatan 12345', 'JNE-001234568', '2026-01-22 11:00:00'),
-(3, 3, 320000.00, 'completed', NULL, 'TXN-2026020101', 'Jl. Melati No. 45, Perumahan Indah Blok A, Bandung 40251', 'SICEPAT-002345678', '2026-02-05 09:00:00'),
-(4, 3, 483000.00, 'completed', NULL, 'TXN-2026020801', 'Jl. Melati No. 45, Perumahan Indah Blok A, Bandung 40251', 'SICEPAT-002345679', '2026-02-15 10:00:00'),
-(5, 4, 1645000.00, 'completed', NULL, 'TXN-2026021501', 'Jl. Sudirman No. 78, Surabaya 60111', 'ANTERAJA-003456789', '2026-02-20 08:00:00'),
-(6, 4, 850000.00, 'completed', NULL, 'TXN-2026022201', 'Jl. Sudirman No. 78, Surabaya 60111', 'ANTERAJA-003456790', '2026-03-01 09:00:00'),
-(7, 5, 383000.00, 'completed', NULL, 'TXN-2026030101', 'Jl. Gatot Subroto No. 99, Medan 20112', 'J&T-004567891', '2026-03-05 10:00:00'),
-(8, 5, 278000.00, 'completed', NULL, 'TXN-2026031001', 'Jl. Gatot Subroto No. 99, Medan 20112', 'J&T-004567892', '2026-03-15 11:00:00'),
-(9, 6, 844000.00, 'completed', NULL, 'TXN-2026031501', 'Jl. Diponegoro No. 33, Yogyakarta 55232', 'TIKI-005678901', '2026-03-20 08:00:00'),
-(10, 6, 459000.00, 'completed', NULL, 'TXN-2026032501', 'Jl. Diponegoro No. 33, Yogyakarta 55232', 'TIKI-005678902', '2026-04-01 09:00:00'),
-(11, 7, 1050000.00, 'completed', NULL, 'TXN-2026040101', 'Jl. Ahmad Yani No. 56, Semarang 50174', 'JNE-006789012', '2026-04-05 10:00:00'),
-(12, 7, 314000.00, 'completed', NULL, 'TXN-2026041001', 'Jl. Ahmad Yani No. 56, Semarang 50174', 'JNE-006789013', '2026-04-15 11:00:00'),
-(13, 8, 680000.00, 'completed', NULL, 'TXN-2026041501', 'Jl. Pahlawan No. 21, Palembang 30135', 'SICEPAT-007890123', '2026-04-20 08:00:00'),
-(14, 8, 570000.00, 'completed', NULL, 'TXN-2026042501', 'Jl. Pahlawan No. 21, Palembang 30135', 'SICEPAT-007890124', '2026-05-01 09:00:00'),
-(15, 9, 975000.00, 'completed', NULL, 'TXN-2026050101', 'Jl. Kemenangan No. 99, Depok 16424', 'J&T-008901234', '2026-05-05 10:00:00'),
-(16, 9, 485000.00, 'completed', NULL, 'TXN-2026051001', 'Jl. Kemenangan No. 99, Depok 16424', 'J&T-008901235', '2026-05-15 11:00:00'),
-(17, 10, 1120000.00, 'delivered', NULL, 'TXN-2026051501', 'Jl. Merdeka No. 7, Makassar 90111', 'ANTERAJA-009012345', '2026-05-20 08:00:00'),
-(18, 10, 395000.00, 'delivered', NULL, 'TXN-2026052501', 'Jl. Merdeka No. 7, Makassar 90111', 'ANTERAJA-009012346', '2026-06-01 09:00:00'),
-(19, 11, 610000.00, 'shipped', NULL, 'TXN-2026060101', 'Jl. Hayam Wuruk No. 55, Denpasar 80235', 'JNE-010123456', '2026-06-05 10:00:00'),
-(20, 11, 265000.00, 'paid', NULL, 'TXN-2026061001', 'Jl. Hayam Wuruk No. 55, Denpasar 80235', NULL, '2026-06-10 11:00:00'),
-(21, 12, 5800000.00, 'completed', NULL, 'TXN-2026050501', 'Jl. Teuku Umar No. 88, Jakarta Barat 11470', 'JNE-011234567', '2026-05-05 08:00:00'),
-(22, 12, 7500000.00, 'paid', 'tok-salsa-001', NULL, 'Jl. Teuku Umar No. 88, Jakarta Barat 11470', NULL, '2026-06-15 09:00:00'),
-(23, 12, 459000.00, 'cancelled', NULL, NULL, 'Jl. Teuku Umar No. 88, Jakarta Barat 11470', NULL, '2026-06-18 10:00:00'),
-(24, 12, 11000000.00, 'pending', 'tok-salsa-002', NULL, 'Jl. Teuku Umar No. 88, Jakarta Barat 11470', NULL, '2026-06-19 07:00:00');
+INSERT INTO `orders` (`id`, `user_id`, `total_amount`, `status`, `snap_token`, `midtrans_transaction_id`, `shipping_address`, `tracking_number`, `created_at`, `coupon_code`, `discount_amount`) VALUES
+(1, 2, 7500000.00, 'completed', NULL, 'TXN-2026011001', 'Jl. Mawar No. 12 RT 03/RW 05, Jakarta Selatan 12345', 'JNE-001234567', '2026-01-15 10:00:00', NULL, 0),
+(2, 2, 1049000.00, 'completed', NULL, 'TXN-2026011501', 'Jl. Mawar No. 12 RT 03/RW 05, Jakarta Selatan 12345', 'JNE-001234568', '2026-01-22 11:00:00', NULL, 0),
+(3, 3, 320000.00, 'completed', NULL, 'TXN-2026020101', 'Jl. Melati No. 45, Perumahan Indah Blok A, Bandung 40251', 'SICEPAT-002345678', '2026-02-05 09:00:00', NULL, 0),
+(4, 3, 483000.00, 'completed', NULL, 'TXN-2026020801', 'Jl. Melati No. 45, Perumahan Indah Blok A, Bandung 40251', 'SICEPAT-002345679', '2026-02-15 10:00:00', NULL, 0),
+(5, 4, 1645000.00, 'completed', NULL, 'TXN-2026021501', 'Jl. Sudirman No. 78, Surabaya 60111', 'ANTERAJA-003456789', '2026-02-20 08:00:00', NULL, 0),
+(6, 4, 850000.00, 'completed', NULL, 'TXN-2026022201', 'Jl. Sudirman No. 78, Surabaya 60111', 'ANTERAJA-003456790', '2026-03-01 09:00:00', NULL, 0),
+(7, 5, 383000.00, 'completed', NULL, 'TXN-2026030101', 'Jl. Gatot Subroto No. 99, Medan 20112', 'J&T-004567891', '2026-03-05 10:00:00', NULL, 0),
+(8, 5, 278000.00, 'completed', NULL, 'TXN-2026031001', 'Jl. Gatot Subroto No. 99, Medan 20112', 'J&T-004567892', '2026-03-15 11:00:00', NULL, 0),
+(9, 6, 844000.00, 'completed', NULL, 'TXN-2026031501', 'Jl. Diponegoro No. 33, Yogyakarta 55232', 'TIKI-005678901', '2026-03-20 08:00:00', NULL, 0),
+(10, 6, 459000.00, 'completed', NULL, 'TXN-2026032501', 'Jl. Diponegoro No. 33, Yogyakarta 55232', 'TIKI-005678902', '2026-04-01 09:00:00', NULL, 0),
+(11, 7, 1050000.00, 'completed', NULL, 'TXN-2026040101', 'Jl. Ahmad Yani No. 56, Semarang 50174', 'JNE-006789012', '2026-04-05 10:00:00', NULL, 0),
+(12, 7, 314000.00, 'completed', NULL, 'TXN-2026041001', 'Jl. Ahmad Yani No. 56, Semarang 50174', 'JNE-006789013', '2026-04-15 11:00:00', NULL, 0),
+(13, 8, 680000.00, 'completed', NULL, 'TXN-2026041501', 'Jl. Pahlawan No. 21, Palembang 30135', 'SICEPAT-007890123', '2026-04-20 08:00:00', NULL, 0),
+(14, 8, 570000.00, 'completed', NULL, 'TXN-2026042501', 'Jl. Pahlawan No. 21, Palembang 30135', 'SICEPAT-007890124', '2026-05-01 09:00:00', NULL, 0),
+(15, 9, 975000.00, 'completed', NULL, 'TXN-2026050101', 'Jl. Kemenangan No. 99, Depok 16424', 'J&T-008901234', '2026-05-05 10:00:00', NULL, 0),
+(16, 9, 485000.00, 'completed', NULL, 'TXN-2026051001', 'Jl. Kemenangan No. 99, Depok 16424', 'J&T-008901235', '2026-05-15 11:00:00', NULL, 0),
+(17, 10, 1120000.00, 'delivered', NULL, 'TXN-2026051501', 'Jl. Merdeka No. 7, Makassar 90111', 'ANTERAJA-009012345', '2026-05-20 08:00:00', NULL, 0),
+(18, 10, 395000.00, 'delivered', NULL, 'TXN-2026052501', 'Jl. Merdeka No. 7, Makassar 90111', 'ANTERAJA-009012346', '2026-06-01 09:00:00', NULL, 0),
+(19, 11, 610000.00, 'shipped', NULL, 'TXN-2026060101', 'Jl. Hayam Wuruk No. 55, Denpasar 80235', 'JNE-010123456', '2026-06-05 10:00:00', NULL, 0),
+(20, 11, 265000.00, 'paid', NULL, 'TXN-2026061001', 'Jl. Hayam Wuruk No. 55, Denpasar 80235', NULL, '2026-06-10 11:00:00', NULL, 0),
+(21, 12, 5800000.00, 'completed', NULL, 'TXN-2026050501', 'Jl. Teuku Umar No. 88, Jakarta Barat 11470', 'JNE-011234567', '2026-05-05 08:00:00', NULL, 0),
+(22, 12, 7500000.00, 'paid', 'tok-salsa-001', NULL, 'Jl. Teuku Umar No. 88, Jakarta Barat 11470', NULL, '2026-06-15 09:00:00', NULL, 0),
+(23, 12, 459000.00, 'cancelled', NULL, NULL, 'Jl. Teuku Umar No. 88, Jakarta Barat 11470', NULL, '2026-06-18 10:00:00', NULL, 0),
+(24, 12, 11000000.00, 'cancelled', 'tok-salsa-002', NULL, 'Jl. Teuku Umar No. 88, Jakarta Barat 11470', '', '2026-06-19 07:00:00', NULL, 0),
+(25, 14, 515000.00, 'completed', '6ec5ec98-5ef2-4f93-9232-9391fcf35272', NULL, 'Kp. Ciparahu RT001/RW007, Desa Kiarasari\nKecamatan Sukajaya, Jakarta Selatan, 16660', '', '2026-06-21 09:07:35', 'DISKONLEBARAN', 515000);
 
 -- --------------------------------------------------------
 
@@ -226,7 +230,11 @@ INSERT INTO `order_items` (`id`, `order_id`, `product_id`, `quantity`, `price_at
 (33, 21, 3, 1, 5800000.00),
 (34, 22, 1, 1, 7500000.00),
 (35, 23, 26, 1, 459000.00),
-(36, 24, 8, 1, 11000000.00);
+(36, 24, 8, 1, 11000000.00),
+(37, 25, 50, 1, 325000.00),
+(38, 25, 49, 1, 245000.00),
+(39, 25, 48, 1, 195000.00),
+(40, 25, 46, 1, 265000.00);
 
 -- --------------------------------------------------------
 
@@ -297,11 +305,11 @@ INSERT INTO `products` (`id`, `category_id`, `name`, `description`, `price`, `st
 (43, 8, 'Tali Skipping Speed Rope', 'Tali skipping dengan bearing presisi untuk kecepatan tinggi. Tali PVC 3mm, handle aluminium ergonomis, panjang adjustable hingga 3 meter. Cocok untuk latihan cardio.', 125000.00, 100, 'https://images.unsplash.com/photo-1434608519344-49d77a124f46?w=400&h=400&fit=crop', 0.00, 0, '2026-04-14 10:00:00'),
 (44, 8, 'Celana Training Pria Dry-Fit', 'Celana olahraga bahan polyester dry-fit yang menyerap keringat dengan cepat. Desain 2-in-1 dengan celana pendek dalam. Tersedia ukuran S-XL warna Hitam dan Abu.', 195000.00, 85, 'https://images.unsplash.com/photo-1591291621060-c6bed3817b9a?w=400&h=400&fit=crop', 4.00, 1, '2026-04-16 11:00:00'),
 (45, 8, 'Botol Minum Stainless 750ml', 'Tumbler stainless steel double wall 750ml, menjaga minuman dingin 24 jam dan panas 12 jam. Mulut lebar mudah dibersihkan. Anti-bocor, BPA-free. Tersedia 8 warna.', 145000.00, 150, 'https://images.unsplash.com/photo-1602143407151-7111542de6e8?w=400&h=400&fit=crop', 4.50, 2, '2026-04-18 12:00:00'),
-(46, 8, 'Baju Olahraga Wanita Sports Bra Set', 'Set baju olahraga wanita terdiri dari sports bra dan legging. Bahan lycra 4-way stretch, high waist legging dengan saku kecil. Tersedia ukuran S-XL, 5 pilihan warna.', 265000.00, 75, 'https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=400&h=400&fit=crop', 0.00, 0, '2026-04-20 13:00:00'),
+(46, 8, 'Baju Olahraga Wanita Sports Bra Set', 'Set baju olahraga wanita terdiri dari sports bra dan legging. Bahan lycra 4-way stretch, high waist legging dengan saku kecil. Tersedia ukuran S-XL, 5 pilihan warna.', 265000.00, 74, 'https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=400&h=400&fit=crop', 0.00, 0, '2026-04-20 13:00:00'),
 (47, 1, 'Powerbank Anker 20000mAh', 'Powerbank kapasitas 20000mAh dengan pengisian 2 perangkat sekaligus. Teknologi PowerIQ 3.0, output maksimal 18W. Dilengkapi port USB-A, USB-C, dan Micro-USB. Garansi 18 bulan.', 489000.00, 90, 'https://images.unsplash.com/photo-1609091839311-d5365f9ff1c5?w=400&h=400&fit=crop', 0.00, 0, '2026-04-22 08:00:00'),
-(48, 5, 'Belt Kulit Pria Formal', 'Ikat pinggang kulit sapi genuine leather, lebar 3.5cm. Buckle metal silver/gold. Cocok untuk celana formal maupun celana jeans. Panjang adjustable 105-125cm.', 195000.00, 80, 'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=400&h=400&fit=crop', 0.00, 0, '2026-04-24 09:00:00'),
-(49, 2, 'Kemeja Flannel Kotak-Kotak Pria', 'Kemeja flannel motif kotak-kotak klasik, bahan cotton flannel tebal dan hangat. Cocok untuk cuaca dingin atau gaya casual vintage. Tersedia ukuran S-XXL.', 245000.00, 90, 'https://images.unsplash.com/photo-1607345366928-199ea26cfe3e?w=400&h=400&fit=crop', 0.00, 0, '2026-04-26 10:00:00'),
-(50, 3, 'Cardigan Wanita Knit Premium', 'Cardigan rajut dengan desain elegan dan detail kancing cantik. Bahan knit lembut dan hangat. Cocok untuk office look maupun casual. Tersedia ukuran S-XL, 6 pilihan warna.', 325000.00, 60, 'https://images.unsplash.com/photo-1576566588028-4147f3842f27?w=400&h=400&fit=crop', 0.00, 0, '2026-04-28 11:00:00');
+(48, 5, 'Belt Kulit Pria Formal', 'Ikat pinggang kulit sapi genuine leather, lebar 3.5cm. Buckle metal silver/gold. Cocok untuk celana formal maupun celana jeans. Panjang adjustable 105-125cm.', 195000.00, 79, 'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=400&h=400&fit=crop', 0.00, 0, '2026-04-24 09:00:00'),
+(49, 2, 'Kemeja Flannel Kotak-Kotak Pria', 'Kemeja flannel motif kotak-kotak klasik, bahan cotton flannel tebal dan hangat. Cocok untuk cuaca dingin atau gaya casual vintage. Tersedia ukuran S-XXL.', 245000.00, 89, 'https://images.unsplash.com/photo-1607345366928-199ea26cfe3e?w=400&h=400&fit=crop', 0.00, 0, '2026-04-26 10:00:00'),
+(50, 3, 'Cardigan Wanita Knit Premium', 'Cardigan rajut dengan desain elegan dan detail kancing cantik. Bahan knit lembut dan hangat. Cocok untuk office look maupun casual. Tersedia ukuran S-XL, 6 pilihan warna.', 325000.00, 59, 'https://images.unsplash.com/photo-1576566588028-4147f3842f27?w=400&h=400&fit=crop', 0.00, 0, '2026-04-28 11:00:00');
 
 -- --------------------------------------------------------
 
@@ -384,7 +392,8 @@ INSERT INTO `users` (`id`, `name`, `email`, `password`, `role`, `created_at`) VA
 (10, 'Doni Setiawan', 'doni.setiawan@gmail.com', '$2b$10$QtdR7UPcp/qyWV9fyvZNT.0DsKEVjZ8DUaVtlzl8b3xTW.rk6NZqW', 'customer', '2026-02-20 10:30:00'),
 (11, 'Yuni Astuti', 'yuni.astuti@gmail.com', '$2b$10$QtdR7UPcp/qyWV9fyvZNT.0DsKEVjZ8DUaVtlzl8b3xTW.rk6NZqW', 'customer', '2026-03-01 08:00:00'),
 (12, 'Salsa Tester', 'salsa.test@example.com', '$2b$10$QtdR7UPcp/qyWV9fyvZNT.0DsKEVjZ8DUaVtlzl8b3xTW.rk6NZqW', 'customer', '2026-03-05 14:00:00'),
-(13, 'admin', 'admin@gmail.com', '$2b$10$LNwEs1ZrJf5vcvS.feo/dOQZNfpSjd7hF1VhkpTqz.O7DrfL7mNf6', 'admin', '2026-06-20 03:07:30');
+(13, 'admin', 'admin@gmail.com', '$2b$10$LNwEs1ZrJf5vcvS.feo/dOQZNfpSjd7hF1VhkpTqz.O7DrfL7mNf6', 'admin', '2026-06-20 03:07:30'),
+(14, 'Muhamad Rojali', 'rojali@gmail.com', '$2b$10$QnzaMSfzF1mOq/2HyRRgQOKZVcvUeq0/EjPSbZRqE4Z0aeEaDfQW.', 'admin', '2026-06-21 08:59:45');
 
 --
 -- Indexes for dumped tables
@@ -471,7 +480,7 @@ ALTER TABLE `addresses`
 -- AUTO_INCREMENT for table `cart`
 --
 ALTER TABLE `cart`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT for table `categories`
@@ -483,19 +492,19 @@ ALTER TABLE `categories`
 -- AUTO_INCREMENT for table `coupons`
 --
 ALTER TABLE `coupons`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `orders`
 --
 ALTER TABLE `orders`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=25;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=26;
 
 --
 -- AUTO_INCREMENT for table `order_items`
 --
 ALTER TABLE `order_items`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=37;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=41;
 
 --
 -- AUTO_INCREMENT for table `products`
@@ -513,7 +522,7 @@ ALTER TABLE `reviews`
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
 
 --
 -- Constraints for dumped tables

@@ -11,10 +11,9 @@ const productSchema = Joi.object({
   category_id: Joi.number().integer().required(),
   name: Joi.string().min(3).required(),
   description: Joi.string().allow(""),
-  price: Joi.number().positive().required(), // Harga tidak boleh minus!
-  stock: Joi.number().integer().min(0).required(), // Stok minimal 0
-  image_url: Joi.string().uri().allow(""),
-});
+  price: Joi.number().positive().required(),
+  stock: Joi.number().integer().min(0).required(),
+}).options({ allowUnknown: true }); // izinkan field tambahan dari multipart form
 
 // Rute Publik
 router.get("/", productController.getAllProducts);
@@ -25,7 +24,7 @@ router.post(
   "/",
   verifyToken,
   isAdmin,
-  upload.single("image"),
+  upload.fields([{ name: "images", maxCount: 5 }]),
   validate(productSchema),
   productController.createProduct,
 );
@@ -33,7 +32,7 @@ router.put(
   "/:id",
   verifyToken,
   isAdmin,
-  upload.single("image"),
+  upload.fields([{ name: "images", maxCount: 5 }]),
   validate(productSchema),
   productController.updateProduct,
 );
