@@ -11,7 +11,8 @@ exports.createBanner = async (req, res) => {
   try {
     const { title, link_url, is_active } = req.body;
     if (!title) return res.status(400).json({ message: 'Judul banner wajib diisi.' });
-    const image_url = req.file ? `/uploads/${req.file.filename}` : null;
+    // Cloudinary: URL lengkap ada di req.file.path, bukan req.file.filename
+    const image_url = req.file ? req.file.path : null;
     if (!image_url) return res.status(400).json({ message: 'Gambar banner wajib diupload.' });
     const banner = await Banner.create({ title, image_url, link_url: link_url || null, is_active: is_active !== 'false' });
     res.status(201).json({ success: true, message: 'Banner berhasil dibuat.', data: banner });
@@ -23,7 +24,8 @@ exports.updateBanner = async (req, res) => {
     const { id } = req.params;
     const { title, link_url, is_active } = req.body;
     const updateData = { title, link_url: link_url || null, is_active: is_active !== 'false' && is_active !== false };
-    if (req.file) updateData.image_url = `/uploads/${req.file.filename}`;
+    // Cloudinary: URL lengkap ada di req.file.path
+    if (req.file) updateData.image_url = req.file.path;
     const [rows] = await Banner.update(updateData, { where: { id } });
     if (!rows) return res.status(404).json({ message: 'Banner tidak ditemukan.' });
     const updated = await Banner.findByPk(id);

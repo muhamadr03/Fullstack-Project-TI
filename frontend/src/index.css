@@ -1023,7 +1023,7 @@ h6 {
   }
 }
 
-/* ─── CAROUSEL ─── */
+/* ─── BOOTSTRAP CAROUSEL OVERRIDE ─── */
 .carousel-control-prev-icon,
 .carousel-control-next-icon {
   filter: invert(1);
@@ -1037,6 +1037,249 @@ h6 {
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+/* ─── BANNER CAROUSEL ─── */
+.lx-banner-carousel {
+  position: relative;
+  width: 100%;
+  height: 420px;
+  overflow: hidden;
+  border-radius: 0;
+  user-select: none;
+  background: #1a1a2e;
+}
+
+.lx-banner-carousel-skeleton {
+  width: 100%;
+  height: 420px;
+  overflow: hidden;
+}
+
+.lx-banner-track {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.lx-banner-slide {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transform: scale(1.04);
+  transition: opacity 0.75s cubic-bezier(0.4, 0, 0.2, 1),
+              transform 0.75s cubic-bezier(0.4, 0, 0.2, 1);
+  pointer-events: none;
+}
+
+.lx-banner-slide.active {
+  opacity: 1;
+  transform: scale(1);
+  pointer-events: auto;
+  z-index: 2;
+}
+
+.lx-banner-slide.prev {
+  opacity: 0;
+  transform: scale(0.96);
+  z-index: 1;
+}
+
+.lx-banner-link {
+  display: block;
+  width: 100%;
+  height: 100%;
+  position: relative;
+  text-decoration: none !important;
+  cursor: pointer;
+}
+
+.lx-banner-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+}
+
+.lx-banner-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to right,
+    rgba(0, 0, 0, 0.55) 0%,
+    rgba(0, 0, 0, 0.18) 50%,
+    rgba(0, 0, 0, 0.05) 100%
+  );
+  pointer-events: none;
+}
+
+.lx-banner-caption {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 32px 52px 52px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  pointer-events: none;
+}
+
+.lx-banner-title {
+  font-family: "Poppins", sans-serif;
+  font-weight: 800;
+  font-size: clamp(1.4rem, 3.5vw, 2.4rem);
+  color: #fff;
+  line-height: 1.2;
+  text-shadow: 0 2px 16px rgba(0,0,0,0.4);
+  letter-spacing: -0.5px;
+  max-width: 600px;
+}
+
+.lx-banner-cta {
+  display: inline-flex;
+  align-items: center;
+  background: var(--primary);
+  color: #fff;
+  font-family: "Poppins", sans-serif;
+  font-weight: 700;
+  font-size: 0.82rem;
+  padding: 8px 20px;
+  border-radius: 40px;
+  width: fit-content;
+  pointer-events: auto;
+  letter-spacing: 0.3px;
+  box-shadow: 0 4px 20px rgba(255, 152, 0, 0.4);
+  transition: var(--t-fast);
+}
+
+.lx-banner-link:hover .lx-banner-cta {
+  background: var(--primary-dark);
+  transform: translateX(4px);
+}
+
+/* Arrows */
+.lx-banner-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 10;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255, 255, 255, 0.18);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  color: #fff;
+  font-size: 1.1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: var(--t-fast);
+  box-shadow: 0 2px 16px rgba(0,0,0,0.2);
+}
+
+.lx-banner-arrow:hover {
+  background: var(--primary);
+  transform: translateY(-50%) scale(1.1);
+  box-shadow: var(--shadow-orange);
+}
+
+.lx-banner-arrow-prev {
+  left: 20px;
+}
+.lx-banner-arrow-next {
+  right: 20px;
+}
+
+/* Dot indicators */
+.lx-banner-dots {
+  position: absolute;
+  bottom: 18px;
+  right: 28px;
+  display: flex;
+  gap: 8px;
+  z-index: 10;
+}
+
+.lx-banner-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255, 255, 255, 0.4);
+  cursor: pointer;
+  padding: 0;
+  transition: var(--t-fast);
+}
+
+.lx-banner-dot.active {
+  background: var(--primary);
+  width: 24px;
+  border-radius: 4px;
+  box-shadow: 0 0 8px rgba(255, 152, 0, 0.6);
+}
+
+/* Progress bar */
+.lx-banner-progress {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: rgba(255,255,255,0.15);
+  z-index: 10;
+}
+
+.lx-banner-progress-bar {
+  height: 100%;
+  background: var(--primary);
+  animation: bannerProgress linear forwards;
+  transform-origin: left;
+}
+
+@keyframes bannerProgress {
+  from { width: 0%; }
+  to   { width: 100%; }
+}
+
+/* Responsive */
+@media (max-width: 991px) {
+  .lx-banner-carousel,
+  .lx-banner-carousel-skeleton {
+    height: 280px;
+  }
+  .lx-banner-caption {
+    padding: 20px 24px 36px;
+  }
+  .lx-banner-arrow {
+    width: 38px;
+    height: 38px;
+    font-size: 0.9rem;
+  }
+  .lx-banner-arrow-prev { left: 12px; }
+  .lx-banner-arrow-next { right: 12px; }
+}
+
+@media (max-width: 576px) {
+  .lx-banner-carousel,
+  .lx-banner-carousel-skeleton {
+    height: 200px;
+  }
+  .lx-banner-caption {
+    padding: 14px 16px 28px;
+    gap: 6px;
+  }
+  .lx-banner-cta {
+    font-size: 0.72rem;
+    padding: 6px 14px;
+  }
+  .lx-banner-title {
+    font-size: 1.1rem;
+  }
 }
 
 /* ─── RESPONSIVE ─── */

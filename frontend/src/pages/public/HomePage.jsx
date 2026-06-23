@@ -5,6 +5,7 @@ import { productApi } from "../../api/productApi";
 import { categoryApi } from "../../api/categoryApi";
 import ProductGrid from "../../components/ui/ProductGrid";
 import CategoryGrid from "../../components/ui/CategoryGrid";
+import BannerCarousel from "../../components/ui/BannerCarousel";
 
 const FEATURE_CARDS = [
   { icon: "bi-truck", title: "Free Shipping", desc: "Free delivery on orders above Rp 200.000 within Indonesia." },
@@ -50,6 +51,11 @@ const HomePage = () => {
 
   return (
     <div style={{ background: "var(--bg)" }}>
+
+      {/* ── BANNER CAROUSEL ── */}
+      <BannerCarousel />
+
+      {/* ── HERO SECTION ── */}
       <section className="lx-section-sm" style={{ paddingTop: 40, paddingBottom: 56 }}>
         <div className="container-xl px-3">
           <div className="row align-items-center gx-5">
@@ -80,6 +86,7 @@ const HomePage = () => {
         </div>
       </section>
 
+      {/* ── FEATURE CARDS ── */}
       <section className="lx-section-sm" style={{ background: "var(--bg-soft)" }}>
         <div className="container-xl px-3">
           <div className="row g-4">
@@ -98,6 +105,7 @@ const HomePage = () => {
         </div>
       </section>
 
+      {/* ── POPULAR PRODUCTS ── */}
       <section className="lx-section" style={{ paddingTop: 40, paddingBottom: 40 }}>
         <div className="container-xl px-3">
           <div className="d-flex flex-column flex-md-row align-items-start justify-content-between gap-3 mb-4">
@@ -115,6 +123,7 @@ const HomePage = () => {
         </div>
       </section>
 
+      {/* ── FEATURED CATEGORIES ── */}
       <section className="lx-section" style={{ background: "var(--bg-soft)", paddingTop: 40, paddingBottom: 40 }}>
         <div className="container-xl px-3">
           <div className="d-flex flex-column flex-md-row align-items-start justify-content-between gap-3 mb-4">
