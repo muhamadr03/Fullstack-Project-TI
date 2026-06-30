@@ -49,6 +49,17 @@ const connectDB = async () => {
       `);
       console.log("Tabel wishlists berhasil dibuat.");
     }
+
+    const [orderColumns] = await sequelize.query(
+      "SHOW COLUMNS FROM orders LIKE 'courier';",
+    );
+    if (!orderColumns || orderColumns.length === 0) {
+      console.log("Menambahkan kolom courier yang hilang pada tabel orders...");
+      await sequelize.query(
+        "ALTER TABLE orders ADD COLUMN courier VARCHAR(100) NULL AFTER tracking_number;",
+      );
+      console.log("Kolom courier berhasil ditambahkan ke tabel orders.");
+    }
   } catch (error) {
     console.error("Gagal terhubung ke database:", error);
   }

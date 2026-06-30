@@ -4,7 +4,7 @@ const Order = require("../models/Order");
 
 const token       = process.env.TELEGRAM_BOT_TOKEN;
 const botUsername = process.env.TELEGRAM_BOT_USERNAME || "your_bot";
-const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
+const frontendUrl = process.env.FRONTEND_URL || "https://website-toko-anda.com";
 
 if (!token) {
   console.warn("⚠️  [TelegramBot] TELEGRAM_BOT_TOKEN belum diset di .env.");
@@ -106,22 +106,28 @@ bot.on("text", async (ctx) => {
   if (awaitingOrder.has(chatId)) {
     awaitingOrder.delete(chatId);
 
-    const orderId = parseInt(text, 10);
-    if (isNaN(orderId)) {
-      return ctx.replyWithHTML(
-        `⚠️ Order ID tidak valid. Masukkan angka saja.\n\nContoh: <code>123</code>`,
-        mainMenuInline
-      );
-    }
-
     try {
-      const order = await Order.findByPk(orderId, {
-        attributes: ["id", "status", "total_amount", "shipping_address", "tracking_number", "created_at"],
-      });
+      let order = null;
+      const orderId = parseInt(text, 10);
+
+      // Coba cari berdasarkan ID (jika inputan berupa angka)
+      if (!isNaN(orderId)) {
+        order = await Order.findByPk(orderId, {
+          attributes: ["id", "status", "total_amount", "shipping_address", "tracking_number", "created_at"],
+        });
+      }
+
+      // Jika belum ketemu atau inputan bukan angka, cari berdasarkan nomor resi
+      if (!order) {
+        order = await Order.findOne({
+          where: { tracking_number: text },
+          attributes: ["id", "status", "total_amount", "shipping_address", "tracking_number", "created_at"],
+        });
+      }
 
       if (!order) {
         return ctx.replyWithHTML(
-          `😔 Order <b>#${orderId}</b> tidak ditemukan.\nPastikan nomor order Anda benar.`,
+          `😔 Pesanan dengan Order ID / Nomor Resi <b>${esc(text)}</b> tidak ditemukan.\nPastikan data yang Anda masukkan benar.`,
           mainMenuInline
         );
       }
@@ -242,11 +248,11 @@ async function sendProductList(ctx) {
   }
 }
 
-// ─── Helper: Tanya Order ID ───────────────────────────────────────────────────
+// ─── Helper: Tanya Order ID / Nomor Resi ──────────────────────────────────────
 function askOrderId(ctx) {
   awaitingOrder.add(ctx.chat.id);
   ctx.replyWithHTML(
-    "🔍 Masukkan <b>Nomor Order ID</b> Anda:\n\nContoh: <code>123</code>"
+    "🔍 Masukkan <b>Nomor Order ID</b> atau <b>Nomor Resi</b> Anda:\n\nContoh: <code>123</code> atau <code>RESI12345</code>"
   );
 }
 
