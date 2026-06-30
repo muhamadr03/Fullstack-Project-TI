@@ -6,29 +6,15 @@ const Footer = () => {
   const year = new Date().getFullYear();
 
   const links = {
-    Tentang: [
-      { label: "Cerita Kami", href: "#" },
-      { label: "Karir", href: "#" },
-      { label: "Pers", href: "#" },
-      { label: "Keberlanjutan", href: "#" },
-    ],
-    Bantuan: [
-      { label: "FAQ", href: "#" },
-      { label: "Info Pengiriman", href: "#" },
-      { label: "Pengembalian", href: "#" },
+    "Layanan": [
+      { label: "Pusat Bantuan", href: "#" },
       { label: "Lacak Pesanan", href: "#" },
+      { label: "Cara Pengembalian", href: "#" },
     ],
-    Kategori: [
-      { label: "Fashion", href: "/?category=fashion" },
-      { label: "Elektronik", href: "/?category=elektronik" },
-      { label: "Kecantikan", href: "/?category=kecantikan" },
-      { label: "Olahraga", href: "/?category=olahraga" },
-    ],
-    Kontak: [
-      { label: "support@luxestore.id", href: "mailto:support@luxestore.id" },
-      { label: "+62 21 1234 5678", href: "tel:+622112345678" },
-      { label: "Senin–Jumat 09:00–18:00", href: "#" },
-      { label: "Live Chat", href: "#" },
+    "Perusahaan": [
+      { label: "Tentang Kami", href: "#" },
+      { label: "Syarat & Ketentuan", href: "#" },
+      { label: "Kebijakan Privasi", href: "#" },
     ],
   };
 
@@ -36,24 +22,21 @@ const Footer = () => {
     { icon: "bi-instagram", href: "#", label: "Instagram" },
     { icon: "bi-facebook", href: "#", label: "Facebook" },
     { icon: "bi-twitter-x", href: "#", label: "Twitter/X" },
-    { icon: "bi-tiktok", href: "#", label: "TikTok" },
-    { icon: "bi-youtube", href: "#", label: "YouTube" },
   ];
 
-  const payments = ["Visa", "Mastercard", "GoPay", "OVO", "DANA", "BCA"];
+  const payments = ["Visa", "Mastercard", "GoPay", "OVO"];
 
   return (
     <footer className="lx-footer" id="contact">
       <div className="container-xl px-3">
-        <div className="row g-5">
-
+        <div className="row g-4 justify-content-between">
           {/* Brand */}
-          <div className="col-12 col-md-4 col-lg-3">
+          <div className="col-12 col-md-4 col-lg-4">
             <span className="lx-footer-logo">Luxe<span>Store</span></span>
-            <p className="lx-footer-desc">
+            <p className="lx-footer-desc mt-2">
               Destinasi premium Anda untuk produk fashion, elektronik, dan gaya hidup pilihan. Kualitas yang dapat dipercaya, gaya yang Anda cintai.
             </p>
-            <div className="d-flex gap-2 mt-4">
+            <div className="d-flex gap-3 mt-4">
               {socials.map((s) => (
                 <a key={s.icon} href={s.href} className="lx-social-btn" aria-label={s.label}>
                   <i className={`bi ${s.icon}`} />
@@ -63,64 +46,43 @@ const Footer = () => {
           </div>
 
           {/* Links */}
-          {Object.entries(links).map(([title, items]) => (
-            <div key={title} className="col-6 col-md-2 col-lg-2">
-              <div className="lx-footer-heading">{title}</div>
-              {items.map((item) => (
-                item.href.startsWith("/?") ? (
-                  <Link key={item.label} to={item.href} className="lx-footer-link">{item.label}</Link>
-                ) : (
-                  <a key={item.label} href={item.href} className="lx-footer-link">{item.label}</a>
-                )
+          <div className="col-12 col-md-8 col-lg-7">
+            <div className="row g-4">
+              {Object.entries(links).map(([title, items]) => (
+                <div key={title} className="col-6 col-md-4">
+                  <div className="lx-footer-heading">{title}</div>
+                  {items.map((item) => (
+                    item.href.startsWith("/?") ? (
+                      <Link key={item.label} to={item.href} className="lx-footer-link">{item.label}</Link>
+                    ) : (
+                      <a key={item.label} href={item.href} className="lx-footer-link">{item.label}</a>
+                    )
+                  ))}
+                </div>
               ))}
+              
+              {/* Kontak Section */}
+              <div className="col-12 col-md-4">
+                <div className="lx-footer-heading">Hubungi Kami</div>
+                <a href="mailto:support@luxestore.id" className="lx-footer-link">support@luxestore.id</a>
+                <a href="tel:+622112345678" className="lx-footer-link">+62 21 1234 5678</a>
+                <span className="lx-footer-link" style={{ pointerEvents: 'none' }}>Senin–Jumat 09:00–18:00</span>
+              </div>
             </div>
-          ))}
-
-          {/* Newsletter */}
-          <div className="col-12 col-md-4 col-lg-3">
-            <div className="lx-footer-heading">Berlangganan</div>
-            <p style={{ fontSize: "0.82rem", color: "rgba(255,255,255,0.45)", marginBottom: 12 }}>
-              Dapatkan penawaran terbaru dan berita gaya langsung di kotak masuk Anda.
-            </p>
-            <form
-              onSubmit={(e) => e.preventDefault()}
-              className="d-flex gap-2"
-              style={{ marginBottom: 20 }}
-            >
-              <input
-                type="email"
-                placeholder="your@email.com"
-                className="form-control"
-                style={{
-                  background: "rgba(255,255,255,0.07)",
-                  border: "1px solid rgba(255,255,255,0.12)",
-                  color: "#fff",
-                  borderRadius: 10,
-                  fontSize: "0.82rem",
-                }}
-              />
-              <button
-                type="submit"
-                className="btn btn-primary flex-shrink-0 fw-semibold"
-                style={{ borderRadius: 10, fontSize: "0.8rem", padding: "0 16px" }}
-              >
-                Gabung
-              </button>
-            </form>
           </div>
         </div>
 
         {/* Bottom bar */}
-        <div className="lx-footer-bottom">
+        <div className="lx-footer-bottom mt-5">
           <div className="d-flex flex-column flex-md-row align-items-center justify-content-between gap-3">
-            <p style={{ fontSize: "0.75rem", color: "rgba(255,255,255,0.3)", margin: 0 }}>
+            <p style={{ fontSize: "0.8rem", color: "rgba(255,255,255,0.4)", margin: 0 }}>
               © {year} LuxeStore. Hak Cipta Dilindungi.
             </p>
 
             {/* Payment methods */}
             <div className="d-flex flex-wrap gap-2 align-items-center">
-              <span style={{ fontSize: "0.72rem", color: "rgba(255,255,255,0.35)", marginRight: 4 }}>
-                Kami menerima:
+              <span style={{ fontSize: "0.75rem", color: "rgba(255,255,255,0.4)", marginRight: 8 }}>
+                Pembayaran Aman:
               </span>
               {payments.map((p) => (
                 <span key={p} className="lx-payment-badge">{p}</span>
