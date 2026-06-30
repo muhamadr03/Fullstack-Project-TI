@@ -281,7 +281,8 @@ const ProductDetailPage = () => {
   const [showAllReviews, setShowAllReviews] = useState(false);
   const [activeImage, setActiveImage] = useState("");
 
-  const backendUrl = "http://localhost:5000";
+  const backendUrl =
+    import.meta.env.VITE_API_URL?.replace("/api", "") || "http://localhost:5000";
 
   const isLoggedIn = !!localStorage.getItem("token");
 

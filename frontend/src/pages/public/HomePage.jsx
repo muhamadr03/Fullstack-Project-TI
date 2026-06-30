@@ -6,6 +6,7 @@ import { categoryApi } from "../../api/categoryApi";
 import ProductGrid    from "../../components/ui/ProductGrid";
 import CategoryGrid   from "../../components/ui/CategoryGrid";
 import BannerCarousel from "../../components/ui/BannerCarousel";
+import TeamSection    from "../../components/ui/TeamSection";
 
 /* ─── Feature data ───────────────────────────────────────── */
 const FEATURES = [
@@ -258,6 +259,8 @@ const HomePage = () => {
           <CategoryGrid categories={categories} loading={loadingCategories} limit={4} />
         </div>
       </section>
+      {/* ══════════ DEVELOPER TEAM ══════════ */}
+      <TeamSection />
     </div>
   );
 };

@@ -2,6 +2,9 @@ import React, { useContext, useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { CartContext } from "../../context/CartContext";
 
+const BACKEND_URL =
+  import.meta.env.VITE_API_URL?.replace("/api", "") || "http://localhost:5000";
+
 
 const CartPage = () => {
   const { cartItems, cartLoading, removeFromCart } =
@@ -107,7 +110,7 @@ const CartPage = () => {
                                 item.selected_image_url 
                                   ? item.selected_image_url
                                   : (productData.image_url
-                                      ? (productData.image_url.startsWith('http') ? productData.image_url : `http://localhost:5000${productData.image_url}`)
+                                      ? (productData.image_url.startsWith('http') ? productData.image_url : `${BACKEND_URL}${productData.image_url}`)
                                       : "https://via.placeholder.com/50")
                               }
                               alt={productData.name || "Produk"}

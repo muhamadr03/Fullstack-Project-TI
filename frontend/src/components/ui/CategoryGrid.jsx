@@ -2,7 +2,8 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { CategorySkeleton } from "./SkeletonCard";
 
-const BACKEND_URL = "http://localhost:5000";
+const BACKEND_URL =
+  import.meta.env.VITE_API_URL?.replace("/api", "") || "http://localhost:5000";
 
 const imgUrl = (url, name) =>
   !url

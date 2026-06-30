@@ -7,7 +7,24 @@ const cors = require("cors");
 // Inisialisasi Telegram Bot (polling mode)
 require("./src/config/telegram");
 
-app.use(cors());
+// Konfigurasi CORS — izinkan frontend URL dari env + localhost dev
+const allowedOrigins = [
+  process.env.FRONTEND_URL,
+  "http://localhost:5173",
+  "http://localhost:3000",
+].filter(Boolean);
+
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      // Izinkan request tanpa origin (Postman, server-to-server)
+      if (!origin) return callback(null, true);
+      if (allowedOrigins.includes(origin)) return callback(null, true);
+      callback(new Error(`CORS: origin ${origin} tidak diizinkan`));
+    },
+    credentials: true,
+  }),
+);
 app.use(express.json());
 app.use("/uploads", express.static(path.join(__dirname, "public/uploads")));
 
