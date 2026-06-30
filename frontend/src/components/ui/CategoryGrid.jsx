@@ -41,7 +41,7 @@ const CategoryGrid = ({ categories = [], loading = false, limit = null }) => {
         const slug = category.slug || (category.name || "").toLowerCase().replace(/\s+/g, "-");
         return (
           <div key={category.id} className="col-12 col-sm-6 col-lg-3">
-            <Link to={`/products/category/${slug}`} className="lx-cat-card">
+            <Link to={`/products?category=${slug}`} className="lx-cat-card">
               <img
                 src={imgUrl(category.image_url || category.image, category.name)}
                 alt={category.name}
@@ -54,7 +54,7 @@ const CategoryGrid = ({ categories = [], loading = false, limit = null }) => {
               <div className="lx-cat-info">
                 <span className="lx-cat-name">{category.name}</span>
                 <span className="lx-cat-arrow">
-                  Shop now <i className="bi bi-arrow-right" />
+                  Belanja sekarang <i className="bi bi-arrow-right" />
                 </span>
               </div>
             </Link>

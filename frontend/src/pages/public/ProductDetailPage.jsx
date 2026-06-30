@@ -948,22 +948,22 @@ const ProductDetailPage = () => {
               <div className="row g-3 mt-2">
                 {[
                   {
-                    title: "Original Product",
+                    title: "Produk Original",
                     text: "Barang asli dengan kualitas terjamin",
                     icon: "bi-shield-check",
                   },
                   {
-                    title: "Fast Shipping",
+                    title: "Pengiriman Cepat",
                     text: "Pengiriman cepat dan aman",
                     icon: "bi-truck",
                   },
                   {
-                    title: "Secure Payment",
+                    title: "Pembayaran Aman",
                     text: "Pembayaran aman dan terpercaya",
                     icon: "bi-lock",
                   },
                   {
-                    title: "Easy Return",
+                    title: "Pengembalian Mudah",
                     text: "Proses retur mudah dan jelas",
                     icon: "bi-arrow-repeat",
                   },
@@ -1044,9 +1044,9 @@ const ProductDetailPage = () => {
                 }}
               >
                 {[
-                  { key: "description", label: "Description" },
-                  { key: "specifications", label: "Specifications" },
-                  { key: "reviews", label: "Reviews" },
+                  { key: "description", label: "Deskripsi" },
+                  { key: "specifications", label: "Spesifikasi" },
+                  { key: "reviews", label: "Ulasan" },
                 ].map((tab) => (
                   <button
                     key={tab.key}

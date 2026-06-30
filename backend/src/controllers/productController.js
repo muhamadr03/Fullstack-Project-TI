@@ -1,5 +1,6 @@
 const { Product, Category, ProductImage } = require("../models");
 const { Op } = require("sequelize");
+const { uploadToCloudinary } = require('../config/cloudinaryHelper');
 
 exports.getAllProducts = async (req, res, next) => {
   try {
@@ -148,10 +149,11 @@ exports.createProduct = async (req, res) => {
       const fileArray = req.files && req.files[`image_${i}`] ? req.files[`image_${i}`] : [];
       if (fileArray.length > 0) {
         const file = fileArray[0];
+        const url = await uploadToCloudinary(file);
         imageRecords.push({
           product_id: newProduct.id,
-          image_url: file.path,
-          is_primary: !hasPrimary, // First image found becomes primary
+          image_url: url,
+          is_primary: !hasPrimary,
         });
         hasPrimary = true;
       }
@@ -193,9 +195,10 @@ exports.updateProduct = async (req, res) => {
       if (fileArray.length > 0) {
         // Ada gambar baru di slot i
         const file = fileArray[0];
+        const url = await uploadToCloudinary(file);
         updateImages.push({
           product_id: req.params.id,
-          image_url: file.path,
+          image_url: url,
           is_primary: !hasPrimary,
         });
         hasPrimary = true;

@@ -133,7 +133,7 @@ const ProductCard = ({ product, showAddCart = true }) => {
           <span className="lx-product-badge sale">-{discountPct}%</span>
         )}
         {isNew && !hasDiscount && (
-          <span className="lx-product-badge new">New</span>
+          <span className="lx-product-badge new">Baru</span>
         )}
 
         {/* Wishlist */}
@@ -141,7 +141,7 @@ const ProductCard = ({ product, showAddCart = true }) => {
           className={`lx-product-wishlist ${wishlisted ? "active" : ""}`}
           onClick={handleWishlist}
           disabled={wishlistLoading}
-          title="Add to Wishlist"
+          title="Tambah ke Wishlist"
         >
           <i className={`bi bi-heart${wishlisted ? "-fill" : ""}`} />
         </button>
@@ -192,9 +192,9 @@ const ProductCard = ({ product, showAddCart = true }) => {
             {cartLoading ? (
               <span className="spinner-border spinner-border-sm" role="status" />
             ) : cartAdded ? (
-              <><i className="bi bi-check2" /> Added</>
+              <><i className="bi bi-check2" /> Masuk</>
             ) : (
-              <><i className="bi bi-cart-plus" /> Cart</>
+              <><i className="bi bi-cart-plus" /> Keranjang</>
             )}
           </button>
 

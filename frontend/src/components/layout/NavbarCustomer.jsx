@@ -5,10 +5,10 @@ import { CartContext } from "../../context/CartContext";
 import { AuthContext } from "../../context/AuthContext";
 
 const NAV_LINKS = [
-  { label: "Home", to: "/" },
-  { label: "Products", to: "/products" },
-  { label: "Categories", to: "/categories" },
-  { label: "Contact", to: "/#contact" },
+  { label: "Beranda", to: "/" },
+  { label: "Produk", to: "/products" },
+  { label: "Kategori", to: "/categories" },
+  { label: "Kontak", to: "/#contact" },
 ];
 
 const NavbarCustomer = () => {
@@ -79,7 +79,7 @@ const NavbarCustomer = () => {
         {/* ── NAV LINKS (desktop) ── */}
         <ul className="nav d-none d-lg-flex align-items-center gap-1 mb-0 ps-2">
           {NAV_LINKS.map((l) => {
-            const isContact = l.label === "Contact";
+            const isContact = l.label === "Kontak";
             return (
               <li key={l.to} className="nav-item">
                 {isContact ? (
@@ -113,12 +113,12 @@ const NavbarCustomer = () => {
           <i className="bi bi-search me-2" style={{ color: "#bbb", fontSize: "0.85rem", flexShrink: 0 }} />
           <input
             type="text"
-            placeholder="Search for products..."
+            placeholder="Cari produk..."
             value={searchVal}
             onChange={(e) => setSearchVal(e.target.value)}
-            aria-label="Search products"
+            aria-label="Cari produk"
           />
-          <button type="submit" className="lx-search-btn" aria-label="Search">
+          <button type="submit" className="lx-search-btn" aria-label="Cari">
             <i className="bi bi-search" />
           </button>
         </form>
@@ -130,18 +130,18 @@ const NavbarCustomer = () => {
           <button
             className="lx-icon-btn d-flex d-md-none"
             onClick={() => setSearchOpen(!searchOpen)}
-            aria-label="Search"
+            aria-label="Cari"
           >
             <i className="bi bi-search" />
           </button>
 
           {/* Wishlist */}
-          <Link to="/wishlist" className="lx-icon-btn" title="Wishlist">
+          <Link to="/wishlist" className="lx-icon-btn" title="Favorit">
             <i className="bi bi-heart" />
           </Link>
 
           {/* Cart */}
-          <Link to="/cart" className="lx-icon-btn" title="Cart" style={{ position: "relative" }}>
+          <Link to="/cart" className="lx-icon-btn" title="Keranjang" style={{ position: "relative" }}>
             <i className="bi bi-bag" />
             {totalItems > 0 && (
               <span className="lx-cart-badge">{totalItems > 9 ? "9+" : totalItems}</span>
@@ -203,13 +203,13 @@ const NavbarCustomer = () => {
                 ) : (
                   <>
                     <li><Link className="dropdown-item rounded-2 py-2 d-flex align-items-center gap-2" to="/profile">
-                      <i className="bi bi-person" style={{ color: "#ff9800" }} /> My Profile
+                      <i className="bi bi-person" style={{ color: "#ff9800" }} /> Profil Saya
                     </Link></li>
                     <li><Link className="dropdown-item rounded-2 py-2 d-flex align-items-center gap-2" to="/orders">
-                      <i className="bi bi-bag-check" style={{ color: "#666" }} /> My Orders
+                      <i className="bi bi-bag-check" style={{ color: "#666" }} /> Pesanan Saya
                     </Link></li>
                     <li><Link className="dropdown-item rounded-2 py-2 d-flex align-items-center gap-2" to="/wishlist">
-                      <i className="bi bi-heart" style={{ color: "#e53935" }} /> Wishlist
+                      <i className="bi bi-heart" style={{ color: "#e53935" }} /> Favorit
                     </Link></li>
                   </>
                 )}
@@ -217,7 +217,7 @@ const NavbarCustomer = () => {
                 <li><hr className="dropdown-divider my-1" /></li>
                 <li>
                   <button className="dropdown-item rounded-2 py-2 text-danger d-flex align-items-center gap-2" onClick={handleLogout}>
-                    <i className="bi bi-box-arrow-right" /> Sign Out
+                    <i className="bi bi-box-arrow-right" /> Keluar
                   </button>
                 </li>
               </ul>
@@ -225,10 +225,10 @@ const NavbarCustomer = () => {
           ) : (
             <div className="d-flex gap-2">
               <Link to="/login" className="btn btn-outline-primary btn-sm px-3 d-none d-sm-inline-flex" style={{ fontSize: "0.8rem" }}>
-                Login
+                Masuk
               </Link>
               <Link to="/register" className="btn btn-primary btn-sm px-3" style={{ fontSize: "0.8rem" }}>
-                Register
+                Daftar
               </Link>
             </div>
           )}
@@ -251,7 +251,7 @@ const NavbarCustomer = () => {
             <i className="bi bi-search me-2" style={{ color: "#bbb", fontSize: "0.85rem", flexShrink: 0 }} />
             <input
               type="text"
-              placeholder="Search for products..."
+              placeholder="Cari produk..."
               value={searchVal}
               onChange={(e) => setSearchVal(e.target.value)}
               autoFocus
@@ -267,7 +267,7 @@ const NavbarCustomer = () => {
       {mobileOpen && (
         <div className="d-lg-none border-top" style={{ background: "#fff", padding: "8px 16px 16px" }}>
           {NAV_LINKS.map((l) => {
-            const isContact = l.label === "Contact";
+            const isContact = l.label === "Kontak";
             return isContact ? (
               <a
                 key={l.to}
@@ -286,8 +286,8 @@ const NavbarCustomer = () => {
           })}
           {!user && (
             <div className="d-flex gap-2 mt-3">
-              <Link to="/login" className="btn btn-outline-primary btn-sm flex-grow-1">Login</Link>
-              <Link to="/register" className="btn btn-primary btn-sm flex-grow-1">Register</Link>
+              <Link to="/login" className="btn btn-outline-primary btn-sm flex-grow-1">Masuk</Link>
+              <Link to="/register" className="btn btn-primary btn-sm flex-grow-1">Daftar</Link>
             </div>
           )}
         </div>

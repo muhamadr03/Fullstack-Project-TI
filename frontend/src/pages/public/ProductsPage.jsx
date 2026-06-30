@@ -5,10 +5,10 @@ import { categoryApi } from "../../api/categoryApi";
 import ProductGrid from "../../components/ui/ProductGrid";
 
 const SORT_OPTIONS = [
-  { label: "Newest", value: "newest" },
-  { label: "Oldest", value: "oldest" },
-  { label: "Price: Low to High", value: "price_asc" },
-  { label: "Price: High to Low", value: "price_desc" },
+  { label: "Terbaru", value: "newest" },
+  { label: "Terlama", value: "oldest" },
+  { label: "Harga: Terendah ke Tertinggi", value: "price_asc" },
+  { label: "Harga: Tertinggi ke Terendah", value: "price_desc" },
 ];
 
 const ProductsPage = () => {
@@ -132,12 +132,12 @@ const ProductsPage = () => {
     <div className="container-xl px-3 py-5">
       <div className="d-flex flex-column flex-md-row align-items-start justify-content-between gap-3 mb-4">
         <div>
-          <span className="section-eyebrow">Catalog</span>
-          <h2 className="section-heading">All Products</h2>
-          <p className="section-sub">Browse the full catalog with category filters and sorting.</p>
+          <span className="section-eyebrow">Katalog</span>
+          <h2 className="section-heading">Semua Produk</h2>
+          <p className="section-sub">Jelajahi seluruh katalog dengan filter kategori dan pengurutan.</p>
         </div>
         <Link to="/categories" className="btn btn-outline-primary btn-sm px-4">
-          Browse Categories
+          Jelajahi Kategori
         </Link>
       </div>
 
@@ -145,16 +145,16 @@ const ProductsPage = () => {
       {(searchQuery || categoryFilter) && (
         <div className="alert alert-info py-3 px-4 mb-4 d-flex justify-content-between align-items-center" style={{ borderRadius: 16 }}>
           <div>
-            <strong>Active Filters:</strong>
-            {searchQuery && <span className="ms-2 badge bg-primary">{`Search: "${searchQuery}"`}</span>}
-            {categoryFilter && <span className="ms-2 badge bg-primary">{`Category: ${getCategoryNameFromSlug(categoryFilter)}`}</span>}
+            <strong>Filter Aktif:</strong>
+            {searchQuery && <span className="ms-2 badge bg-primary">{`Pencarian: "${searchQuery}"`}</span>}
+            {categoryFilter && <span className="ms-2 badge bg-primary">{`Kategori: ${getCategoryNameFromSlug(categoryFilter)}`}</span>}
           </div>
           <button
             className="btn btn-sm btn-outline-danger ms-2"
             onClick={resetFilters}
-            title="Clear all filters"
+            title="Hapus semua filter"
           >
-            <i className="bi bi-x-circle me-1" /> Clear
+            <i className="bi bi-x-circle me-1" /> Hapus
           </button>
         </div>
       )}
@@ -167,11 +167,11 @@ const ProductsPage = () => {
               <input
                 type="search"
                 className="form-control"
-                placeholder="Search products..."
+                placeholder="Cari produk..."
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
               />
-              <button className="btn btn-primary" type="submit">Search</button>
+              <button className="btn btn-primary" type="submit">Cari</button>
             </form>
           </div>
           <div className="col-12 col-md-4">
@@ -180,7 +180,7 @@ const ProductsPage = () => {
               value={categoryFilter}
               onChange={(e) => handleCategoryClick(e.target.value)}
             >
-              <option value="">All categories</option>
+              <option value="">Semua kategori</option>
               {categories.map((category) => (
                 <option key={category.id} value={category.slug || category.name?.toLowerCase().replace(/\s+/g, "-")}>
                   {category.name}
@@ -211,7 +211,7 @@ const ProductsPage = () => {
             className={`btn btn-sm ${!categoryFilter ? "btn-primary" : "btn-outline-secondary"}`}
             onClick={() => handleCategoryClick("")}
           >
-            All Products
+            Semua Produk
           </button>
           {categories.map((category) => {
             const slug = category.slug || category.name?.toLowerCase().replace(/\s+/g, "-");
@@ -239,16 +239,16 @@ const ProductsPage = () => {
           }}
         >
           <i className="bi bi-inbox" style={{ fontSize: "3rem", color: "#bbb", marginBottom: 16 }}></i>
-          <h5 style={{ color: "#666", marginBottom: 8 }}>No Products Found</h5>
+          <h5 style={{ color: "#666", marginBottom: 8 }}>Produk Tidak Ditemukan</h5>
           
           {categoryFilter && (
             <div style={{ marginBottom: 20, fontSize: "0.9rem", color: "#999" }}>
               <p>
-                No products available in the <strong>"{getCategoryNameFromSlug(categoryFilter)}"</strong> category.
+                Tidak ada produk yang tersedia di kategori <strong>"{getCategoryNameFromSlug(categoryFilter)}"</strong>.
               </p>
               {searchQuery && (
                 <p>
-                  Try searching without filters or browse <Link to="/categories">all categories</Link>.
+                  Coba cari tanpa filter atau jelajahi <Link to="/categories">semua kategori</Link>.
                 </p>
               )}
             </div>
@@ -256,13 +256,13 @@ const ProductsPage = () => {
 
           {searchQuery && !categoryFilter && (
             <p style={{ color: "#999", marginBottom: 20 }}>
-              We couldn't find any products matching <strong>"{searchQuery}"</strong>.
+              Kami tidak dapat menemukan produk yang sesuai dengan <strong>"{searchQuery}"</strong>.
             </p>
           )}
 
           {!categoryFilter && !searchQuery && (
             <p style={{ color: "#999", marginBottom: 20 }}>
-              No products available at the moment. Please check back later.
+              Tidak ada produk yang tersedia saat ini. Silakan periksa kembali nanti.
             </p>
           )}
 
@@ -271,10 +271,10 @@ const ProductsPage = () => {
               className="btn btn-primary"
               onClick={resetFilters}
             >
-              <i className="bi bi-arrow-clockwise me-1" /> Reset Filters
+              <i className="bi bi-arrow-clockwise me-1" /> Hapus Filter
             </button>
             <Link to="/categories" className="btn btn-outline-primary">
-              <i className="bi bi-grid me-1" /> Browse Categories
+              <i className="bi bi-grid me-1" /> Jelajahi Kategori
             </Link>
           </div>
         </div>
@@ -282,7 +282,7 @@ const ProductsPage = () => {
         <ProductGrid
           products={products}
           loading={loading}
-          emptyMessage="Loading products..."
+          emptyMessage="Memuat produk..."
         />
       )}
 
@@ -297,7 +297,7 @@ const ProductsPage = () => {
             <i className="bi bi-chevron-left" />
           </button>
           <span style={{ fontSize: "0.95rem", color: "#666" }}>
-            Page {page} of {totalPages}
+            Halaman {page} dari {totalPages}
           </span>
           <button
             className="btn btn-sm rounded-circle"

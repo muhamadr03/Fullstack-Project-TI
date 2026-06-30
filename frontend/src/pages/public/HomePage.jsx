@@ -1,103 +1,127 @@
-// src/pages/public/HomePage.jsx — Premium Fashion Store
-import React, { useState, useEffect } from "react";
+// src/pages/public/HomePage.jsx
+import React, { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
-import { productApi } from "../../api/productApi";
+import { productApi }  from "../../api/productApi";
 import { categoryApi } from "../../api/categoryApi";
-import ProductGrid from "../../components/ui/ProductGrid";
-import CategoryGrid from "../../components/ui/CategoryGrid";
+import ProductGrid    from "../../components/ui/ProductGrid";
+import CategoryGrid   from "../../components/ui/CategoryGrid";
 import BannerCarousel from "../../components/ui/BannerCarousel";
 
-const FEATURE_CARDS = [
-  { icon: "bi-truck", title: "Free Shipping", desc: "Free delivery on orders above Rp 200.000 within Indonesia." },
-  { icon: "bi-shield-lock", title: "Secure Payment", desc: "Bank-grade protection on every purchase." },
-  { icon: "bi-arrow-counterclockwise", title: "Easy Returns", desc: "Hassle-free returns within 30 days." },
+/* ─── Feature data ───────────────────────────────────────── */
+const FEATURES = [
+  {
+    icon:  "bi-truck",
+    emoji: "🚚",
+    title: "Gratis Ongkir",
+    desc:  "Gratis ongkir ke seluruh Indonesia untuk setiap pembelian.",
+    color: "#FF9800",
+  },
+  {
+    icon:  "bi-shield-check",
+    emoji: "🛡️",
+    title: "Pembayaran Aman",
+    desc:  "100% transaksi terlindungi dengan sistem keamanan terkini.",
+    color: "#6366f1",
+  },
+  {
+    icon:  "bi-arrow-counterclockwise",
+    emoji: "↩️",
+    title: "Garansi Resmi",
+    desc:  "Pengembalian produk mudah hingga 30 hari setelah pembelian.",
+    color: "#22c55e",
+  },
 ];
 
+/* ─── Why Choose stats ───────────────────────────────────── */
+const STATS = [
+  { value: "10.000+", label: "Produk",        icon: "bi-box-seam"    },
+  { value: "50.000+", label: "Pelanggan",     icon: "bi-people-fill" },
+  { value: "150+",    label: "Brand Partner", icon: "bi-award"       },
+  { value: "4.9 ★",  label: "Rating",        icon: "bi-star-fill"   },
+];
+
+const WHY_HIGHLIGHTS = [
+  "Produk 100% Original",
+  "Garansi Resmi Terjamin",
+  "Pengiriman Super Cepat",
+  "Pembayaran 100% Aman",
+];
+
+/* ─── Intersection Observer hook ────────────────────────── */
+const useFadeIn = () => {
+  const ref = useRef(null);
+  const [visible, setVisible] = useState(false);
+  useEffect(() => {
+    if (!ref.current) return;
+    const obs = new IntersectionObserver(
+      ([entry]) => { if (entry.isIntersecting) { setVisible(true); obs.disconnect(); } },
+      { threshold: 0.12 }
+    );
+    obs.observe(ref.current);
+    return () => obs.disconnect();
+  }, []);
+  return [ref, visible];
+};
+
+/* ═══════════════════════════════════════════════════════════
+   HomePage
+   ═══════════════════════════════════════════════════════════ */
 const HomePage = () => {
-  const [products, setProducts] = useState([]);
-  const [loadingProducts, setLoadingProducts] = useState(true);
-  const [categories, setCategories] = useState([]);
+  const [products,          setProducts]          = useState([]);
+  const [loadingProducts,   setLoadingProducts]   = useState(true);
+  const [categories,        setCategories]        = useState([]);
   const [loadingCategories, setLoadingCategories] = useState(true);
 
+  const [featureRef,  featureVisible]  = useFadeIn();
+  const [whyRef,      whyVisible]      = useFadeIn();
+  const [productsRef, productsVisible] = useFadeIn();
+  const [catsRef,     catsVisible]     = useFadeIn();
+
   useEffect(() => {
-    const fetchFeaturedProducts = async () => {
-      setLoadingProducts(true);
+    const fetchProducts = async () => {
       try {
         const res = await productApi.getAllProducts({ page: 1, limit: 4, sortBy: "popular" });
         setProducts(res.data || []);
-      } catch {
-        setProducts([]);
-      } finally {
-        setLoadingProducts(false);
-      }
+      } catch { setProducts([]); }
+      finally  { setLoadingProducts(false); }
     };
-
-    const fetchFeaturedCategories = async () => {
-      setLoadingCategories(true);
+    const fetchCategories = async () => {
       try {
         const data = await categoryApi.getAllCategories();
         const list = Array.isArray(data) ? data : data?.data || [];
         setCategories(list.slice(0, 4));
-      } catch {
-        setCategories([]);
-      } finally {
-        setLoadingCategories(false);
-      }
+      } catch { setCategories([]); }
+      finally  { setLoadingCategories(false); }
     };
-
-    fetchFeaturedProducts();
-    fetchFeaturedCategories();
+    fetchProducts();
+    fetchCategories();
   }, []);
 
   return (
     <div style={{ background: "var(--bg)" }}>
 
-      {/* ── BANNER CAROUSEL ── */}
+      {/* ══════════ HERO BANNER ══════════ */}
       <BannerCarousel />
 
-      {/* ── HERO SECTION ── */}
-      <section className="lx-section-sm" style={{ paddingTop: 40, paddingBottom: 56 }}>
+      {/* ══════════ FEATURE SECTION ══════════ */}
+      <section className="hp-feature-section">
         <div className="container-xl px-3">
-          <div className="row align-items-center gx-5">
-            <div className="col-12 col-lg-6">
-              <span className="section-eyebrow">New arrivals</span>
-              <h1 className="lx-hero-title">
-                Discover premium products <br />
-                made for everyday style.
-              </h1>
-              <p className="lx-hero-desc" style={{ maxWidth: 520 }}>
-                A quick preview of our top products and highlight categories to help you shop faster.
-              </p>
-
-              <div className="d-flex flex-wrap gap-3 mt-4">
-                <Link to="/products" className="btn btn-primary btn-lg px-5 fw-semibold">
-                  View All Products <i className="bi bi-arrow-right ms-1" />
-                </Link>
-                <Link to="/categories" className="btn btn-outline-primary btn-lg px-5 fw-semibold">
-                  View All Categories
-                </Link>
-              </div>
-            </div>
-
-            <div className="col-12 col-lg-6 d-none d-lg-block" style={{ minHeight: 520, position: "relative" }}>
-              <img src="/hero_model.png" alt="Hero" className="lx-hero-img" loading="eager" />
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ── FEATURE CARDS ── */}
-      <section className="lx-section-sm" style={{ background: "var(--bg-soft)" }}>
-        <div className="container-xl px-3">
-          <div className="row g-4">
-            {FEATURE_CARDS.map((feature) => (
-              <div key={feature.title} className="col-12 col-sm-6 col-xl-4">
-                <div className="lx-feature-card h-100">
-                  <div className="lx-feature-icon">
-                    <i className={`bi ${feature.icon}`} />
-                  </div>
-                  <h6 className="lx-feature-title">{feature.title}</h6>
-                  <p className="lx-feature-desc">{feature.desc}</p>
+          <div
+            ref={featureRef}
+            className={`hp-feature-grid fade-up-group ${featureVisible ? "visible" : ""}`}
+          >
+            {FEATURES.map((f, i) => (
+              <div
+                key={f.title}
+                className="hp-feature-card"
+                style={{ "--delay": `${i * 0.1}s` }}
+              >
+                <div className="hp-feature-icon-wrap" style={{ "--icon-color": f.color }}>
+                  <i className={`bi ${f.icon} hp-feature-icon`} />
+                </div>
+                <div className="hp-feature-body">
+                  <h3 className="hp-feature-title">{f.title}</h3>
+                  <p className="hp-feature-desc">{f.desc}</p>
                 </div>
               </div>
             ))}
@@ -105,38 +129,132 @@ const HomePage = () => {
         </div>
       </section>
 
-      {/* ── POPULAR PRODUCTS ── */}
-      <section className="lx-section" style={{ paddingTop: 40, paddingBottom: 40 }}>
+      {/* ══════════ WHY CHOOSE SHOPKU ══════════ */}
+      <section className="hp-why-section" ref={whyRef}>
         <div className="container-xl px-3">
-          <div className="d-flex flex-column flex-md-row align-items-start justify-content-between gap-3 mb-4">
-            <div>
-              <span className="section-eyebrow">Featured</span>
-              <h2 className="section-heading">Popular products</h2>
-              <p className="section-sub">A short preview of trending items from our catalog.</p>
-            </div>
-            <Link to="/products" className="btn btn-outline-primary btn-sm px-4">
-              View All Products
-            </Link>
-          </div>
+          <div className={`hp-why-grid fade-up-group ${whyVisible ? "visible" : ""}`}>
 
-          <ProductGrid products={products} loading={loadingProducts} limit={4} emptyMessage="No featured products available." />
+            {/* Content */}
+            <div className="hp-why-content">
+              <span className="hp-why-eyebrow">MENGAPA MEMILIH SHOPKU</span>
+
+              <h2 className="hp-why-title">
+                Belanja Lebih Mudah,<br />
+                Aman, dan Terpercaya.
+              </h2>
+
+              <p className="hp-why-desc">
+                ShopKu menghadirkan ribuan produk original dari berbagai brand
+                terpercaya dengan harga kompetitif, pengiriman cepat, dan sistem
+                pembayaran yang aman.
+              </p>
+              <p className="hp-why-desc">
+                Kami percaya pengalaman berbelanja tidak hanya tentang membeli
+                produk, tetapi juga tentang kenyamanan, kepercayaan, dan
+                pelayanan terbaik.
+              </p>
+
+              {/* Highlights */}
+              <div className="hp-why-highlights">
+                {WHY_HIGHLIGHTS.map((h) => (
+                  <div key={h} className="hp-why-highlight-item">
+                    <span className="hp-why-check">
+                      <i className="bi bi-check2" />
+                    </span>
+                    {h}
+                  </div>
+                ))}
+              </div>
+
+              {/* Stats */}
+              <div className="hp-stats-grid">
+                {STATS.map((s) => (
+                  <div key={s.label} className="hp-stat-card">
+                    <i className={`bi ${s.icon} hp-stat-icon`} />
+                    <span className="hp-stat-value">{s.value}</span>
+                    <span className="hp-stat-label">{s.label}</span>
+                  </div>
+                ))}
+              </div>
+
+              {/* CTA */}
+              <Link to="/products" className="hp-why-cta">
+                Jelajahi Produk
+                <i className="bi bi-arrow-right ms-2" />
+              </Link>
+            </div>
+
+            {/* Image */}
+            <div className="hp-why-img-col">
+              <div className="hp-why-img-wrap">
+                <img
+                  src="/lifestyle_shopku.png"
+                  alt="ShopKu — Pengalaman Belanja Modern"
+                  className="hp-why-img"
+                  loading="lazy"
+                />
+                {/* Floating badge */}
+                <div className="hp-why-float-badge hp-why-badge-tl">
+                  <i className="bi bi-patch-check-fill" style={{ color: "#22c55e", fontSize: "1.1rem" }} />
+                  <div>
+                    <div style={{ fontWeight: 700, fontSize: "0.78rem", color: "#1f2937" }}>100% Original</div>
+                    <div style={{ fontSize: "0.65rem", color: "#6b7280" }}>Produk Bergaransi</div>
+                  </div>
+                </div>
+                <div className="hp-why-float-badge hp-why-badge-br">
+                  <i className="bi bi-truck" style={{ color: "var(--primary)", fontSize: "1.1rem" }} />
+                  <div>
+                    <div style={{ fontWeight: 700, fontSize: "0.78rem", color: "#1f2937" }}>Gratis Ongkir</div>
+                    <div style={{ fontSize: "0.65rem", color: "#6b7280" }}>Seluruh Indonesia</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 
-      {/* ── FEATURED CATEGORIES ── */}
-      <section className="lx-section" style={{ background: "var(--bg-soft)", paddingTop: 40, paddingBottom: 40 }}>
-        <div className="container-xl px-3">
+      {/* ══════════ POPULAR PRODUCTS ══════════ */}
+      <section className="lx-section" style={{ paddingTop: 48, paddingBottom: 48 }}>
+        <div
+          ref={productsRef}
+          className={`container-xl px-3 fade-up-group ${productsVisible ? "visible" : ""}`}
+        >
           <div className="d-flex flex-column flex-md-row align-items-start justify-content-between gap-3 mb-4">
             <div>
-              <span className="section-eyebrow">Collections</span>
-              <h2 className="section-heading">Featured categories</h2>
-              <p className="section-sub">Browse a few highlight categories to get started quickly.</p>
+              <span className="section-eyebrow">Unggulan</span>
+              <h2 className="section-heading">Produk Populer</h2>
+              <p className="section-sub" style={{ margin: 0 }}>Temukan produk terlaris pilihan pelanggan kami.</p>
             </div>
-            <Link to="/categories" className="btn btn-outline-primary btn-sm px-4">
-              View All Categories
+            <Link to="/products" className="btn btn-outline-primary btn-sm px-4 fw-semibold flex-shrink-0">
+              Lihat Semua <i className="bi bi-arrow-right ms-1" />
             </Link>
           </div>
+          <ProductGrid
+            products={products}
+            loading={loadingProducts}
+            limit={4}
+            emptyMessage="Belum ada produk unggulan."
+          />
+        </div>
+      </section>
 
+      {/* ══════════ FEATURED CATEGORIES ══════════ */}
+      <section className="lx-section" style={{ background: "var(--bg-soft)", paddingTop: 48, paddingBottom: 48 }}>
+        <div
+          ref={catsRef}
+          className={`container-xl px-3 fade-up-group ${catsVisible ? "visible" : ""}`}
+        >
+          <div className="d-flex flex-column flex-md-row align-items-start justify-content-between gap-3 mb-4">
+            <div>
+              <span className="section-eyebrow">Koleksi</span>
+              <h2 className="section-heading">Kategori Pilihan</h2>
+              <p className="section-sub" style={{ margin: 0 }}>Jelajahi kategori favorit dan temukan produk yang kamu cari.</p>
+            </div>
+            <Link to="/categories" className="btn btn-outline-primary btn-sm px-4 fw-semibold flex-shrink-0">
+              Semua Kategori <i className="bi bi-arrow-right ms-1" />
+            </Link>
+          </div>
           <CategoryGrid categories={categories} loading={loadingCategories} limit={4} />
         </div>
       </section>
