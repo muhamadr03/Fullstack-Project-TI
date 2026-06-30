@@ -11,11 +11,14 @@ const statusSchema = Joi.object({
     .valid("pending", "paid", "shipped", "completed", "cancelled")
     .required(),
   tracking_number: Joi.string().allow("").optional(),
+  courier: Joi.string().allow("").optional(),
 });
 
 // Rute untuk Customer Biasa
 router.post("/checkout", verifyToken, orderController.checkout);
 router.get("/my-orders", verifyToken, orderController.getUserOrders);
+router.patch("/:id/complete", verifyToken, orderController.completeOrder);
+router.post("/:id/cancel-request", verifyToken, orderController.requestCancellation);
 
 // Rute khusus Admin
 router.put(
@@ -27,5 +30,6 @@ router.put(
 );
 
 router.get("/", verifyToken, isAdmin, orderController.getAllOrders);
+router.patch("/:id/cancellation", verifyToken, isAdmin, orderController.handleCancellationRequest);
 
 module.exports = router;

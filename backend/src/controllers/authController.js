@@ -3,7 +3,7 @@ const jwt = require("jsonwebtoken");
 const User = require("../models/User"); // Panggil Model User yang baru dibuat
 
 exports.register = async (req, res) => {
-  const { name, email, password, role } = req.body;
+  const { name, email, password } = req.body;
 
   if (!name || !email || !password) {
     return res
@@ -22,11 +22,12 @@ exports.register = async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, saltRounds);
 
     // Menyimpan data (Tanpa mengetik INSERT)
+    // Role selalu "customer" — admin hanya bisa diset langsung dari database
     const newUser = await User.create({
       name,
       email,
       password: hashedPassword,
-      role: role || "customer",
+      role: "customer",
     });
 
     res
