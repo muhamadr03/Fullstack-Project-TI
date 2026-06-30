@@ -20,6 +20,7 @@ const Order = sequelize.define(
     midtrans_transaction_id: { type: DataTypes.STRING },
     shipping_address: { type: DataTypes.TEXT, allowNull: false },
     tracking_number: { type: DataTypes.STRING },
+    courier: { type: DataTypes.STRING, allowNull: true },
     snap_token: {
       type: DataTypes.STRING,
       allowNull: true,
@@ -32,6 +33,14 @@ const Order = sequelize.define(
       type: DataTypes.INTEGER,
       defaultValue: 0,
     },
+    // ── Pembatalan Pesanan ──────────────────────────────────────────────────
+    cancellation_status: {
+      type: DataTypes.ENUM('requested', 'approved', 'rejected'),
+      allowNull: true,
+      defaultValue: null,
+    },
+    cancellation_reason: { type: DataTypes.TEXT, allowNull: true },
+    cancellation_note:   { type: DataTypes.TEXT, allowNull: true },
   },
   {
     tableName: "orders",

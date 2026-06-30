@@ -24,15 +24,19 @@ exports.addReview = async (req, res) => {
         .json({ message: "Rating harus antara 1 hingga 5." });
     }
 
-    // Validasi: cek apakah order_id milik user ini dan sudah lunas (paid)
+    // Validasi: cek apakah order_id milik user ini dan sudah selesai (completed)
     const order = await Order.findOne({
-      where: { id: order_id, user_id: req.user.id, status: "paid" },
+      where: { 
+        id: order_id, 
+        user_id: req.user.id, 
+        status: "completed"
+      },
     });
 
     if (!order) {
       return res.status(403).json({
         message:
-          "Anda hanya dapat mengulas produk dari pesanan yang sudah lunas.",
+          "Anda hanya dapat mengulas produk dari pesanan yang sudah berstatus selesai.",
       });
     }
 
