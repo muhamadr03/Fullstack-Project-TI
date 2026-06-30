@@ -24,7 +24,7 @@ exports.getCart = async (req, res) => {
 
 exports.addToCart = async (req, res) => {
   try {
-    const { product_id, quantity } = req.body;
+    const { product_id, quantity, selected_image_url, selected_size } = req.body;
 
     // 🔍 Ambil data produk
     const product = await Product.findByPk(product_id);
@@ -37,9 +37,14 @@ exports.addToCart = async (req, res) => {
 
     const qty = quantity || 1;
 
-    // 🔥 Cek apakah produk sudah ada di cart
+    // 🔥 Cek apakah produk sudah ada di cart dengan varian yang persis sama
     let cartItem = await Cart.findOne({
-      where: { user_id: req.user.id, product_id },
+      where: { 
+        user_id: req.user.id, 
+        product_id,
+        selected_image_url: selected_image_url || null,
+        selected_size: selected_size || null
+      },
     });
 
     // 🔥 VALIDASI STOK
@@ -65,6 +70,8 @@ exports.addToCart = async (req, res) => {
         user_id: req.user.id,
         product_id,
         quantity: qty,
+        selected_image_url: selected_image_url || null,
+        selected_size: selected_size || null,
       });
     }
 

@@ -285,7 +285,8 @@ const OrderCard = ({ order, onPayPending, onConfirmComplete, onRequestCancel, on
                 const product = item.product;
                 if (!product) return null;
                 const primaryImage = product.images?.find((img) => img.is_primary)?.image_url || product.images?.[0]?.image_url;
-                const imageUrl = primaryImage ? (primaryImage.startsWith("http") ? primaryImage : `${API_URL}${primaryImage}`) : "https://via.placeholder.com/60";
+                const baseImageUrl = item.selected_image_url || primaryImage;
+                const imageUrl = baseImageUrl ? (baseImageUrl.startsWith("http") ? baseImageUrl : `${API_URL}${baseImageUrl}`) : "https://via.placeholder.com/60";
                 const review = order.reviews?.find((r) => r.product_id === product.id);
 
                 return (
@@ -294,9 +295,12 @@ const OrderCard = ({ order, onPayPending, onConfirmComplete, onRequestCancel, on
                       <img src={imageUrl} alt={product.name} style={{ width: 60, height: 60, objectFit: 'cover', borderRadius: 8 }} />
                       <div>
                         <div className="fw-semibold text-dark">{product.name}</div>
-                        <div className="text-muted small">
+                        <div className="text-muted small mb-1">
                           {item.quantity} x Rp {Number(item.price_at_purchase || product.price || 0).toLocaleString('id-ID')}
                         </div>
+                        {item.selected_size && (
+                          <span className="badge bg-secondary" style={{ fontSize: '0.7rem' }}>Ukuran: {item.selected_size}</span>
+                        )}
                       </div>
                     </div>
                     <div>

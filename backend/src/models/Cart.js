@@ -8,6 +8,8 @@ const Cart = sequelize.define(
     user_id: { type: DataTypes.INTEGER, allowNull: false },
     product_id: { type: DataTypes.INTEGER, allowNull: false },
     quantity: { type: DataTypes.INTEGER, allowNull: false, defaultValue: 1 },
+    selected_image_url: { type: DataTypes.STRING, allowNull: true },
+    selected_size: { type: DataTypes.STRING, allowNull: true },
   },
   {
     tableName: "cart",

@@ -260,6 +260,7 @@ const ProductDetailPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [quantity, setQuantity] = useState(1);
+  const [selectedSize, setSelectedSize] = useState("");
   const { addToCart } = useContext(CartContext);
 
   // State untuk section review
@@ -385,7 +386,7 @@ const ProductDetailPage = () => {
   };
 
   const handleAddToCart = async () => {
-    const result = await addToCart(product.id, quantity);
+    const result = await addToCart(product.id, quantity, activeImage, selectedSize);
     if (result.success) {
       alert(`Berhasil! ${quantity} buah ${product.name} masuk ke keranjang 🛒`);
     } else {
@@ -400,9 +401,10 @@ const ProductDetailPage = () => {
   };
 
   const handleBuyNow = async () => {
-    const result = await addToCart(product.id, quantity);
+    const result = await addToCart(product.id, quantity, activeImage, selectedSize);
     if (result.success) {
-      navigate("/checkout");
+      const cartItemId = result.data?.id;
+      navigate("/checkout", { state: { selectedItems: cartItemId ? [cartItemId] : [] } });
     } else {
       alert(`Ups, gagal memproses pembelian: ${result.message}`);
       if (
@@ -831,6 +833,31 @@ const ProductDetailPage = () => {
                   <div style={{ color: "#64748b", fontSize: "0.85rem" }}>
                     Sisa stok: {product.stock} unit
                   </div>
+                </div>
+              </div>
+
+              {/* Pilihan Ukuran Opsional */}
+              <div className="mb-4">
+                <h6 className="fw-bold mb-2" style={{ fontSize: "0.95rem" }}>Pilih Ukuran (Opsional)</h6>
+                <div className="d-flex gap-2 flex-wrap">
+                  {["S", "M", "L", "XL"].map((size) => (
+                    <button
+                      key={size}
+                      type="button"
+                      className="btn fw-semibold"
+                      onClick={() => setSelectedSize(size === selectedSize ? "" : size)}
+                      style={{
+                        borderRadius: "12px",
+                        padding: "0.4rem 1.2rem",
+                        background: selectedSize === size ? "#4f46e5" : "#fff",
+                        color: selectedSize === size ? "#fff" : "#475569",
+                        border: `1.5px solid ${selectedSize === size ? "#4f46e5" : "#e2e8f0"}`,
+                        transition: "all 0.2s"
+                      }}
+                    >
+                      {size}
+                    </button>
+                  ))}
                 </div>
               </div>
 

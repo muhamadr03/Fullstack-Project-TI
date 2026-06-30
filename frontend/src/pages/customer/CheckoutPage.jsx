@@ -1,12 +1,24 @@
-import React, { useState, useContext } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useState, useContext, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import { CartContext } from "../../context/CartContext";
 import { orderApi } from "../../api/orderApi";
 import { couponApi } from "../../api/couponApi";
 
 const CheckoutPage = () => {
-  const { cartItems, totalPrice, cartLoading } = useContext(CartContext);
+  const { cartItems, cartLoading } = useContext(CartContext);
   const navigate = useNavigate();
+  const location = useLocation();
+
+  const selectedItems = location.state?.selectedItems || [];
+
+  // Filter hanya item yang dipilih
+  const checkoutItems = cartItems.filter(item => selectedItems.includes(item.id));
+
+  // Hitung total harga lokal untuk item yang dipilih
+  const localTotalPrice = checkoutItems.reduce((sum, item) => {
+    const productData = item.Product || item.product || {};
+    return sum + (productData.price || 0) * item.quantity;
+  }, 0);
 
   const [address, setAddress] = useState({
     street: "",
@@ -54,18 +66,18 @@ const CheckoutPage = () => {
   // Hitung diskon berdasarkan field DB: discount_percentage, max_discount
   const discountAmount = appliedCoupon
     ? Math.min(
-        Math.floor((totalPrice * Number(appliedCoupon.discount_percentage)) / 100),
+        Math.floor((localTotalPrice * Number(appliedCoupon.discount_percentage)) / 100),
         appliedCoupon.max_discount ? Number(appliedCoupon.max_discount) : Infinity
       )
     : 0;
-  const finalTotal = totalPrice - discountAmount;
+  const finalTotal = localTotalPrice - discountAmount;
 
   const handlePay = async (e) => {
     e.preventDefault();
     setIsProcessing(true);
     try {
       const fullAddress = `${address.street}, ${address.city}, ${address.postal_code}`;
-      const response = await orderApi.createOrder(fullAddress, appliedCoupon?.code || null);
+      const response = await orderApi.createOrder(fullAddress, appliedCoupon?.code || null, selectedItems);
       const snapToken = response.data?.snap_token;
 
       if (!snapToken) throw new Error("Token pembayaran gagal dibuat oleh server.");
@@ -83,14 +95,18 @@ const CheckoutPage = () => {
     }
   };
 
-  if (!cartLoading && cartItems.length === 0) {
+  useEffect(() => {
+    // Jika tidak ada item yang dipilih dan selesai loading, lempar kembali ke cart
+    if (!cartLoading && checkoutItems.length === 0) {
+      navigate("/cart");
+    }
+  }, [cartLoading, checkoutItems.length, navigate]);
+
+  if (cartLoading || checkoutItems.length === 0) {
     return (
       <div className="container py-5 text-center">
-        <i className="bi bi-cart-x fs-1 text-muted mb-3 d-block"></i>
-        <h4 className="fw-bold">Keranjang Anda kosong!</h4>
-        <button onClick={() => navigate("/")} className="btn btn-primary mt-3 px-4">
-          Kembali Belanja
-        </button>
+        <div className="spinner-border text-primary"></div>
+        <p className="mt-2">Mempersiapkan checkout...</p>
       </div>
     );
   }
@@ -200,13 +216,29 @@ const CheckoutPage = () => {
               <i className="bi bi-receipt me-2 text-primary"></i>Ringkasan Pesanan
             </h6>
             <ul className="list-group list-group-flush mb-3">
-              {cartItems.map((item) => {
+              {checkoutItems.map((item) => {
                 const productData = item.Product || item.product || {};
                 return (
                   <li key={item.id} className="list-group-item d-flex justify-content-between align-items-start px-0 py-2">
                     <div>
-                      <p className="mb-0 fw-medium" style={{ fontSize: "0.875rem" }}>{productData.name}</p>
-                      <small className="text-muted">x{item.quantity}</small>
+                      <div className="d-flex align-items-center mb-1">
+                        {item.selected_image_url && (
+                          <img
+                            src={item.selected_image_url}
+                            alt="Variant"
+                            style={{ width: "30px", height: "30px", objectFit: "cover", borderRadius: "4px", marginRight: "8px" }}
+                          />
+                        )}
+                        <p className="mb-0 fw-medium" style={{ fontSize: "0.875rem" }}>{productData.name}</p>
+                      </div>
+                      <div className="d-flex gap-2 align-items-center">
+                        <small className="text-muted">x{item.quantity}</small>
+                        {item.selected_size && (
+                          <span className="badge bg-secondary" style={{ fontSize: "0.65rem" }}>
+                            {item.selected_size}
+                          </span>
+                        )}
+                      </div>
                     </div>
                     <span className="text-muted fw-medium" style={{ fontSize: "0.875rem" }}>
                       Rp {productData.price ? (productData.price * item.quantity).toLocaleString("id-ID") : 0}
@@ -219,7 +251,7 @@ const CheckoutPage = () => {
             <div className="border-top pt-3">
               <div className="d-flex justify-content-between mb-2 text-muted">
                 <span>Subtotal</span>
-                <span>Rp {totalPrice.toLocaleString("id-ID")}</span>
+                <span>Rp {localTotalPrice.toLocaleString("id-ID")}</span>
               </div>
               {discountAmount > 0 && (
                 <div className="d-flex justify-content-between mb-2 text-success fw-medium">

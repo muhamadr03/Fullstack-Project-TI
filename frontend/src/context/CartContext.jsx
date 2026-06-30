@@ -34,13 +34,13 @@ export const CartProvider = ({ children }) => {
   }, [user]);
 
   // Fungsi untuk menambah ke keranjang (Bisa dipanggil dari ProductDetailPage)
-  const addToCart = async (productId, quantity) => {
+  const addToCart = async (productId, quantity, selectedImageUrl = null, selectedSize = null) => {
     try {
-      await cartApi.addToCart(productId, quantity);
+      const addedData = await cartApi.addToCart(productId, quantity, selectedImageUrl, selectedSize);
       // Refresh keranjang dari backend agar datanya akurat
       const response = await cartApi.getCart();
       setCartItems(response || []);
-      return { success: true };
+      return { success: true, data: addedData?.data };
     } catch (error) {
       console.error("Gagal menambah ke keranjang:", error);
       return {

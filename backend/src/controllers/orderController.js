@@ -5,18 +5,25 @@ const { Order, OrderItem, Cart, Product, User, Coupon, ProductImage } = require(
 exports.checkout = async (req, res) => {
   try {
     const userId = req.user.id;
-    const { shipping_address, coupon_code } = req.body;
+    const { shipping_address, coupon_code, cart_item_ids } = req.body;
 
     // 1. Ambil isi keranjang user
+    // Jika ada cart_item_ids, filter hanya item yang dipilih
+    const { Op } = require("sequelize");
+    const whereClause = { user_id: userId };
+    if (cart_item_ids && Array.isArray(cart_item_ids) && cart_item_ids.length > 0) {
+      whereClause.id = { [Op.in]: cart_item_ids };
+    }
+
     const cartItems = await Cart.findAll({
-      where: { user_id: userId },
+      where: whereClause,
       include: [{ model: Product, as: "product" }],
     });
 
     if (!cartItems || cartItems.length === 0) {
       return res.status(400).json({
         status: "fail",
-        message: "Keranjang belanja Anda kosong!",
+        message: "Barang yang dipilih tidak ditemukan di keranjang!",
       });
     }
 
@@ -67,6 +74,8 @@ exports.checkout = async (req, res) => {
       product_id: item.product_id,
       quantity: item.quantity,
       price_at_purchase: item.product.price,
+      selected_image_url: item.selected_image_url || null,
+      selected_size: item.selected_size || null,
     }));
 
     await OrderItem.bulkCreate(orderItemsData);
@@ -83,8 +92,9 @@ exports.checkout = async (req, res) => {
       });
     }
 
-    // 5. Kosongkan keranjang
-    await Cart.destroy({ where: { user_id: userId } });
+    // 5. Hapus item yang baru saja dicheckout dari keranjang
+    const processedCartIds = cartItems.map(item => item.id);
+    await Cart.destroy({ where: { id: processedCartIds } });
 
     // 6. Integrasi Midtrans
     const userData = await User.findByPk(userId);

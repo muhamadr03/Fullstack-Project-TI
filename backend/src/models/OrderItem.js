@@ -9,6 +9,8 @@ const OrderItem = sequelize.define(
     product_id: { type: DataTypes.INTEGER, allowNull: false },
     quantity: { type: DataTypes.INTEGER, allowNull: false },
     price_at_purchase: { type: DataTypes.INTEGER, allowNull: false },
+    selected_image_url: { type: DataTypes.STRING, allowNull: true },
+    selected_size: { type: DataTypes.STRING, allowNull: true },
   },
   {
     tableName: "order_items",

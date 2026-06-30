@@ -8,10 +8,12 @@ export const cartApi = {
   },
 
   // Menambahkan barang ke keranjang
-  addToCart: async (productId, quantity) => {
+  addToCart: async (productId, quantity, selectedImageUrl = null, selectedSize = null) => {
     const response = await axiosInstance.post("/cart", {
       product_id: productId,
       quantity: quantity,
+      selected_image_url: selectedImageUrl,
+      selected_size: selectedSize,
     });
     return response.data;
   },

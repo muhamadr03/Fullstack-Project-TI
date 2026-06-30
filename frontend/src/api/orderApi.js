@@ -1,11 +1,12 @@
 import axiosInstance from "./axiosInstance";
 
 export const orderApi = {
-  // Membuat pesanan baru dari isi keranjang (dengan opsional kupon)
-  createOrder: async (shippingAddress, couponCode = null) => {
+  // Membuat pesanan baru dari isi keranjang (dengan opsional kupon dan item spesifik)
+  createOrder: async (shippingAddress, couponCode = null, cartItemIds = []) => {
     const response = await axiosInstance.post("/orders/checkout", {
       shipping_address: shippingAddress,
       coupon_code: couponCode || undefined,
+      cart_item_ids: cartItemIds,
     });
     return response.data;
   },

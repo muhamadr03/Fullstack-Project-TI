@@ -1,12 +1,45 @@
-import React, { useContext } from "react";
+import React, { useContext, useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { CartContext } from "../../context/CartContext";
 
 
 const CartPage = () => {
-  const { cartItems, cartLoading, removeFromCart, totalPrice } =
+  const { cartItems, cartLoading, removeFromCart } =
     useContext(CartContext);
   const navigate = useNavigate();
+
+  const [selectedItems, setSelectedItems] = useState([]);
+
+  // Auto-select all items when cart loads initially
+  useEffect(() => {
+    if (cartItems.length > 0 && selectedItems.length === 0) {
+      // Optional: automatically check everything by default, or let it be empty.
+      // We will let it be empty so the user actively selects, but usually
+      // eCommerce apps auto-select everything. Let's auto-select all.
+      setSelectedItems(cartItems.map((item) => item.id));
+    }
+  }, [cartItems, selectedItems.length]);
+
+  const handleSelectAll = (e) => {
+    if (e.target.checked) {
+      setSelectedItems(cartItems.map((item) => item.id));
+    } else {
+      setSelectedItems([]);
+    }
+  };
+
+  const handleSelectItem = (id) => {
+    setSelectedItems((prev) =>
+      prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
+    );
+  };
+
+  const selectedTotalPrice = cartItems
+    .filter((item) => selectedItems.includes(item.id))
+    .reduce((sum, item) => {
+      const productData = item.Product || item.product || {};
+      return sum + (productData.price || 0) * item.quantity;
+    }, 0);
 
   if (cartLoading) {
     return (
@@ -35,6 +68,15 @@ const CartPage = () => {
               <table className="table align-middle">
                 <thead>
                   <tr>
+                    <th style={{ width: '40px' }}>
+                      <input
+                        type="checkbox"
+                        className="form-check-input"
+                        style={{ cursor: "pointer" }}
+                        checked={selectedItems.length === cartItems.length && cartItems.length > 0}
+                        onChange={handleSelectAll}
+                      />
+                    </th>
                     <th>Produk</th>
                     <th>Harga</th>
                     <th>Jumlah</th>
@@ -50,12 +92,23 @@ const CartPage = () => {
                     return (
                       <tr key={item.id}>
                         <td>
+                          <input
+                            type="checkbox"
+                            className="form-check-input"
+                            style={{ cursor: "pointer" }}
+                            checked={selectedItems.includes(item.id)}
+                            onChange={() => handleSelectItem(item.id)}
+                          />
+                        </td>
+                        <td>
                           <div className="d-flex align-items-center">
                             <img
                               src={
-                                productData.image_url
-                                  ? (productData.image_url.startsWith('http') ? productData.image_url : `http://localhost:5000${productData.image_url}`)
-                                  : "https://via.placeholder.com/50"
+                                item.selected_image_url 
+                                  ? item.selected_image_url
+                                  : (productData.image_url
+                                      ? (productData.image_url.startsWith('http') ? productData.image_url : `http://localhost:5000${productData.image_url}`)
+                                      : "https://via.placeholder.com/50")
                               }
                               alt={productData.name || "Produk"}
                               style={{
@@ -69,9 +122,16 @@ const CartPage = () => {
                                   "https://via.placeholder.com/50?text=No+Img";
                               }}
                             />
-                            <span className="fw-semibold">
-                              {productData.name || "Nama Produk Tidak Tersedia"}
-                            </span>
+                            <div>
+                              <span className="fw-semibold d-block">
+                                {productData.name || "Nama Produk Tidak Tersedia"}
+                              </span>
+                              {item.selected_size && (
+                                <span className="badge bg-secondary" style={{ fontSize: "0.75rem" }}>
+                                  Ukuran: {item.selected_size}
+                                </span>
+                              )}
+                            </div>
                           </div>
                         </td>
                         <td>
@@ -109,18 +169,23 @@ const CartPage = () => {
           <div className="col-lg-4">
             <div className="card shadow-sm border-0 p-3">
               <h5 className="fw-bold mb-3">Ringkasan Pesanan</h5>
+              <div className="d-flex justify-content-between mb-2 text-muted small">
+                <span>Total Barang Terpilih:</span>
+                <span>{selectedItems.length} barang</span>
+              </div>
               <div className="d-flex justify-content-between mb-2">
                 <span>Total Harga:</span>
                 <span className="fw-bold fs-5 text-danger">
-                  Rp {totalPrice.toLocaleString("id-ID")}
+                  Rp {selectedTotalPrice.toLocaleString("id-ID")}
                 </span>
               </div>
               <hr />
               <button
                 className="btn btn-primary w-100 py-2 fw-bold"
-                onClick={() => navigate("/checkout")}
+                disabled={selectedItems.length === 0}
+                onClick={() => navigate("/checkout", { state: { selectedItems } })}
               >
-                Lanjut ke Checkout
+                {selectedItems.length === 0 ? "Pilih Produk Dulu" : "Lanjut ke Checkout"}
               </button>
             </div>
           </div>
