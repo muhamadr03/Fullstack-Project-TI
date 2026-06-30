@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { Outlet } from "react-router-dom";
 import SidebarAdmin from "../layout/SidebarAdmin";
-import TopbarAdmin from "../layout/TopbarAdmin";
 import "../../assets/admin.css"; // Import the custom Zenith CSS
 
 const AdminLayout = () => {
@@ -32,7 +31,14 @@ const AdminLayout = () => {
 
       {/* Main Content Area */}
       <main className="flex-grow-1 d-flex flex-column" style={{ minWidth: 0, height: "100vh", overflowY: "auto" }}>
-        <TopbarAdmin onToggleSidebar={toggleMobileSidebar} />
+        <div className="p-3 d-flex align-items-center d-lg-none">
+            <button
+                className="btn btn-light"
+                onClick={toggleMobileSidebar}
+            >
+                <i className="bi bi-list"></i> Menu
+            </button>
+        </div>
         
         <div className="p-3 flex-grow-1">
           <Outlet />

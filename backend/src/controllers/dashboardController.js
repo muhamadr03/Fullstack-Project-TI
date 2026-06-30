@@ -1,4 +1,4 @@
-const { Product, Order, User } = require("../models");
+const { Product, Order, User, OrderItem } = require("../models");
 const { Op, fn, col, literal } = require("sequelize");
 const sequelize = require("../config/db");
 
@@ -71,6 +71,30 @@ exports.getDashboardStats = async (req, res) => {
       });
     }
 
+    // 7. Top 5 Produk Terlaris
+    const topSellingProducts = await OrderItem.findAll({
+      attributes: [
+        "product_id",
+        [fn("SUM", col("quantity")), "totalSold"]
+      ],
+      include: [
+        {
+          model: Product,
+          as: "product",
+          attributes: ["name"]
+        }
+      ],
+      group: ["product_id", "product.id"],
+      order: [[literal("totalSold"), "DESC"]],
+      limit: 5,
+    });
+    
+    // Format the result to be simpler for the frontend
+    const bestSellingProducts = topSellingProducts.map(item => ({
+      name: item.product ? item.product.name : "Unknown",
+      totalSold: parseInt(item.getDataValue("totalSold") || 0)
+    }));
+
     res.status(200).json({
       success: true,
       data: {
@@ -80,6 +104,7 @@ exports.getDashboardStats = async (req, res) => {
         totalRevenue: totalRevenue || 0,
         lowStockProducts,
         monthlySales,
+        bestSellingProducts,
       },
     });
   } catch (error) {

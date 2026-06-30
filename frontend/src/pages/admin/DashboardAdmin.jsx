@@ -3,6 +3,8 @@ import { dashboardApi } from "../../api/dashboardApi";
 import {
   AreaChart,
   Area,
+  BarChart,
+  Bar,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -44,6 +46,7 @@ const DashboardPage = () => {
     totalRevenue: 0,
     monthlySales: [],
     lowStockProducts: [],
+    bestSellingProducts: [],
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -61,6 +64,7 @@ const DashboardPage = () => {
           totalRevenue: response.data.data.totalRevenue || 0,
           monthlySales: response.data.data.monthlySales || [],
           lowStockProducts: response.data.data.lowStockProducts || [],
+          bestSellingProducts: response.data.data.bestSellingProducts || [],
         });
       }
     } catch (err) {
@@ -379,6 +383,78 @@ const DashboardPage = () => {
                 </div>
               )}
             </div>
+          </div>
+        </div>
+      </div>
+
+      {/* BEST SELLING PRODUCTS CHART */}
+      <div className="row mt-4 mb-4">
+        <div className="col-12">
+          <div className="zenith-card p-4 h-100">
+            <div className="d-flex justify-content-between align-items-center mb-4">
+              <div>
+                <h5 className="fw-bold mb-0">Produk Terlaris</h5>
+                <p className="text-muted mb-0" style={{ fontSize: "0.8rem" }}>
+                  5 produk dengan jumlah penjualan terbanyak
+                </p>
+              </div>
+            </div>
+
+            {(!stats.bestSellingProducts || stats.bestSellingProducts.length === 0) ? (
+              <div
+                className="d-flex flex-column align-items-center justify-content-center"
+                style={{ height: "280px", color: "#94a3b8" }}
+              >
+                <i className="bi bi-bar-chart fs-1 mb-3"></i>
+                <p className="mb-0 fw-semibold">Belum ada data penjualan</p>
+              </div>
+            ) : (
+              <div style={{ height: "300px", width: "100%" }}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart
+                    data={stats.bestSellingProducts}
+                    margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                    layout="vertical"
+                  >
+                    <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} stroke="#e2e8f0" />
+                    <XAxis type="number" hide />
+                    <YAxis 
+                      dataKey="name" 
+                      type="category" 
+                      axisLine={false}
+                      tickLine={false}
+                      tick={{ fill: "#475569", fontSize: 12, fontWeight: 500 }}
+                      width={150}
+                    />
+                    <Tooltip 
+                      cursor={{fill: 'transparent'}}
+                      content={({ active, payload }) => {
+                        if (active && payload && payload.length) {
+                          return (
+                            <div style={{
+                              background: "#fff", border: "1px solid #e2e8f0", borderRadius: "8px", 
+                              padding: "10px", boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)"
+                            }}>
+                              <p style={{ margin: 0, fontWeight: 600 }}>{payload[0].payload.name}</p>
+                              <p style={{ margin: 0, color: "#f59e0b", fontWeight: 700 }}>
+                                Terjual: {payload[0].value}
+                              </p>
+                            </div>
+                          );
+                        }
+                        return null;
+                      }}
+                    />
+                    <Bar 
+                      dataKey="totalSold" 
+                      fill="#f59e0b" 
+                      radius={[0, 4, 4, 0]} 
+                      barSize={24}
+                    />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            )}
           </div>
         </div>
       </div>

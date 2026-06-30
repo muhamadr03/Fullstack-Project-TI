@@ -15,36 +15,12 @@ const TopbarAdmin = ({ onToggleSidebar }) => {
                 >
                     <i className="bi bi-list"></i>
                 </button>
-
-                {/* Search Bar */}
-                <div className="search-wrapper d-none d-md-block">
-                    <i className="bi bi-search search-icon"></i>
-                    <input
-                        type="text"
-                        className="search-input"
-                        placeholder="Search anything..."
-                    />
-                    <span className="search-shortcut">⌘K</span>
-                </div>
             </div>
 
             <div className="d-flex align-items-center gap-3">
                 <Link to="/admin/products" className="btn-zenith-dark d-none d-sm-inline-flex align-items-center text-decoration-none">
-                    <i className="bi bi-plus-lg me-2"></i> New Order
+                    <i className="bi bi-plus-lg me-2"></i> New Product
                 </Link>
-
-                <div className="topbar-icon">
-                    <i className="bi bi-moon"></i>
-                </div>
-                <div className="topbar-icon">
-                    <i className="bi bi-palette"></i>
-                </div>
-                <div className="topbar-icon position-relative">
-                    <i className="bi bi-bell"></i>
-                    <span className="position-absolute top-0 start-100 translate-middle p-1 bg-danger border border-light rounded-circle" style={{ marginTop: "10px", marginLeft: "-10px" }}>
-                        <span className="visually-hidden">New alerts</span>
-                    </span>
-                </div>
 
                 <div className="ms-2 d-flex align-items-center cursor-pointer">
                     <div className="rounded-circle bg-secondary d-flex justify-content-center align-items-center text-white" style={{ width: "36px", height: "36px", fontWeight: "600" }}>
