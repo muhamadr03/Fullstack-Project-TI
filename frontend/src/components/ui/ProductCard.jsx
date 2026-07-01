@@ -6,6 +6,7 @@ import { cartApi } from "../../api/cartApi";
 import { CartContext } from "../../context/CartContext";
 import { WishlistContext } from "../../context/WishlistContext";
 import { useContext } from "react";
+import { createPortal } from "react-dom";
 import toast from 'react-hot-toast';
 
 const BACKEND_URL =
@@ -229,7 +230,7 @@ const ProductCard = ({ product, showAddCart = true }) => {
     )}
 
     {/* Modal Pilih Varian */}
-      {showVariantModal && (
+      {showVariantModal && createPortal(
         <div
           className="position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center"
           style={{ background: "rgba(0,0,0,0.6)", zIndex: 1050, backdropFilter: "blur(4px)" }}
@@ -297,7 +298,8 @@ const ProductCard = ({ product, showAddCart = true }) => {
               )}
             </button>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

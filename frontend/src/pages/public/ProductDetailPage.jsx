@@ -389,6 +389,10 @@ const ProductDetailPage = () => {
   };
 
   const handleAddToCart = async () => {
+    if (product.variants && product.variants.length > 0 && !selectedVariant) {
+      toast.error("Silakan pilih varian produk terlebih dahulu.");
+      return;
+    }
     const sizeLabel = selectedVariant ? (selectedVariant.attributes?.map(a => `${a.attribute_value}`).join(' - ') || selectedVariant.sku) : selectedSize;
     const result = await addToCart(product.id, quantity, activeImage, sizeLabel, selectedVariant?.id || null);
     if (result.success) {
@@ -405,6 +409,10 @@ const ProductDetailPage = () => {
   };
 
   const handleBuyNow = async () => {
+    if (product.variants && product.variants.length > 0 && !selectedVariant) {
+      toast.error("Silakan pilih varian produk terlebih dahulu.");
+      return;
+    }
     const sizeLabel = selectedVariant ? (selectedVariant.attributes?.map(a => `${a.attribute_value}`).join(' - ') || selectedVariant.sku) : selectedSize;
     const result = await addToCart(product.id, quantity, activeImage, sizeLabel, selectedVariant?.id || null);
     if (result.success) {

@@ -41,7 +41,8 @@ const CartPage = () => {
     .filter((item) => selectedItems.includes(item.id))
     .reduce((sum, item) => {
       const productData = item.Product || item.product || {};
-      return sum + (productData.price || 0) * item.quantity;
+      const price = item.variant?.price || productData.price || 0;
+      return sum + price * item.quantity;
     }, 0);
 
   if (cartLoading) {
