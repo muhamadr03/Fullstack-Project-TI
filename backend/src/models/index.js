@@ -13,6 +13,8 @@ const Wishlist = require("./Wishlist");
 const Coupon = require("./Coupon");
 const Banner = require('./Banner');
 const ProductImage = require("./ProductImage");
+const ProductVariant = require("./ProductVariant");
+const VariantAttribute = require("./VariantAttribute");
 
 // Relasi User - Address (One-to-Many)
 User.hasMany(Address, { foreignKey: "user_id", as: "addresses" });
@@ -66,6 +68,22 @@ Wishlist.belongsTo(Product, { foreignKey: "product_id", as: "product" });
 Product.hasMany(ProductImage, { foreignKey: "product_id", as: "images" });
 ProductImage.belongsTo(Product, { foreignKey: "product_id", as: "product" });
 
+// Relasi Product - ProductVariant (One-to-Many)
+Product.hasMany(ProductVariant, { foreignKey: "product_id", as: "variants" });
+ProductVariant.belongsTo(Product, { foreignKey: "product_id", as: "product" });
+
+// Relasi ProductVariant - VariantAttribute (One-to-Many)
+ProductVariant.hasMany(VariantAttribute, { foreignKey: "variant_id", as: "attributes" });
+VariantAttribute.belongsTo(ProductVariant, { foreignKey: "variant_id", as: "variant" });
+
+// Relasi ProductVariant - Cart (One-to-Many)
+ProductVariant.hasMany(Cart, { foreignKey: "variant_id", as: "cart_items" });
+Cart.belongsTo(ProductVariant, { foreignKey: "variant_id", as: "variant" });
+
+// Relasi ProductVariant - OrderItem (One-to-Many)
+ProductVariant.hasMany(OrderItem, { foreignKey: "variant_id", as: "order_items" });
+OrderItem.belongsTo(ProductVariant, { foreignKey: "variant_id", as: "variant" });
+
 module.exports = {
   sequelize,
   User,
@@ -80,4 +98,6 @@ module.exports = {
   Coupon,
   Banner,
   ProductImage,
+  ProductVariant,
+  VariantAttribute,
 };

@@ -17,7 +17,8 @@ const CheckoutPage = () => {
   // Hitung total harga lokal untuk item yang dipilih
   const localTotalPrice = checkoutItems.reduce((sum, item) => {
     const productData = item.Product || item.product || {};
-    return sum + (productData.price || 0) * item.quantity;
+    const price = item.variant?.price || productData.price || 0;
+    return sum + price * item.quantity;
   }, 0);
 
   const [address, setAddress] = useState({
@@ -42,8 +43,6 @@ const CheckoutPage = () => {
     setCouponStatus("loading");
     setAppliedCoupon(null);
     try {
-      // couponApi.validateCoupon sudah return response.data
-      // sehingga res = { success, message, data: { coupon object } }
       const res = await couponApi.validateCoupon(couponInput.trim().toUpperCase());
       if (res?.success) {
         setAppliedCoupon(res.data);
@@ -148,6 +147,12 @@ const CheckoutPage = () => {
                 </div>
               </div>
 
+              {/* Info jasa kirim diatur oleh admin */}
+              <div className="alert alert-info d-flex align-items-center gap-2 mb-4 py-2" role="alert">
+                <i className="bi bi-info-circle-fill fs-5"></i>
+                <small>Jasa pengiriman & ongkos kirim akan ditentukan oleh Admin setelah pesanan Anda diproses.</small>
+              </div>
+
               <button
                 type="submit"
                 className="btn btn-primary w-100 py-3 fw-bold fs-5"
@@ -234,14 +239,14 @@ const CheckoutPage = () => {
                       <div className="d-flex gap-2 align-items-center">
                         <small className="text-muted">x{item.quantity}</small>
                         {item.selected_size && (
-                          <span className="badge bg-secondary" style={{ fontSize: "0.65rem" }}>
-                            {item.selected_size}
+                          <span className="badge bg-info text-dark" style={{ fontSize: "0.65rem" }}>
+                            Varian: {item.selected_size}
                           </span>
                         )}
                       </div>
                     </div>
                     <span className="text-muted fw-medium" style={{ fontSize: "0.875rem" }}>
-                      Rp {productData.price ? (productData.price * item.quantity).toLocaleString("id-ID") : 0}
+                      Rp {((item.variant?.price || productData.price || 0) * item.quantity).toLocaleString("id-ID")}
                     </span>
                   </li>
                 );
@@ -259,6 +264,10 @@ const CheckoutPage = () => {
                   <span>- Rp {discountAmount.toLocaleString("id-ID")}</span>
                 </div>
               )}
+              <div className="d-flex justify-content-between mb-2 text-muted">
+                <span><i className="bi bi-truck me-1"></i>Ongkir</span>
+                <span className="text-secondary fst-italic" style={{ fontSize: "0.85rem" }}>Ditentukan Admin</span>
+              </div>
               <div className="d-flex justify-content-between fw-bold fs-5 text-primary mt-2 border-top pt-2">
                 <span>Total Bayar</span>
                 <span>Rp {finalTotal.toLocaleString("id-ID")}</span>
@@ -271,4 +280,4 @@ const CheckoutPage = () => {
   );
 };
 
-export default CheckoutPage;
+export default CheckoutPage;

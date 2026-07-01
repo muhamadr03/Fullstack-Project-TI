@@ -130,8 +130,8 @@ const CartPage = () => {
                                 {productData.name || "Nama Produk Tidak Tersedia"}
                               </span>
                               {item.selected_size && (
-                                <span className="badge bg-secondary" style={{ fontSize: "0.75rem" }}>
-                                  Ukuran: {item.selected_size}
+                                <span className="badge bg-info text-dark mt-1" style={{ fontSize: "0.75rem" }}>
+                                  Varian: {item.selected_size}
                                 </span>
                               )}
                             </div>
@@ -139,18 +139,12 @@ const CartPage = () => {
                         </td>
                         <td>
                           Rp{" "}
-                          {productData.price
-                            ? productData.price.toLocaleString("id-ID")
-                            : 0}
+                          {(item.variant?.price || productData.price || 0).toLocaleString("id-ID")}
                         </td>
                         <td>{item.quantity}</td>
                         <td className="fw-bold text-danger">
                           Rp{" "}
-                          {productData.price
-                            ? (
-                                productData.price * item.quantity
-                              ).toLocaleString("id-ID")
-                            : "0"}
+                          {((item.variant?.price || productData.price || 0) * item.quantity).toLocaleString("id-ID")}
                         </td>
                         <td>
                           <button

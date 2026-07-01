@@ -1,5 +1,5 @@
 const snap = require("../config/midtrans");
-const { Order, OrderItem, Cart, Product, User, Coupon, ProductImage } = require("../models");
+const { Order, OrderItem, Cart, Product, User, Coupon, ProductImage, ProductVariant, VariantAttribute, Review } = require("../models");
 
 // CUSTOMER: Melakukan Checkout
 exports.checkout = async (req, res) => {
@@ -17,7 +17,10 @@ exports.checkout = async (req, res) => {
 
     const cartItems = await Cart.findAll({
       where: whereClause,
-      include: [{ model: Product, as: "product" }],
+      include: [
+        { model: Product, as: "product" },
+        { model: ProductVariant, as: "variant" }
+      ],
     });
 
     if (!cartItems || cartItems.length === 0) {
@@ -30,13 +33,16 @@ exports.checkout = async (req, res) => {
     // 2. Validasi Stok & Hitung Total Harga
     let totalAmount = 0;
     for (const item of cartItems) {
-      if (item.product.stock < item.quantity) {
+      const stockAvailable = item.variant ? item.variant.stock : item.product.stock;
+      const priceToUse = item.variant ? item.variant.price : item.product.price;
+
+      if (stockAvailable < item.quantity) {
         return res.status(400).json({
           status: "fail",
-          message: `Stok produk ${item.product.name} tidak mencukupi (Sisa: ${item.product.stock})`,
+          message: `Stok produk ${item.product.name} ${item.variant ? '(Varian)' : ''} tidak mencukupi (Sisa: ${stockAvailable})`,
         });
       }
-      totalAmount += item.quantity * item.product.price;
+      totalAmount += item.quantity * priceToUse;
     }
 
     // 2.5 Cek dan Hitung Diskon Kupon
@@ -72,8 +78,9 @@ exports.checkout = async (req, res) => {
     const orderItemsData = cartItems.map((item) => ({
       order_id: newOrder.id,
       product_id: item.product_id,
+      variant_id: item.variant_id || null,
       quantity: item.quantity,
-      price_at_purchase: item.product.price,
+      price_at_purchase: item.variant ? item.variant.price : item.product.price,
       selected_image_url: item.selected_image_url || null,
       selected_size: item.selected_size || null,
     }));
@@ -82,6 +89,12 @@ exports.checkout = async (req, res) => {
 
     // Update stok dan jumlah terjual (sold_count)
     for (const item of cartItems) {
+      if (item.variant_id) {
+        await ProductVariant.decrement("stock", {
+          by: item.quantity,
+          where: { id: item.variant_id },
+        });
+      }
       await Product.decrement("stock", {
         by: item.quantity,
         where: { id: item.product_id },
@@ -141,7 +154,6 @@ exports.checkout = async (req, res) => {
 // CUSTOMER: Melihat Riwayat Pesanannya
 exports.getUserOrders = async (req, res) => {
   try {
-    const { OrderItem, Product, ProductImage, Review } = require('../models');
     const userId = req.user.id;
 
     const orders = await Order.findAll({
@@ -159,6 +171,12 @@ exports.getUserOrders = async (req, res) => {
               include: [
                 { model: ProductImage, as: "images", attributes: ["image_url", "is_primary"] },
               ],
+            },
+            {
+              model: ProductVariant,
+              as: "variant",
+              attributes: ["id", "sku", "price"],
+              include: [{ model: VariantAttribute, as: "attributes", attributes: ["attribute_name", "attribute_value"] }],
             },
           ],
         },
@@ -251,7 +269,14 @@ exports.getAllOrders = async (req, res) => {
       order: [['created_at', 'DESC']],
       include: [
         { model: User, as: 'user', attributes: ['name', 'email'] },
-        { model: OrderItem, as: 'items', include: [{ model: Product, as: 'product', attributes: ['id', 'name', 'price'], include: [{ model: ProductImage, as: 'images', attributes: ['image_url', 'is_primary'] }] }] }
+        { 
+          model: OrderItem, 
+          as: 'items', 
+          include: [
+            { model: Product, as: 'product', attributes: ['id', 'name', 'price'], include: [{ model: ProductImage, as: 'images', attributes: ['image_url', 'is_primary'] }] },
+            { model: ProductVariant, as: 'variant', attributes: ['id', 'sku', 'price'], include: [{ model: VariantAttribute, as: 'attributes', attributes: ['attribute_name', 'attribute_value'] }] }
+          ] 
+        }
       ]
     });
     return res.status(200).json({ status: 'success', data: orders });
@@ -336,7 +361,6 @@ exports.handleCancellationRequest = async (req, res) => {
 
       // Kembalikan stok produk jika pesanan sudah paid/shipped
       if (['paid', 'shipped'].includes(order.status)) {
-        const { OrderItem, Product } = require('../models');
         const items = await OrderItem.findAll({ where: { order_id: id } });
         for (const item of items) {
           await Product.increment('stock', { by: item.quantity, where: { id: item.product_id } });

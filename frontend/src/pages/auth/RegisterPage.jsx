@@ -41,6 +41,19 @@ const RegisterPage = () => {
         className="card shadow p-4"
         style={{ width: "100%", maxWidth: "420px" }}
       >
+        <div className="text-center mb-3">
+          <Link to="/" className="d-inline-flex align-items-center gap-2 text-decoration-none">
+            <img
+              src="/logo.png"
+              alt="Logo Toko"
+              style={{ width: "42px", height: "42px", objectFit: "contain" }}
+              onError={(e) => { e.target.onerror = null; e.target.src = "/logo.svg"; }}
+            />
+            <span className="fs-3 fw-bold text-dark" style={{ fontFamily: "'Poppins', sans-serif", letterSpacing: "-1px" }}>
+              Shop<span style={{ color: "var(--primary, #863bff)" }}>Ku</span>
+            </span>
+          </Link>
+        </div>
         <h4 className="text-center mb-4 fw-bold">Buat Akun Baru</h4>
 
         {error && <div className="alert alert-danger py-2">{error}</div>}

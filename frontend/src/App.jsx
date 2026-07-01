@@ -40,7 +40,7 @@ import Footer from "./components/layout/Footer";
 const CustomerLayout = () => (
   <div className="d-flex flex-column min-vh-100">
     <NavbarCustomer />
-    <main className="flex-grow-1">
+    <main className="flex-grow-1" style={{ paddingTop: "104px" }}>
       <Outlet />
     </main>
     <Footer />

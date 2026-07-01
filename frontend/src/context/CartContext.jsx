@@ -34,9 +34,9 @@ export const CartProvider = ({ children }) => {
   }, [user]);
 
   // Fungsi untuk menambah ke keranjang (Bisa dipanggil dari ProductDetailPage)
-  const addToCart = async (productId, quantity, selectedImageUrl = null, selectedSize = null) => {
+  const addToCart = async (productId, quantity, selectedImageUrl = null, selectedSize = null, variantId = null) => {
     try {
-      const addedData = await cartApi.addToCart(productId, quantity, selectedImageUrl, selectedSize);
+      const addedData = await cartApi.addToCart(productId, quantity, selectedImageUrl, selectedSize, variantId);
       // Refresh keranjang dari backend agar datanya akurat
       const response = await cartApi.getCart();
       setCartItems(response || []);
@@ -69,8 +69,8 @@ export const CartProvider = ({ children }) => {
 
   // Hitung total harga
   const totalPrice = cartItems.reduce((total, item) => {
-    // Pastikan relasi tabel Product di Backend ikut terbawa (item.Product.price)
-    const price = item.Product?.price || item.product?.price || 0;
+    // Pastikan relasi tabel Product/Variant di Backend ikut terbawa
+    const price = item.variant?.price || item.Product?.price || item.product?.price || 0;
     return total + price * item.quantity;
   }, 0);
 

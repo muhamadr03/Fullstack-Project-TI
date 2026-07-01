@@ -7,19 +7,11 @@ export const categoryApi = {
   },
   createCategory: async (categoryData) => {
     // categoryData can be FormData
-    const response = await axiosInstance.post("/categories", categoryData, {
-      headers: {
-        "Content-Type": categoryData instanceof FormData ? "multipart/form-data" : "application/json"
-      }
-    });
+    const response = await axiosInstance.post("/categories", categoryData);
     return response.data;
   },
   updateCategory: async (id, categoryData) => {
-    const response = await axiosInstance.put(`/categories/${id}`, categoryData, {
-      headers: {
-        "Content-Type": categoryData instanceof FormData ? "multipart/form-data" : "application/json"
-      }
-    });
+    const response = await axiosInstance.put(`/categories/${id}`, categoryData);
     return response.data;
   },
   deleteCategory: async (id) => {

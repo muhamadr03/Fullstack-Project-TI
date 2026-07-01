@@ -17,21 +17,13 @@ export const productApi = {
 
   // [ADMIN] Tambah Produk Baru (Menggunakan FormData karena ada file gambar)
   createProduct: async (formData) => {
-    const response = await axiosInstance.post('/products', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data', // 👈 WAJIB UNTUK MULTER
-      },
-    });
+    const response = await axiosInstance.post('/products', formData);
     return response.data;
   },
 
   // [ADMIN] Update Produk (Juga menggunakan FormData jika gambar diganti)
   updateProduct: async (id, formData) => {
-    const response = await axiosInstance.put(`/products/${id}`, formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    });
+    const response = await axiosInstance.put(`/products/${id}`, formData);
     return response.data;
   },
 

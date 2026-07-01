@@ -1,4 +1,4 @@
-const { Cart, Product, ProductImage } = require("../models");
+const { Cart, Product, ProductImage, ProductVariant, VariantAttribute } = require("../models");
 
 exports.getCart = async (req, res) => {
   try {
@@ -12,6 +12,12 @@ exports.getCart = async (req, res) => {
           attributes: ["id", "name", "price"],
           include: [{ model: ProductImage, as: "images", attributes: ["image_url", "is_primary"] }],
         },
+        {
+          model: ProductVariant,
+          as: "variant",
+          attributes: ["id", "sku", "price", "stock"],
+          include: [{ model: VariantAttribute, as: "attributes", attributes: ["attribute_name", "attribute_value"] }],
+        },
       ],
     });
     res.status(200).json(cartItems);
@@ -24,7 +30,7 @@ exports.getCart = async (req, res) => {
 
 exports.addToCart = async (req, res) => {
   try {
-    const { product_id, quantity, selected_image_url, selected_size } = req.body;
+    const { product_id, variant_id, quantity, selected_image_url, selected_size } = req.body;
 
     // 🔍 Ambil data produk
     const product = await Product.findByPk(product_id);
@@ -35,6 +41,17 @@ exports.addToCart = async (req, res) => {
       });
     }
 
+    let variant = null;
+    let availableStock = product.stock;
+
+    if (variant_id) {
+      variant = await ProductVariant.findByPk(variant_id);
+      if (!variant) {
+        return res.status(404).json({ message: "Varian produk tidak ditemukan" });
+      }
+      availableStock = variant.stock;
+    }
+
     const qty = quantity || 1;
 
     // 🔥 Cek apakah produk sudah ada di cart dengan varian yang persis sama
@@ -42,6 +59,7 @@ exports.addToCart = async (req, res) => {
       where: { 
         user_id: req.user.id, 
         product_id,
+        variant_id: variant_id || null,
         selected_image_url: selected_image_url || null,
         selected_size: selected_size || null
       },
@@ -51,7 +69,7 @@ exports.addToCart = async (req, res) => {
     if (cartItem) {
       const totalQty = cartItem.quantity + qty;
 
-      if (totalQty > product.stock) {
+      if (totalQty > availableStock) {
         return res.status(400).json({
           message: "Stock tidak mencukupi",
         });
@@ -60,7 +78,7 @@ exports.addToCart = async (req, res) => {
       cartItem.quantity = totalQty;
       await cartItem.save();
     } else {
-      if (qty > product.stock) {
+      if (qty > availableStock) {
         return res.status(400).json({
           message: "Stock tidak mencukupi",
         });
@@ -69,6 +87,7 @@ exports.addToCart = async (req, res) => {
       cartItem = await Cart.create({
         user_id: req.user.id,
         product_id,
+        variant_id: variant_id || null,
         quantity: qty,
         selected_image_url: selected_image_url || null,
         selected_size: selected_size || null,

@@ -38,6 +38,113 @@ const getActiveStep = (status) => {
   return 0;
 };
 
+// ── Cetak Invoice ─────────────────────────────────────────────────────────────
+const printInvoice = (order) => {
+  const win = window.open("", "_blank");
+  const dateStr = new Date(order.created_at || order.createdAt || Date.now()).toLocaleDateString("id-ID", {
+    day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit"
+  });
+  const itemsHtml = (order.OrderItems || order.order_items || []).map(item => {
+    const prod = item.Product || item.product || {};
+    const price = item.price || prod.price || 0;
+    const total = price * item.quantity;
+    return `
+      <tr>
+        <td style="padding: 10px; border-bottom: 1px solid #eee;">
+          <strong>${prod.name || "Produk"}</strong>
+          ${item.selected_size ? `<br><small style="color: #666;">Varian: ${item.selected_size}</small>` : ""}
+        </td>
+        <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: center;">${item.quantity}</td>
+        <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: right;">Rp ${Number(price).toLocaleString("id-ID")}</td>
+        <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: right; font-weight: bold;">Rp ${Number(total).toLocaleString("id-ID")}</td>
+      </tr>
+    `;
+  }).join("");
+
+  win.document.write(`
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <title>Invoice - #${String(order.id).slice(0, 8).toUpperCase()}</title>
+      <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #333; margin: 40px; }
+        .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid #863bff; padding-bottom: 20px; margin-bottom: 30px; }
+        .logo { font-size: 28px; font-weight: 800; color: #333; letter-spacing: -1px; }
+        .logo span { color: #863bff; }
+        .invoice-title { font-size: 24px; font-weight: bold; color: #863bff; text-align: right; }
+        .meta { display: flex; justify-content: space-between; margin-bottom: 30px; line-height: 1.6; }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 30px; }
+        th { background: #f8f9fa; color: #333; padding: 12px 10px; text-align: left; border-bottom: 2px solid #ddd; font-weight: 600; }
+        .total-box { float: right; width: 300px; background: #f8f9fa; padding: 20px; border-radius: 8px; border-left: 4px solid #863bff; }
+        .total-row { display: flex; justify-content: space-between; margin-bottom: 10px; }
+        .total-row.final { font-size: 18px; font-weight: bold; color: #863bff; border-top: 1px solid #ccc; padding-top: 10px; margin-top: 10px; }
+        .footer { clear: both; text-align: center; margin-top: 60px; padding-top: 20px; border-top: 1px solid #eee; font-size: 13px; color: #777; }
+        .badge { display: inline-block; padding: 4px 10px; border-radius: 4px; font-size: 12px; font-weight: bold; text-transform: uppercase; }
+        .badge-paid { background: #d1e7dd; color: #0f5132; }
+        .badge-pending { background: #fff3cd; color: #664d03; }
+      </style>
+    </head>
+    <body>
+      <div class="header">
+        <div class="logo">Shop<span>Ku</span></div>
+        <div>
+          <div class="invoice-title">INVOICE PEMBELIAN</div>
+          <div style="font-size: 14px; color: #666; text-align: right;">No. Order: #${String(order.id).slice(0, 8).toUpperCase()}</div>
+        </div>
+      </div>
+      <div class="meta">
+        <div>
+          <strong>Diterbitkan Oleh:</strong><br>
+          ShopKu E-Commerce<br>
+          Jl. Sudirman No. 45, Jakarta Selatan<br>
+          support@shopku.id
+        </div>
+        <div style="text-align: right;">
+          <strong>Ditujukan Kepada:</strong><br>
+          Alamat Pengiriman:<br>
+          <span style="display: inline-block; max-width: 250px;">${order.shipping_address || "Alamat Terdaftar"}</span><br><br>
+          <strong>Tanggal:</strong> ${dateStr}<br>
+          <strong>Status:</strong> <span class="badge ${order.status === 'paid' || order.status === 'completed' || order.status === 'shipped' ? 'badge-paid' : 'badge-pending'}">${order.status.toUpperCase()}</span>
+        </div>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>Deskripsi Produk</th>
+            <th style="text-align: center;">Qty</th>
+            <th style="text-align: right;">Harga Satuan</th>
+            <th style="text-align: right;">Subtotal</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${itemsHtml}
+        </tbody>
+      </table>
+      <div class="total-box">
+        <div class="total-row">
+          <span>Status Pembayaran:</span>
+          <strong>${order.status === 'paid' || order.status === 'completed' || order.status === 'shipped' ? 'LUNAS (Midtrans)' : 'BELUM LUNAS'}</strong>
+        </div>
+        ${order.tracking_number ? `<div class="total-row"><span>Nomor Resi:</span><strong>${order.tracking_number}</strong></div>` : ''}
+        ${order.courier ? `<div class="total-row"><span>Kurir:</span><strong>${order.courier}</strong></div>` : ''}
+        <div class="total-row final">
+          <span>Total Bayar:</span>
+          <span>Rp ${Number(order.total_amount || 0).toLocaleString("id-ID")}</span>
+        </div>
+      </div>
+      <div class="footer">
+        Terima kasih telah berbelanja di ShopKu! Simpan invoice ini sebagai bukti pembelian resmi dan garansi produk Anda.<br>
+        © ${new Date().getFullYear()} ShopKu. All Rights Reserved.
+      </div>
+      <script>
+        window.onload = () => { window.print(); }
+      </script>
+    </body>
+    </html>
+  `);
+  win.document.close();
+};
+
 // ── Komponen Kartu Pesanan ────────────────────────────────────────────────────
 const OrderCard = ({ order, onPayPending, onConfirmComplete, onRequestCancel, onOpenReviewModal }) => {
   const [expanded, setExpanded] = useState(false);
@@ -164,6 +271,12 @@ const OrderCard = ({ order, onPayPending, onConfirmComplete, onRequestCancel, on
               <i className="bi bi-hourglass-split me-1"></i>Menunggu Persetujuan
             </span>
           )}
+          <button
+            className="btn btn-outline-primary btn-sm fw-semibold px-3"
+            onClick={(e) => { e.stopPropagation(); printInvoice(order); }}
+          >
+            <i className="bi bi-printer me-1"></i>Cetak Invoice
+          </button>
           <button
             className="btn btn-outline-secondary btn-sm px-3"
             onClick={(e) => { e.stopPropagation(); setExpanded(!expanded); }}
@@ -299,7 +412,7 @@ const OrderCard = ({ order, onPayPending, onConfirmComplete, onRequestCancel, on
                           {item.quantity} x Rp {Number(item.price_at_purchase || product.price || 0).toLocaleString('id-ID')}
                         </div>
                         {item.selected_size && (
-                          <span className="badge bg-secondary" style={{ fontSize: '0.7rem' }}>Ukuran: {item.selected_size}</span>
+                          <span className="badge bg-info text-dark" style={{ fontSize: '0.7rem' }}>Varian: {item.selected_size}</span>
                         )}
                       </div>
                     </div>

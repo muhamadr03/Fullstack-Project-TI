@@ -107,50 +107,57 @@ bot.on("text", async (ctx) => {
     awaitingOrder.delete(chatId);
 
     try {
-      let order = null;
+      let orders = [];
       const orderId = parseInt(text, 10);
 
       // Coba cari berdasarkan ID (jika inputan berupa angka)
       if (!isNaN(orderId)) {
-        order = await Order.findByPk(orderId, {
+        const orderById = await Order.findByPk(orderId, {
           attributes: ["id", "status", "total_amount", "shipping_address", "tracking_number", "created_at"],
         });
+        if (orderById) orders.push(orderById);
       }
 
       // Jika belum ketemu atau inputan bukan angka, cari berdasarkan nomor resi
-      if (!order) {
-        order = await Order.findOne({
+      if (orders.length === 0) {
+        orders = await Order.findAll({
           where: { tracking_number: text },
           attributes: ["id", "status", "total_amount", "shipping_address", "tracking_number", "created_at"],
         });
       }
 
-      if (!order) {
+      if (orders.length === 0) {
         return ctx.replyWithHTML(
           `😔 Pesanan dengan Order ID / Nomor Resi <b>${esc(text)}</b> tidak ditemukan.\nPastikan data yang Anda masukkan benar.`,
           mainMenuInline
         );
       }
 
-      const tgl  = new Date(order.created_at).toLocaleDateString("id-ID", {
-        day: "2-digit", month: "long", year: "numeric",
-      });
-      const resi = order.tracking_number || "Belum tersedia";
-      const stat = statusLabel[order.status] ?? order.status;
+      if (orders.length > 1) {
+        await ctx.replyWithHTML(`🔍 Ditemukan <b>${orders.length}</b> pesanan dengan resi yang sama. Berikut detailnya:`);
+      }
 
-      ctx.replyWithHTML(
-        `📋 <b>Detail Pesanan #${order.id}</b>\n` +
-        `━━━━━━━━━━━━━━━━━━━━━━━━\n\n` +
-        `📅 Tanggal : ${tgl}\n` +
-        `💰 Total   : ${formatRupiah(order.total_amount)}\n` +
-        `📍 Alamat  : ${esc(order.shipping_address)}\n` +
-        `🚚 Resi    : <code>${esc(resi)}</code>\n` +
-        `📌 Status  : <b>${stat}</b>`,
-        Markup.inlineKeyboard([
-          [Markup.button.callback("🔗 Lihat Detail Pesanan", "menu_orders")],
-          [Markup.button.callback("🏠 Menu Utama", "back_to_menu")],
-        ])
-      );
+      for (const order of orders) {
+        const tgl  = new Date(order.created_at).toLocaleDateString("id-ID", {
+          day: "2-digit", month: "long", year: "numeric",
+        });
+        const resi = order.tracking_number || "Belum tersedia";
+        const stat = statusLabel[order.status] ?? order.status;
+
+        await ctx.replyWithHTML(
+          `📋 <b>Detail Pesanan #${order.id}</b>\n` +
+          `━━━━━━━━━━━━━━━━━━━━━━━━\n\n` +
+          `📅 Tanggal : ${tgl}\n` +
+          `💰 Total   : ${formatRupiah(order.total_amount)}\n` +
+          `📍 Alamat  : ${esc(order.shipping_address)}\n` +
+          `🚚 Resi    : <code>${esc(resi)}</code>\n` +
+          `📌 Status  : <b>${stat}</b>`,
+          Markup.inlineKeyboard([
+            [Markup.button.callback("🔗 Lihat Detail Pesanan", "menu_orders")],
+            [Markup.button.callback("🏠 Kembali ke Menu", "back_to_menu")],
+          ])
+        );
+      }
     } catch (err) {
       console.error("[TelegramBot] Error cek order:", err.message);
       ctx.replyWithHTML("❌ Gagal mengambil data pesanan. Silakan coba lagi.", mainMenuInline);

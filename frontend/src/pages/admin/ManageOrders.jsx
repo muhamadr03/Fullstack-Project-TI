@@ -703,6 +703,11 @@ const ManageOrdersPage = () => {
                                 <span className="fw-semibold">
                                   {item.product?.name || `Produk #${item.product_id}`}
                                 </span>
+                                {item.selected_size && (
+                                  <span className="badge bg-secondary ms-2" style={{ fontSize: "0.7rem" }}>
+                                    Varian: {item.selected_size}
+                                  </span>
+                                )}
                               </div>
                             </td>
                             <td className="text-center">{item.quantity}</td>

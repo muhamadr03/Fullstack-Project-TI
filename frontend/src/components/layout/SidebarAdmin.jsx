@@ -13,18 +13,23 @@ const SidebarAdmin = ({ isCollapsed, toggleCollapse }) => {
       <div className="d-flex align-items-center justify-content-between px-3 mb-4">
         <a href="/" className="d-flex align-items-center text-decoration-none">
           <div
-            className="bg-dark rounded text-white d-flex align-items-center justify-content-center me-2"
-            style={{ width: "32px", height: "32px" }}
+            className="rounded d-flex align-items-center justify-content-center me-2 flex-shrink-0"
+            style={{ width: "34px", height: "34px" }}
           >
-            <i className="bi bi-heptagon-fill"></i>
+            <img
+              src="/logo.png"
+              alt="Logo Admin"
+              style={{ width: "100%", height: "100%", objectFit: "contain" }}
+              onError={(e) => { e.target.onerror = null; e.target.src = "/logo.svg"; }}
+            />
           </div>
           <div className="sidebar-text lh-1">
-            <span className="sidebar-logo fs-5 d-block text-dark">Zenith</span>
+            <span className="sidebar-logo fs-5 d-block text-dark fw-bold">ShopKu</span>
             <small
               className="text-muted fw-bold"
               style={{ fontSize: "0.6rem", letterSpacing: "1px" }}
             >
-              DASHBOARD
+              ADMIN PANEL
             </small>
           </div>
         </a>

@@ -261,6 +261,7 @@ const ProductDetailPage = () => {
   const [error, setError] = useState(null);
   const [quantity, setQuantity] = useState(1);
   const [selectedSize, setSelectedSize] = useState("");
+  const [selectedVariant, setSelectedVariant] = useState(null);
   const { addToCart } = useContext(CartContext);
 
   // State untuk section review
@@ -387,7 +388,8 @@ const ProductDetailPage = () => {
   };
 
   const handleAddToCart = async () => {
-    const result = await addToCart(product.id, quantity, activeImage, selectedSize);
+    const sizeLabel = selectedVariant ? (selectedVariant.attributes?.map(a => `${a.attribute_value}`).join(' - ') || selectedVariant.sku) : selectedSize;
+    const result = await addToCart(product.id, quantity, activeImage, sizeLabel, selectedVariant?.id || null);
     if (result.success) {
       alert(`Berhasil! ${quantity} buah ${product.name} masuk ke keranjang 🛒`);
     } else {
@@ -402,7 +404,8 @@ const ProductDetailPage = () => {
   };
 
   const handleBuyNow = async () => {
-    const result = await addToCart(product.id, quantity, activeImage, selectedSize);
+    const sizeLabel = selectedVariant ? (selectedVariant.attributes?.map(a => `${a.attribute_value}`).join(' - ') || selectedVariant.sku) : selectedSize;
+    const result = await addToCart(product.id, quantity, activeImage, sizeLabel, selectedVariant?.id || null);
     if (result.success) {
       const cartItemId = result.data?.id;
       navigate("/checkout", { state: { selectedItems: cartItemId ? [cartItemId] : [] } });
@@ -519,6 +522,8 @@ const ProductDetailPage = () => {
   }
 
   const displayedReviews = showAllReviews ? reviews : reviews.slice(0, 4);
+  const displayPrice = selectedVariant ? selectedVariant.price : product?.price || 0;
+  const displayStock = selectedVariant ? selectedVariant.stock : product?.stock || 0;
 
   return (
     <div
@@ -762,7 +767,7 @@ const ProductDetailPage = () => {
                     lineHeight: 1,
                   }}
                 >
-                  Rp {product.price.toLocaleString("id-ID")}
+                  Rp {displayPrice.toLocaleString("id-ID")}
                 </div>
               </div>
 
@@ -832,37 +837,72 @@ const ProductDetailPage = () => {
                       : "Stok Habis"}
                   </div>
                   <div style={{ color: "#64748b", fontSize: "0.85rem" }}>
-                    Sisa stok: {product.stock} unit
+                    Sisa stok: {displayStock} unit
                   </div>
                 </div>
               </div>
 
-              {/* Pilihan Ukuran Opsional */}
-              <div className="mb-4">
-                <h6 className="fw-bold mb-2" style={{ fontSize: "0.95rem" }}>Pilih Ukuran (Opsional)</h6>
-                <div className="d-flex gap-2 flex-wrap">
-                  {["S", "M", "L", "XL"].map((size) => (
-                    <button
-                      key={size}
-                      type="button"
-                      className="btn fw-semibold"
-                      onClick={() => setSelectedSize(size === selectedSize ? "" : size)}
-                      style={{
-                        borderRadius: "12px",
-                        padding: "0.4rem 1.2rem",
-                        background: selectedSize === size ? "#4f46e5" : "#fff",
-                        color: selectedSize === size ? "#fff" : "#475569",
-                        border: `1.5px solid ${selectedSize === size ? "#4f46e5" : "#e2e8f0"}`,
-                        transition: "all 0.2s"
-                      }}
-                    >
-                      {size}
-                    </button>
-                  ))}
+              {/* Pilihan Varian / Ukuran */}
+              {product.variants && product.variants.length > 0 ? (
+                <div className="mb-4">
+                  <h6 className="fw-bold mb-2" style={{ fontSize: "0.95rem" }}>Pilih Varian / Spesifikasi</h6>
+                  <div className="d-flex gap-2 flex-wrap">
+                    {product.variants.map((v) => {
+                      const label = v.attributes && v.attributes.length > 0 
+                        ? v.attributes.map(a => `${a.attribute_value}`).join(' - ') 
+                        : (v.sku || `Varian #${v.id}`);
+                      const isSelected = selectedVariant?.id === v.id;
+                      return (
+                        <button
+                          key={v.id}
+                          type="button"
+                          className="btn fw-semibold"
+                          onClick={() => {
+                            setSelectedVariant(isSelected ? null : v);
+                            setSelectedSize(isSelected ? "" : label);
+                          }}
+                          style={{
+                            borderRadius: "12px",
+                            padding: "0.4rem 1.2rem",
+                            background: isSelected ? "#4f46e5" : "#fff",
+                            color: isSelected ? "#fff" : "#475569",
+                            border: `1.5px solid ${isSelected ? "#4f46e5" : "#e2e8f0"}`,
+                            transition: "all 0.2s"
+                          }}
+                        >
+                          {label} {v.price !== product.price ? `(+Rp ${(v.price - product.price).toLocaleString("id-ID")})` : ''}
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
-              </div>
+              ) : (
+                <div className="mb-4">
+                  <h6 className="fw-bold mb-2" style={{ fontSize: "0.95rem" }}>Pilih Ukuran (Opsional)</h6>
+                  <div className="d-flex gap-2 flex-wrap">
+                    {["S", "M", "L", "XL"].map((size) => (
+                      <button
+                        key={size}
+                        type="button"
+                        className="btn fw-semibold"
+                        onClick={() => setSelectedSize(size === selectedSize ? "" : size)}
+                        style={{
+                          borderRadius: "12px",
+                          padding: "0.4rem 1.2rem",
+                          background: selectedSize === size ? "#4f46e5" : "#fff",
+                          color: selectedSize === size ? "#fff" : "#475569",
+                          border: `1.5px solid ${selectedSize === size ? "#4f46e5" : "#e2e8f0"}`,
+                          transition: "all 0.2s"
+                        }}
+                      >
+                        {size}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
 
-              {product.stock > 0 ? (
+              {displayStock > 0 ? (
                 <div className="d-flex flex-wrap align-items-center gap-3 mb-4">
                   <div
                     className="input-group"

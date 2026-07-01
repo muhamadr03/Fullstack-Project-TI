@@ -32,7 +32,15 @@ const Footer = () => {
         <div className="row g-4 justify-content-between">
           {/* Brand */}
           <div className="col-12 col-md-4 col-lg-4">
-            <span className="lx-footer-logo">Luxe<span>Store</span></span>
+            <Link to="/" className="lx-footer-logo d-flex align-items-center gap-2 text-decoration-none mb-2" style={{ display: "flex" }}>
+              <img
+                src="/logo.png"
+                alt="Logo Toko"
+                style={{ width: "36px", height: "36px", objectFit: "contain" }}
+                onError={(e) => { e.target.onerror = null; e.target.src = "/logo.svg"; }}
+              />
+              <span>Shop<span>Ku</span></span>
+            </Link>
             <p className="lx-footer-desc mt-2">
               Destinasi premium Anda untuk produk fashion, elektronik, dan gaya hidup pilihan. Kualitas yang dapat dipercaya, gaya yang Anda cintai.
             </p>
@@ -64,7 +72,7 @@ const Footer = () => {
               {/* Kontak Section */}
               <div className="col-12 col-md-4">
                 <div className="lx-footer-heading">Hubungi Kami</div>
-                <a href="mailto:support@luxestore.id" className="lx-footer-link">support@luxestore.id</a>
+                <a href="mailto:support@shopku.id" className="lx-footer-link">support@shopku.id</a>
                 <a href="tel:+622112345678" className="lx-footer-link">+62 21 1234 5678</a>
                 <span className="lx-footer-link" style={{ pointerEvents: 'none' }}>Senin–Jumat 09:00–18:00</span>
               </div>
@@ -76,7 +84,7 @@ const Footer = () => {
         <div className="lx-footer-bottom mt-5">
           <div className="d-flex flex-column flex-md-row align-items-center justify-content-between gap-3">
             <p style={{ fontSize: "0.8rem", color: "rgba(255,255,255,0.4)", margin: 0 }}>
-              © {year} LuxeStore. Hak Cipta Dilindungi.
+              © {year} ShopKu. Hak Cipta Dilindungi.
             </p>
 
             {/* Payment methods */}

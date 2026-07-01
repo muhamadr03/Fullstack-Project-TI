@@ -11,16 +11,12 @@ export const bannerApi = {
   },
 
   createBanner: async (formData) => {
-    const response = await axiosInstance.post('/banners', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    });
+    const response = await axiosInstance.post('/banners', formData);
     return response.data;
   },
 
   updateBanner: async (id, formData) => {
-    const response = await axiosInstance.put(`/banners/${id}`, formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    });
+    const response = await axiosInstance.put(`/banners/${id}`, formData);
     return response.data;
   },
 

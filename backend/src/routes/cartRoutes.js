@@ -7,9 +7,10 @@ const { validate } = require("../middlewares/validator");
 
 const cartSchema = Joi.object({
   product_id: Joi.number().required(),
+  variant_id: Joi.number().integer().allow(null).optional(),
   quantity: Joi.number().integer().min(1).required(), // Tidak boleh beli 0 atau minus
-  selected_image_url: Joi.string().allow(null, ""),
-  selected_size: Joi.string().allow(null, ""),
+  selected_image_url: Joi.string().allow(null, "").optional(),
+  selected_size: Joi.string().allow(null, "").optional(),
 });
 
 // Semua rute keranjang WAJIB login (verifyToken), tapi tidak perlu Admin

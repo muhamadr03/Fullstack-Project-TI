@@ -1,4 +1,4 @@
-const { Product, Category, ProductImage } = require("../models");
+const { Product, Category, ProductImage, ProductVariant, VariantAttribute } = require("../models");
 const { Op } = require("sequelize");
 const { uploadToCloudinary } = require('../config/cloudinaryHelper');
 
@@ -87,7 +87,19 @@ exports.getAllProducts = async (req, res, next) => {
       order: orderCondition,
       include: [
         includeCondition,
-        { model: ProductImage, as: "images", attributes: ["id", "image_url", "is_primary"] }
+        { model: ProductImage, as: "images", attributes: ["id", "image_url", "is_primary"] },
+        {
+          model: ProductVariant,
+          as: "variants",
+          attributes: ["id", "sku", "price", "stock"],
+          include: [
+            {
+              model: VariantAttribute,
+              as: "attributes",
+              attributes: ["id", "attribute_name", "attribute_value"],
+            },
+          ],
+        }
       ],
       distinct: true, // important when using limit with includes
     });
@@ -118,7 +130,19 @@ exports.getProductById = async (req, res) => {
     const product = await Product.findByPk(req.params.id, {
       include: [
         { model: Category, as: "category", attributes: ["id", "name", "slug"] },
-        { model: ProductImage, as: "images", attributes: ["id", "image_url", "is_primary"] }
+        { model: ProductImage, as: "images", attributes: ["id", "image_url", "is_primary"] },
+        {
+          model: ProductVariant,
+          as: "variants",
+          attributes: ["id", "sku", "price", "stock"],
+          include: [
+            {
+              model: VariantAttribute,
+              as: "attributes",
+              attributes: ["id", "attribute_name", "attribute_value"],
+            },
+          ],
+        }
       ],
     });
     if (!product)
@@ -161,6 +185,38 @@ exports.createProduct = async (req, res) => {
 
     if (imageRecords.length > 0) {
       await ProductImage.bulkCreate(imageRecords);
+    }
+
+    // Simpan varian jika dikirim oleh frontend
+    console.log("=== [DEBUG BACKEND] createProduct req.body.variants:", req.body.variants);
+    if (req.body.variants) {
+      let variants = [];
+      try {
+        variants = typeof req.body.variants === "string" ? JSON.parse(req.body.variants) : req.body.variants;
+        console.log("=== [DEBUG BACKEND] createProduct parsed variants:", variants);
+      } catch (e) {
+        console.error("Gagal parsing variants:", e);
+      }
+
+      if (Array.isArray(variants)) {
+        for (const v of variants) {
+          const newVariant = await ProductVariant.create({
+            product_id: newProduct.id,
+            sku: v.sku || null,
+            price: Number(v.price || price),
+            stock: Number(v.stock || stock),
+          });
+
+          if (v.attributes && Array.isArray(v.attributes)) {
+            const attrRecords = v.attributes.map((attr) => ({
+              variant_id: newVariant.id,
+              attribute_name: attr.attribute_name || "Ukuran",
+              attribute_value: attr.attribute_value,
+            }));
+            await VariantAttribute.bulkCreate(attrRecords);
+          }
+        }
+      }
     }
 
     res
@@ -218,6 +274,41 @@ exports.updateProduct = async (req, res) => {
     await ProductImage.destroy({ where: { product_id: req.params.id } });
     if (updateImages.length > 0) {
       await ProductImage.bulkCreate(updateImages);
+    }
+
+    // Update varian jika dikirim saat update
+    console.log("=== [DEBUG BACKEND] updateProduct req.body.variants:", req.body.variants);
+    if (req.body.variants) {
+      let variants = [];
+      try {
+        variants = typeof req.body.variants === "string" ? JSON.parse(req.body.variants) : req.body.variants;
+        console.log("=== [DEBUG BACKEND] updateProduct parsed variants:", variants);
+      } catch (e) {
+        console.error("Gagal parsing variants di update:", e);
+      }
+
+      if (Array.isArray(variants)) {
+        // Hapus varian lama beserta atributnya (cascade)
+        await ProductVariant.destroy({ where: { product_id: req.params.id } });
+
+        for (const v of variants) {
+          const newVariant = await ProductVariant.create({
+            product_id: req.params.id,
+            sku: v.sku || null,
+            price: Number(v.price || req.body.price || 0),
+            stock: Number(v.stock || req.body.stock || 0),
+          });
+
+          if (v.attributes && Array.isArray(v.attributes)) {
+            const attrRecords = v.attributes.map((attr) => ({
+              variant_id: newVariant.id,
+              attribute_name: attr.attribute_name || "Ukuran",
+              attribute_value: attr.attribute_value,
+            }));
+            await VariantAttribute.bulkCreate(attrRecords);
+          }
+        }
+      }
     }
 
     res.status(200).json({ message: "Produk berhasil diupdate!" });

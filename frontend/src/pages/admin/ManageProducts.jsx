@@ -27,6 +27,7 @@ const ManageProductsPage = () => {
     description: "",
     price: "",
     stock: "",
+    variants: [],
     images: [null, null, null],
     existingImages: [null, null, null],
   });
@@ -152,6 +153,7 @@ const ManageProductsPage = () => {
       description: "",
       price: "",
       stock: "",
+      variants: [],
       images: [null, null, null],
       existingImages: [null, null, null],
     });
@@ -173,6 +175,15 @@ const ManageProductsPage = () => {
       });
     }
 
+    const formattedVariants = product.variants ? product.variants.map(v => ({
+      id: v.id,
+      sku: v.sku || "",
+      price: v.price || product.price,
+      stock: v.stock || 0,
+      attribute_name: v.attributes?.[0]?.attribute_name || "Ukuran",
+      attribute_value: v.attributes?.[0]?.attribute_value || ""
+    })) : [];
+
     setFormData({
       id: product.id,
       name: product.name,
@@ -180,6 +191,7 @@ const ManageProductsPage = () => {
       description: product.description,
       price: product.price,
       stock: product.stock,
+      variants: formattedVariants,
       images: [null, null, null],
       existingImages: existingImgs,
     });
@@ -211,16 +223,36 @@ const ManageProductsPage = () => {
         }
       });
 
+      if (formData.variants) {
+        const formattedVariants = formData.variants.map((v) => ({
+          sku: v.sku || "",
+          price: Number(v.price || formData.price || 0),
+          stock: Number(v.stock || formData.stock || 0),
+          attributes: [
+            {
+              attribute_name: v.attribute_name || "Varian",
+              attribute_value: v.attribute_value || "",
+            },
+          ],
+        }));
+        console.log("=== [DEBUG FRONTEND] SUBMITTING VARIANTS ===", formattedVariants);
+        dataToSubmit.append("variants", JSON.stringify(formattedVariants));
+      }
+
       if (isEditing) {
         await productApi.updateProduct(formData.id, dataToSubmit);
+        alert("Produk & Varian berhasil diperbarui!");
       } else {
         await productApi.createProduct(dataToSubmit);
+        alert("Produk & Varian berhasil ditambahkan!");
       }
       setShowForm(false);
       setImagePreviews([]);
       fetchProducts();
     } catch (error) {
-      alert("Gagal menyimpan produk.");
+      console.error("Gagal menyimpan produk:", error);
+      const errMsg = error.response?.data?.message || error.message || "Terjadi kesalahan sistem";
+      alert(`Gagal menyimpan produk: ${errMsg}`);
     } finally {
       setLoading(false);
     }
@@ -365,6 +397,135 @@ const ManageProductsPage = () => {
                   ))}
                 </div>
               </div>
+
+              {/* Bagian Manajemen Varian */}
+              <div className="mb-4 p-3 bg-light rounded border">
+                <div className="d-flex justify-content-between align-items-center mb-2">
+                  <div>
+                    <label className="form-label fw-bold mb-0">Daftar Varian / Spesifikasi (Opsional)</label>
+                    <small className="d-block text-muted">Contoh: Ukuran (XL, L) atau RAM (8GB, 16GB). Harga & stok opsional (mengikuti produk jika kosong).</small>
+                  </div>
+                  <button
+                    type="button"
+                    className="btn btn-sm btn-outline-primary"
+                    onClick={() => {
+                      const current = formData.variants || [];
+                      setFormData({
+                        ...formData,
+                        variants: [
+                          ...current,
+                          { attribute_name: "Ukuran", attribute_value: "", price: formData.price || "", stock: formData.stock || "10", sku: "" }
+                        ]
+                      });
+                    }}
+                  >
+                    + Tambah Varian
+                  </button>
+                </div>
+
+                {formData.variants && formData.variants.length > 0 && (
+                  <div className="table-responsive mt-3">
+                    <table className="table table-sm table-bordered bg-white mb-0 align-middle">
+                      <thead className="table-light">
+                        <tr>
+                          <th>Jenis (Atribut)</th>
+                          <th>Nilai / Ukuran</th>
+                          <th>Harga Khusus (Rp)</th>
+                          <th>Stok Varian</th>
+                          <th>SKU (Opsional)</th>
+                          <th style={{ width: "50px" }}>Aksi</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {formData.variants.map((variant, index) => (
+                          <tr key={index}>
+                            <td>
+                              <input
+                                type="text"
+                                className="form-control form-control-sm"
+                                placeholder="Ukuran / RAM"
+                                value={variant.attribute_name}
+                                onChange={(e) => {
+                                  const updated = [...formData.variants];
+                                  updated[index] = { ...updated[index], attribute_name: e.target.value };
+                                  setFormData({ ...formData, variants: updated });
+                                }}
+                                required
+                              />
+                            </td>
+                            <td>
+                              <input
+                                type="text"
+                                className="form-control form-control-sm"
+                                placeholder="XL / 8GB"
+                                value={variant.attribute_value}
+                                onChange={(e) => {
+                                  const updated = [...formData.variants];
+                                  updated[index] = { ...updated[index], attribute_value: e.target.value };
+                                  setFormData({ ...formData, variants: updated });
+                                }}
+                                required
+                              />
+                            </td>
+                            <td>
+                              <input
+                                type="number"
+                                className="form-control form-control-sm"
+                                placeholder={formData.price || "0"}
+                                value={variant.price}
+                                onChange={(e) => {
+                                  const updated = [...formData.variants];
+                                  updated[index] = { ...updated[index], price: e.target.value };
+                                  setFormData({ ...formData, variants: updated });
+                                }}
+                              />
+                            </td>
+                            <td>
+                              <input
+                                type="number"
+                                className="form-control form-control-sm"
+                                placeholder={formData.stock || "0"}
+                                value={variant.stock}
+                                onChange={(e) => {
+                                  const updated = [...formData.variants];
+                                  updated[index] = { ...updated[index], stock: e.target.value };
+                                  setFormData({ ...formData, variants: updated });
+                                }}
+                              />
+                            </td>
+                            <td>
+                              <input
+                                type="text"
+                                className="form-control form-control-sm"
+                                placeholder="SKU-001"
+                                value={variant.sku || ""}
+                                onChange={(e) => {
+                                  const updated = [...formData.variants];
+                                  updated[index] = { ...updated[index], sku: e.target.value };
+                                  setFormData({ ...formData, variants: updated });
+                                }}
+                              />
+                            </td>
+                            <td className="text-center">
+                              <button
+                                type="button"
+                                className="btn btn-sm btn-outline-danger"
+                                onClick={() => {
+                                  const updated = formData.variants.filter((_, idx) => idx !== index);
+                                  setFormData({ ...formData, variants: updated });
+                                }}
+                              >
+                                <i className="bi bi-trash"></i>
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+
               <button type="submit" className="btn btn-success me-2">
                 {loading ? "Proses..." : "Simpan"}
               </button>
@@ -485,7 +646,21 @@ const ManageProductsPage = () => {
                             }}
                           />
                         </td>
-                        <td className="fw-bold">{product.name}</td>
+                        <td className="fw-bold">
+                          {product.name}
+                          {product.variants && product.variants.length > 0 && (
+                            <div className="mt-1 d-flex gap-1 flex-wrap">
+                              {product.variants.map((v) => {
+                                const val = v.attributes?.[0]?.attribute_value || v.sku || v.id;
+                                return (
+                                  <span key={v.id} className="badge bg-info text-dark" style={{ fontSize: "0.7rem" }}>
+                                    {val} ({v.stock} unit)
+                                  </span>
+                                );
+                              })}
+                            </div>
+                          )}
+                        </td>
                         <td>{product.category?.name || "-"}</td>
                         <td className="text-success fw-bold">
                           Rp {product.price?.toLocaleString("id-ID")}
