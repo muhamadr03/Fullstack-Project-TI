@@ -3,6 +3,7 @@ import { orderApi } from "../../api/orderApi";
 import StatusBadge from "../../components/ui/StatusBadge";
 import jsPDF from "jspdf";
 import * as XLSX from "xlsx";
+import toast from 'react-hot-toast';
 
 const API_URL =
   import.meta.env.VITE_API_URL?.replace("/api", "") || "http://localhost:5000";
@@ -69,7 +70,7 @@ const ManageOrdersPage = () => {
       await orderApi.updateOrderStatus(orderId, { status: newStatus, ...extra });
       fetchOrders();
     } catch (err) {
-      alert(err.response?.data?.message || 'Gagal update status.');
+      toast.error(err.response?.data?.message || 'Gagal update status.');
     } finally {
       setUpdatingId(null);
     }
@@ -78,7 +79,7 @@ const ManageOrdersPage = () => {
   const handleShippingSubmit = async (e) => {
     e.preventDefault();
     if (!shippingForm.tracking_number.trim()) {
-      alert('Nomor resi wajib diisi untuk status Dikirim.');
+      toast.error('Nomor resi wajib diisi untuk status Dikirim.');
       return;
     }
     setShippingLoading(true);
@@ -91,7 +92,7 @@ const ManageOrdersPage = () => {
       setShippingModal(null);
       fetchOrders();
     } catch (err) {
-      alert(err.response?.data?.message || 'Gagal update status pengiriman.');
+      toast.error(err.response?.data?.message || 'Gagal update status pengiriman.');
     } finally {
       setShippingLoading(false);
     }
@@ -109,7 +110,7 @@ const ManageOrdersPage = () => {
       setCancelNote('');
       fetchOrders();
     } catch (err) {
-      alert(err.response?.data?.message || 'Gagal memproses permintaan pembatalan.');
+      toast.error(err.response?.data?.message || 'Gagal memproses permintaan pembatalan.');
     } finally {
       setCancelActionLoading(false);
     }

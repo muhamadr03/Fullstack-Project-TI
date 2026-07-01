@@ -6,6 +6,7 @@ import { cartApi } from "../../api/cartApi";
 import { CartContext } from "../../context/CartContext";
 import { WishlistContext } from "../../context/WishlistContext";
 import { useContext } from "react";
+import toast from 'react-hot-toast';
 
 const BACKEND_URL =
   import.meta.env.VITE_API_URL?.replace("/api", "") || "http://localhost:5000";
@@ -109,13 +110,13 @@ const ProductCard = ({ product, showAddCart = true }) => {
       } else if (result.message && (result.message.toLowerCase().includes("token") || result.message.toLowerCase().includes("login"))) {
         navigate("/login");
       } else {
-        alert(`Gagal memproses: ${result.message}`);
+        toast.error(`Gagal memproses: ${result.message}`);
       }
     } catch (err) {
       if (err.response?.status === 401 || err.response?.status === 403) {
         navigate("/login");
       } else {
-        alert("Terjadi kesalahan saat memproses pesanan.");
+        toast.error("Terjadi kesalahan saat memproses pesanan.");
       }
     } finally {
       setCartLoading(false);

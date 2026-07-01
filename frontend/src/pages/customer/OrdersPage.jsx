@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { orderApi } from '../../api/orderApi';
 import { reviewApi } from '../../api/reviewApi';
+import toast from 'react-hot-toast';
 
 const API_URL = import.meta.env.VITE_API_URL?.replace("/api", "") || "http://localhost:5000";
 
@@ -158,7 +159,7 @@ const OrderCard = ({ order, onPayPending, onConfirmComplete, onRequestCancel, on
 
   const handleCopyResi = () => {
     navigator.clipboard.writeText(order.tracking_number);
-    alert('Nomor resi disalin!');
+    toast.success('Nomor resi disalin!');
   };
 
   return (
@@ -551,7 +552,7 @@ const OrdersPage = () => {
 
   // Bayar pesanan pending
   const handlePayPending = (snapToken, orderId) => {
-    if (!snapToken) { alert('Token pembayaran tidak ditemukan! Hubungi Admin.'); return; }
+    if (!snapToken) { toast.error('Token pembayaran tidak ditemukan! Hubungi Admin.'); return; }
     window.snap.pay(snapToken, {
       onSuccess: async () => {
         try {
@@ -561,9 +562,9 @@ const OrdersPage = () => {
         }
         fetchOrders();
       },
-      onPending: () => { alert('Menunggu pembayaran Anda...'); },
-      onError:   () => { alert('Pembayaran gagal!'); },
-      onClose:   () => { alert('Anda menutup jendela sebelum menyelesaikan pembayaran.'); },
+      onPending: () => { toast('Menunggu pembayaran Anda...'); },
+      onError:   () => { toast.error('Pembayaran gagal!'); },
+      onClose:   () => { toast('Anda menutup jendela sebelum menyelesaikan pembayaran.'); },
     });
   };
 
@@ -573,10 +574,10 @@ const OrdersPage = () => {
     setConfirming(orderId);
     try {
       await orderApi.completeOrder(orderId);
-      alert('Terima kasih! Pesanan Anda telah ditandai selesai. 🎉');
+      toast.success('Terima kasih! Pesanan Anda telah ditandai selesai. 🎉');
       fetchOrders();
     } catch (err) {
-      alert(err.response?.data?.message || 'Gagal mengkonfirmasi pesanan.');
+      toast.error(err.response?.data?.message || 'Gagal mengkonfirmasi pesanan.');
     } finally {
       setConfirming(null);
     }
@@ -598,7 +599,7 @@ const OrdersPage = () => {
     try {
       await orderApi.requestCancellation(cancelModal.id, cancelReason.trim());
       setCancelModal(null);
-      alert('Permintaan pembatalan berhasil diajukan! Tunggu persetujuan admin.');
+      toast.success('Permintaan pembatalan berhasil diajukan! Tunggu persetujuan admin.');
       fetchOrders();
     } catch (err) {
       setCancelError(err.response?.data?.message || 'Gagal mengajukan pembatalan.');
@@ -630,7 +631,7 @@ const OrdersPage = () => {
         rating: reviewForm.rating,
         comment: reviewForm.comment.trim()
       });
-      alert('Terima kasih! Ulasan Anda berhasil disimpan. 🎉');
+      toast.success('Terima kasih! Ulasan Anda berhasil disimpan. 🎉');
       setReviewModal(null);
       fetchOrders();
     } catch (err) {

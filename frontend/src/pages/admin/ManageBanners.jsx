@@ -1,6 +1,7 @@
 // src/pages/admin/ManageBanners.jsx — v2 with rich banner fields
 import React, { useState, useEffect, useRef } from "react";
 import { bannerApi } from "../../api/bannerApi";
+import toast from 'react-hot-toast';
 
 const API_URL =
   import.meta.env.VITE_API_URL?.replace("/api", "") || "http://localhost:5000";
@@ -47,7 +48,7 @@ const ImageDropZone = ({ preview, label, onFile, required, hint }) => {
   const ref = useRef(null);
   const process = (file) => {
     if (!file) return;
-    if (!file.type.startsWith("image/")) { alert("File harus berupa gambar."); return; }
+    if (!file.type.startsWith("image/")) { toast.error("File harus berupa gambar."); return; }
     onFile(file, URL.createObjectURL(file));
   };
   return (

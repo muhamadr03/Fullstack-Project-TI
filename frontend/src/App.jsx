@@ -9,6 +9,8 @@ import NavbarCustomer from "./components/layout/NavbarCustomer";
 import AdminLayout from "./components/admin/AdminLayout";
 import { Outlet } from "react-router-dom";
 import TelegramWidget from "./components/ui/TelegramWidget";
+import { Toaster } from "react-hot-toast";
+
 
 // Auth
 import LoginPage from "./pages/auth/LoginPage";
@@ -51,10 +53,20 @@ const CustomerLayout = () => (
 function App() {
   return (
     <BrowserRouter>
+      <Toaster
+        position="top-right"
+        toastOptions={{
+          duration: 3000,
+          style: { borderRadius: "10px", fontFamily: "inherit" },
+          success: { iconTheme: { primary: "#22c55e", secondary: "#fff" } },
+          error: { iconTheme: { primary: "#ef4444", secondary: "#fff" } },
+        }}
+      />
       <AuthProvider>
         <CartProvider>
           <WishlistProvider>
             <Routes>
+
               {/* Customer & Public Routes wrapped in CustomerLayout */}
               <Route element={<CustomerLayout />}>
               <Route path="/login" element={<LoginPage />} />

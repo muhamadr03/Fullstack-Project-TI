@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { CartContext } from "../../context/CartContext";
 import { orderApi } from "../../api/orderApi";
 import { couponApi } from "../../api/couponApi";
+import toast from 'react-hot-toast';
 
 const CheckoutPage = () => {
   const { cartItems, cartLoading } = useContext(CartContext);
@@ -92,13 +93,13 @@ const CheckoutPage = () => {
           }
           navigate("/orders");
         },
-        onPending: () => { alert("Menunggu pembayaran Anda..."); navigate("/orders"); },
-        onError: () => { alert("Pembayaran gagal!"); setIsProcessing(false); },
-        onClose: () => { alert("Anda menutup jendela sebelum menyelesaikan pembayaran."); setIsProcessing(false); },
+        onPending: () => { toast("Menunggu pembayaran Anda..."); navigate("/orders"); },
+        onError: () => { toast.error("Pembayaran gagal!"); setIsProcessing(false); },
+        onClose: () => { toast("Anda menutup jendela sebelum menyelesaikan pembayaran."); setIsProcessing(false); },
       });
     } catch (error) {
       console.error("Gagal Checkout:", error);
-      alert(error.response?.data?.message || "Terjadi kesalahan saat checkout.");
+      toast.error(error.response?.data?.message || "Terjadi kesalahan saat checkout.");
       setIsProcessing(false);
     }
   };

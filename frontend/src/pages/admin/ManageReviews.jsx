@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { reviewAdminApi } from "../../api/reviewAdminApi";
 import { categoryApi } from "../../api/categoryApi";
 import * as XLSX from "xlsx";
+import toast from 'react-hot-toast';
 
 const ManageReviewsPage = () => {
   const [reviews, setReviews] = useState([]);
@@ -48,7 +49,7 @@ const ManageReviewsPage = () => {
       await reviewAdminApi.deleteReview(id);
       fetchReviews();
     } catch (err) {
-      alert(err.response?.data?.message || "Gagal menghapus ulasan.");
+      toast.error(err.response?.data?.message || "Gagal menghapus ulasan.");
     }
   };
 

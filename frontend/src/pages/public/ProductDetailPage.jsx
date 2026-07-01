@@ -5,6 +5,7 @@ import { reviewApi } from "../../api/reviewApi";
 import { wishlistApi } from "../../api/wishlistApi";
 import { CartContext } from "../../context/CartContext";
 import { WishlistContext } from "../../context/WishlistContext";
+import toast from 'react-hot-toast';
 
 const StarRating = ({ rating, onRate, readOnly = false, size = "1.5rem" }) => {
   const [hovered, setHovered] = useState(0);
@@ -374,7 +375,7 @@ const ProductDetailPage = () => {
       const res = await toggleWishlist(product.id);
       if (!res.success) {
         if (res.message?.toLowerCase().includes("token") || res.message?.toLowerCase().includes("login")) {
-          alert("Silakan login terlebih dahulu untuk menyimpan wishlist.");
+          toast('Silakan login terlebih dahulu untuk menyimpan wishlist.');
           navigate("/login");
         } else {
           console.error("Gagal toggle wishlist:", res.message);
@@ -391,9 +392,9 @@ const ProductDetailPage = () => {
     const sizeLabel = selectedVariant ? (selectedVariant.attributes?.map(a => `${a.attribute_value}`).join(' - ') || selectedVariant.sku) : selectedSize;
     const result = await addToCart(product.id, quantity, activeImage, sizeLabel, selectedVariant?.id || null);
     if (result.success) {
-      alert(`Berhasil! ${quantity} buah ${product.name} masuk ke keranjang 🛒`);
+      toast.success(`Berhasil! ${quantity} buah ${product.name} masuk ke keranjang 🛒`);
     } else {
-      alert(`Ups, gagal memasukkan ke keranjang: ${result.message}`);
+      toast.error(`Ups, gagal memasukkan ke keranjang: ${result.message}`);
       if (
         result.message.toLowerCase().includes("token") ||
         result.message.toLowerCase().includes("login")
@@ -410,7 +411,7 @@ const ProductDetailPage = () => {
       const cartItemId = result.data?.id;
       navigate("/checkout", { state: { selectedItems: cartItemId ? [cartItemId] : [] } });
     } else {
-      alert(`Ups, gagal memproses pembelian: ${result.message}`);
+      toast.error(`Ups, gagal memproses pembelian: ${result.message}`);
       if (
         result.message.toLowerCase().includes("token") ||
         result.message.toLowerCase().includes("login")

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { userApi } from "../../api/userApi";
 import { useAuth } from "../../context/AuthContext";
+import toast from 'react-hot-toast';
 
 const ManageUsersPage = () => {
   const { user: currentUser } = useAuth();
@@ -39,7 +40,7 @@ const ManageUsersPage = () => {
       await userApi.updateUserRole(userId, newRole);
       fetchUsers();
     } catch (err) {
-      alert(err.response?.data?.message || "Gagal mengubah role.");
+      toast.error(err.response?.data?.message || "Gagal mengubah role.");
     }
   };
 
@@ -49,7 +50,7 @@ const ManageUsersPage = () => {
       await userApi.deleteUser(userId);
       fetchUsers();
     } catch (err) {
-      alert(err.response?.data?.message || "Gagal menghapus pengguna.");
+      toast.error(err.response?.data?.message || "Gagal menghapus pengguna.");
     }
   };
 

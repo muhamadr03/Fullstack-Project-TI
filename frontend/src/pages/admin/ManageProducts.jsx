@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { productApi } from "../../api/productApi";
 import { categoryApi } from "../../api/categoryApi";
+import toast from 'react-hot-toast';
 
 const ManageProductsPage = () => {
   const [products, setProducts] = useState([]);
@@ -241,10 +242,10 @@ const ManageProductsPage = () => {
 
       if (isEditing) {
         await productApi.updateProduct(formData.id, dataToSubmit);
-        alert("Produk & Varian berhasil diperbarui!");
+        toast.success("Produk & Varian berhasil diperbarui!");
       } else {
         await productApi.createProduct(dataToSubmit);
-        alert("Produk & Varian berhasil ditambahkan!");
+        toast.success("Produk & Varian berhasil ditambahkan!");
       }
       setShowForm(false);
       setImagePreviews([]);
@@ -252,7 +253,7 @@ const ManageProductsPage = () => {
     } catch (error) {
       console.error("Gagal menyimpan produk:", error);
       const errMsg = error.response?.data?.message || error.message || "Terjadi kesalahan sistem";
-      alert(`Gagal menyimpan produk: ${errMsg}`);
+      toast.error(`Gagal menyimpan produk: ${errMsg}`);
     } finally {
       setLoading(false);
     }
@@ -264,7 +265,7 @@ const ManageProductsPage = () => {
         await productApi.deleteProduct(id);
         fetchProducts();
       } catch (error) {
-        alert("Gagal menghapus.");
+        toast.error("Gagal menghapus.");
       }
     }
   };
