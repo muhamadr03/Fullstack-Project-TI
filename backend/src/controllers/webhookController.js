@@ -2,55 +2,70 @@ const snap = require("../config/midtrans");
 const { Order } = require("../models");
 
 exports.midtransNotification = async (req, res) => {
+  // Midtrans WAJIB dapat balasan 200, apapun yang terjadi
+  // Kalau tidak, Midtrans akan spam kirim notifikasi terus
   try {
-    // 1. Serahkan data dari Midtrans ke library untuk diverifikasi keamanannya
-    const statusResponse = await snap.transaction.notification(req.body);
+    const notifBody = req.body;
+    console.log("🔔 Webhook Midtrans masuk:", JSON.stringify(notifBody));
+
+    // Validasi body tidak kosong
+    if (!notifBody || !notifBody.order_id) {
+      console.log("⚠️  Body kosong atau order_id tidak ada (test notification?)");
+      return res.status(200).json({ status: "ok", message: "Test notification diterima." });
+    }
+
+    // Verifikasi notifikasi via SDK Midtrans
+    let statusResponse;
+    try {
+      statusResponse = await snap.transaction.notification(notifBody);
+    } catch (sdkErr) {
+      console.error("⚠️  SDK Error (mungkin test notification):", sdkErr.message);
+      // Tetap 200 agar Midtrans tidak retry terus
+      return res.status(200).json({ status: "ok", message: "Diterima." });
+    }
 
     const orderId = statusResponse.order_id;
     const transactionStatus = statusResponse.transaction_status;
     const fraudStatus = statusResponse.fraud_status;
 
-    console.log(
-      `🔔 Webhook Midtrans Masuk! Order: ${orderId} | Status: ${transactionStatus}`,
-    );
+    console.log(`📦 Order: ${orderId} | Transaction: ${transactionStatus} | Fraud: ${fraudStatus}`);
 
-    // 2. Ekstrak ID Order asli dari database kita
-    // Ingat, kemarin kita format namanya: ORDER-{id_database}-{timestamp}
-    // Contoh: ORDER-10-1712345678 -> Kita ambil angka "10" di tengah
-    const dbOrderId = orderId.split("-")[1];
+    // Ekstrak ID dari format ORDER-{id}-{timestamp}
+    const parts = orderId.split("-");
+    const dbOrderId = parts.length >= 2 ? parts[1] : null;
 
-    // 3. Cari pesanan tersebut di Database
+    if (!dbOrderId || isNaN(dbOrderId)) {
+      console.log("⚠️  Format order_id tidak dikenali:", orderId);
+      return res.status(200).json({ status: "ok", message: "Format order_id tidak dikenali." });
+    }
+
+    // Cari pesanan di database
     const order = await Order.findByPk(dbOrderId);
     if (!order) {
-      // Jika tidak ketemu, tetap balas 200 agar Midtrans tidak spam panggil terus
-      return res
-        .status(200)
-        .json({ message: "Order tidak ditemukan di DB kita." });
+      console.log(`⚠️  Order ID ${dbOrderId} tidak ditemukan di DB.`);
+      return res.status(200).json({ status: "ok", message: "Order tidak ditemukan." });
     }
 
-    // 4. Logika Perubahan Status Berdasarkan Laporan Midtrans
-    if (transactionStatus === "capture") {
-      if (fraudStatus === "accept") {
-        await order.update({ status: "paid" }); // Kartu Kredit Sukses
-      }
+    // Update status berdasarkan laporan Midtrans
+    if (transactionStatus === "capture" && fraudStatus === "accept") {
+      await order.update({ status: "paid" });
+      console.log(`✅ Order ${dbOrderId} -> paid (capture)`);
     } else if (transactionStatus === "settlement") {
-      await order.update({ status: "paid" }); // Transfer Bank / GoPay Sukses (LUNAS!)
-    } else if (
-      transactionStatus === "cancel" ||
-      transactionStatus === "deny" ||
-      transactionStatus === "expire"
-    ) {
-      await order.update({ status: "cancelled" }); // Gagal / Kedaluwarsa
+      await order.update({ status: "paid" });
+      console.log(`✅ Order ${dbOrderId} -> paid (settlement)`);
+    } else if (["cancel", "deny", "expire"].includes(transactionStatus)) {
+      await order.update({ status: "cancelled" });
+      console.log(`❌ Order ${dbOrderId} -> cancelled (${transactionStatus})`);
     } else if (transactionStatus === "pending") {
-      await order.update({ status: "pending" }); // Menunggu Pembayaran
+      await order.update({ status: "pending" });
+      console.log(`⏳ Order ${dbOrderId} -> pending`);
     }
 
-    // 5. WAJIB HUKUMNYA membalas Midtrans dengan status 200 OK
-    res
-      .status(200)
-      .json({ status: "success", message: "Notifikasi berhasil diproses" });
+    return res.status(200).json({ status: "success", message: "Notifikasi berhasil diproses." });
+
   } catch (error) {
     console.error("🔥 Error Webhook:", error.message);
-    res.status(500).json({ message: "Terjadi kesalahan pada Webhook" });
+    // TETAP return 200 agar Midtrans tidak retry
+    return res.status(200).json({ status: "error_handled", message: "Terjadi kesalahan tapi sudah dicatat." });
   }
 };
