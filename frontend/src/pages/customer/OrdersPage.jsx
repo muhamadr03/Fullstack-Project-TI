@@ -245,7 +245,7 @@ const OrderCard = ({ order, onPayPending, onConfirmComplete, onRequestCancel, on
           {isPending && (
             <button
               className="btn btn-warning btn-sm fw-semibold px-3"
-              onClick={(e) => { e.stopPropagation(); onPayPending(order.snap_token); }}
+              onClick={(e) => { e.stopPropagation(); onPayPending(order.snap_token, order.id); }}
             >
               <i className="bi bi-credit-card me-1"></i>Bayar Sekarang
             </button>
@@ -550,10 +550,17 @@ const OrdersPage = () => {
   useEffect(() => { fetchOrders(); }, [fetchOrders]);
 
   // Bayar pesanan pending
-  const handlePayPending = (snapToken) => {
+  const handlePayPending = (snapToken, orderId) => {
     if (!snapToken) { alert('Token pembayaran tidak ditemukan! Hubungi Admin.'); return; }
     window.snap.pay(snapToken, {
-      onSuccess: () => { alert('Pembayaran Berhasil! 🎉'); fetchOrders(); },
+      onSuccess: async () => {
+        try {
+          await orderApi.verifyPayment(orderId);
+        } catch (err) {
+          console.warn('Verify payment error:', err.message);
+        }
+        fetchOrders();
+      },
       onPending: () => { alert('Menunggu pembayaran Anda...'); },
       onError:   () => { alert('Pembayaran gagal!'); },
       onClose:   () => { alert('Anda menutup jendela sebelum menyelesaikan pembayaran.'); },

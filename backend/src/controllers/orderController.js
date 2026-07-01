@@ -112,9 +112,11 @@ exports.checkout = async (req, res) => {
     // 6. Integrasi Midtrans
     const userData = await User.findByPk(userId);
 
+    const midtransOrderId = `ORDER-${newOrder.id}-${Date.now()}`;
+
     const parameter = {
       transaction_details: {
-        order_id: `ORDER-${newOrder.id}-${Date.now()}`,
+        order_id: midtransOrderId,
         gross_amount: finalAmount,
       },
       customer_details: {
@@ -126,8 +128,11 @@ exports.checkout = async (req, res) => {
     const midtransTransaction = await snap.createTransaction(parameter);
     const snapToken = midtransTransaction.token;
 
-    // Update token ke database
-    await newOrder.update({ snap_token: snapToken });
+    // Simpan snap_token DAN midtrans_order_id ke database
+    await newOrder.update({
+      snap_token: snapToken,
+      midtrans_transaction_id: midtransOrderId,
+    });
 
     // 7. Response Sukses
     return res.status(201).json({
@@ -389,4 +394,52 @@ exports.handleCancellationRequest = async (req, res) => {
     return res.status(500).json({ message: 'Gagal memproses permintaan pembatalan.', error: error.message });
   }
 };
+
+// ── Verifikasi Pembayaran Langsung ke Midtrans API ──────────────────────────
+exports.verifyPayment = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const order = await Order.findByPk(id);
+
+    if (!order) return res.status(404).json({ message: 'Order tidak ditemukan.' });
+
+    // Hanya user pemilik order yang bisa verifikasi
+    if (order.user_id !== req.user.id) {
+      return res.status(403).json({ message: 'Akses ditolak.' });
+    }
+
+    if (!order.midtrans_transaction_id) {
+      return res.status(400).json({ message: 'Order ini tidak memiliki ID transaksi Midtrans.' });
+    }
+
+    // Cek status langsung ke Midtrans API
+    const statusResponse = await snap.transaction.status(order.midtrans_transaction_id);
+    const transactionStatus = statusResponse.transaction_status;
+    const fraudStatus = statusResponse.fraud_status;
+
+    console.log(`🔍 Verify Payment Order ${id}: ${transactionStatus} | fraud: ${fraudStatus}`);
+
+    let newStatus = order.status;
+    if ((transactionStatus === 'capture' && fraudStatus === 'accept') || transactionStatus === 'settlement') {
+      newStatus = 'paid';
+    } else if (['cancel', 'deny', 'expire'].includes(transactionStatus)) {
+      newStatus = 'cancelled';
+    }
+
+    if (newStatus !== order.status) {
+      await order.update({ status: newStatus });
+      console.log(`✅ Order ${id} diupdate: ${order.status} → ${newStatus}`);
+    }
+
+    return res.status(200).json({
+      status: 'success',
+      order_status: newStatus,
+      transaction_status: transactionStatus,
+    });
+  } catch (error) {
+    console.error('verifyPayment error:', error.message);
+    return res.status(500).json({ message: 'Gagal verifikasi pembayaran.', error: error.message });
+  }
+};
+
 

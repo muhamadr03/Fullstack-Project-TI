@@ -47,4 +47,10 @@ export const orderApi = {
     const response = await axiosInstance.patch(`/orders/${orderId}/cancellation`, { action, note });
     return response.data;
   },
-};
+
+  // [CUSTOMER] Verifikasi status pembayaran langsung ke Midtrans via backend
+  verifyPayment: async (orderId) => {
+    const response = await axiosInstance.post(`/orders/${orderId}/verify-payment`);
+    return response.data;
+  },
+};

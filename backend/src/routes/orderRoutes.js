@@ -19,6 +19,8 @@ router.post("/checkout", verifyToken, orderController.checkout);
 router.get("/my-orders", verifyToken, orderController.getUserOrders);
 router.patch("/:id/complete", verifyToken, orderController.completeOrder);
 router.post("/:id/cancel-request", verifyToken, orderController.requestCancellation);
+router.post("/:id/verify-payment", verifyToken, orderController.verifyPayment);
+
 
 // Rute khusus Admin
 router.put(

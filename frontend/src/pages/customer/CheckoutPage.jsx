@@ -78,11 +78,20 @@ const CheckoutPage = () => {
       const fullAddress = `${address.street}, ${address.city}, ${address.postal_code}`;
       const response = await orderApi.createOrder(fullAddress, appliedCoupon?.code || null, selectedItems);
       const snapToken = response.data?.snap_token;
+      const orderId = response.data?.order_id;
 
       if (!snapToken) throw new Error("Token pembayaran gagal dibuat oleh server.");
 
       window.snap.pay(snapToken, {
-        onSuccess: () => { alert("Pembayaran Berhasil! 🎉"); navigate("/orders"); },
+        onSuccess: async () => {
+          try {
+            // Verifikasi pembayaran langsung ke Midtrans via backend
+            await orderApi.verifyPayment(orderId);
+          } catch (err) {
+            console.warn("Verify payment error (diabaikan):", err.message);
+          }
+          navigate("/orders");
+        },
         onPending: () => { alert("Menunggu pembayaran Anda..."); navigate("/orders"); },
         onError: () => { alert("Pembayaran gagal!"); setIsProcessing(false); },
         onClose: () => { alert("Anda menutup jendela sebelum menyelesaikan pembayaran."); setIsProcessing(false); },
